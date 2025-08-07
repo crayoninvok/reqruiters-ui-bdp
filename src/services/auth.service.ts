@@ -1,7 +1,12 @@
+// services/auth.service.ts
 import api from "./api";
-import { LoginCredentials, RegisterData, User, AuthResponse } from "@/types/types";
+import {
+  LoginCredentials,
+  RegisterData,
+  User,
+  AuthResponse,
+} from "@/types/types";
 
-// Auth Service Class
 export class AuthService {
   /**
    * Login user with email and password
@@ -34,11 +39,20 @@ export class AuthService {
    */
   static async logout(): Promise<void> {
     try {
+      // Clear the cookie on the client side
+      if (typeof window !== "undefined") {
+        document.cookie =
+          "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;"; // Expire the cookie
+      }
 
+      // Clear token and user from localStorage
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
+
+      // Optionally, you can clear cookies server-side as well
+      await api.post("/auth/logout"); // This ensures the server clears cookies too
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -86,27 +100,6 @@ export class AuthService {
   static getToken(): string | null {
     if (typeof window === "undefined") return null;
     return localStorage.getItem("token");
-  }
-
-  /**
-   * Verify token validity (you might want to add a backend endpoint for this)
-   */
-  static async verifyToken(): Promise<boolean> {
-    try {
-      const token = this.getToken();
-      if (!token) return false;
-
-      // You can add a verify endpoint on your backend
-      // const response = await api.get('/auth/verify', {
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
-      // return response.status === 200;
-
-      // For now, just check if token exists
-      return !!token;
-    } catch {
-      return false;
-    }
   }
 }
 

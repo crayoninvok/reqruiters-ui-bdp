@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import React, {
   useState,
   useEffect,
@@ -19,7 +18,7 @@ interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
+  checkAuth: () => void;
 }
 
 // Create Auth Context
@@ -42,7 +41,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   // Check if user is authenticated
-  const checkAuth = async () => {
+  const checkAuth = () => {
     try {
       setLoading(true);
 
@@ -51,16 +50,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const token = AuthService.getToken();
 
       if (savedUser && token) {
-        // Verify token is still valid (if you have a verify endpoint)
-        const isValid = await AuthService.verifyToken();
-        if (isValid) {
-          setUser(savedUser);
-        } else {
-          // Token is invalid, clear auth data
-          await logout();
-        }
+        setUser(savedUser); // If token exists, authenticate user
       } else {
-        setUser(null);
+        setUser(null); // No token, not authenticated
       }
     } catch (error) {
       console.error("Auth check failed:", error);
@@ -99,7 +91,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (result.user) {
         // Optionally auto-login after registration
-        // Or redirect to login page
         router.push("/login");
       }
     } catch (error) {
@@ -114,7 +105,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = async () => {
     try {
       setLoading(true);
-      await AuthService.logout();
+      await AuthService.logout(); // Ensure the logout removes both localStorage and cookies
       setUser(null);
       router.push("/login");
     } catch (error) {
@@ -150,57 +141,3 @@ export function useAuth() {
 
   return context;
 }
-
-// Higher-order component for protected routes
-export function withAuth<T extends Record<string, any>>(
-  Component: React.ComponentType<T>
-) {
-  return function AuthenticatedComponent(props: T) {
-    const { isAuthenticated, loading } = useAuth();
-    const router = useRouter();
-
-    useEffect(() => {
-      if (!loading && !isAuthenticated) {
-        router.push("/login");
-      }
-    }, [isAuthenticated, loading, router]);
-
-    // Show loading while checking auth
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-        </div>
-      );
-    }
-
-    // Don't render component if not authenticated
-    if (!isAuthenticated) {
-      return null;
-    }
-
-    return <Component {...props} />;
-  };
-}
-
-// Hook for role-based access
-export function useRole() {
-  const { user } = useAuth();
-
-  const isAdmin = user?.role === "ADMIN";
-  const isHR = user?.role === "HR";
-
-  const hasRole = (role: "ADMIN" | "HR") => user?.role === role;
-  const hasAnyRole = (roles: ("ADMIN" | "HR")[]) =>
-    user ? roles.includes(user.role) : false;
-
-  return {
-    isAdmin,
-    isHR,
-    hasRole,
-    hasAnyRole,
-    userRole: user?.role,
-  };
-}
-
-export default useAuth;

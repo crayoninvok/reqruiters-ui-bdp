@@ -2,6 +2,7 @@
 import { Metadata } from "next";
 import localFont from "next/font/local";
 import NavbarWrapper from "../components/NavbarWrapper"; // Import the NavbarWrapper
+import { AuthProvider } from "@/context/useAuth"; // Add AuthProvider import
 import "./globals.css";
 
 const geistSans = localFont({
@@ -28,10 +29,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Wrap the children with NavbarWrapper */}
-        <NavbarWrapper>
-          {children}
-        </NavbarWrapper>
+        {/* Wrap with AuthProvider first, then NavbarWrapper */}
+        <AuthProvider>
+          <NavbarWrapper>{children}</NavbarWrapper>
+        </AuthProvider>
       </body>
     </html>
   );

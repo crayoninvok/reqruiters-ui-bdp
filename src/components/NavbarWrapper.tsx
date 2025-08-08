@@ -9,6 +9,7 @@ export default function NavbarWrapper({ children }: { children: React.ReactNode 
   // List of routes where the Navbar should not be displayed
   const noNavbarRoutes = [
     "/login",
+    "/dashboard"
   ];
 
   // If the current route is in the noNavbarRoutes array, don't render the Navbar

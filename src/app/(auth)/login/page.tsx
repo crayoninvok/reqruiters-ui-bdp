@@ -28,18 +28,29 @@ export default function LoginPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsSubmitting(true);
+  e.preventDefault();
+  setError("");
+  setIsSubmitting(true);
 
-    try {
-      await login(formData);
-    } catch (err: any) {
-      setError(err.message || "Login failed. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+  try {
+    // Call the login function from the useAuth hook
+    await login(formData);
+    
+    // After login, store the token in localStorage
+    const token = localStorage.getItem("token"); // Assuming the token is saved here
+    if (token) {
+      // Redirect to the dashboard or home page
+      router.push("/dashboard");  // You can change this route as needed
+    } else {
+      setError("Authentication failed. Please try again.");
     }
-  };
+  } catch (err: any) {
+    setError(err.message || "Login failed. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900">

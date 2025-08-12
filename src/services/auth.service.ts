@@ -1,12 +1,5 @@
-// services/auth.service.ts
 import api from "./api";
-import {
-  LoginCredentials,
-  RegisterData,
-  User,
-  AuthResponse,
-} from "@/types/types";
-import Cookies from "js-cookie";
+import { LoginCredentials, RegisterData, User, AuthResponse } from "@/types/types";
 
 export class AuthService {
   /**
@@ -15,8 +8,9 @@ export class AuthService {
   static async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       const response = await api.post("/auth/login", credentials, {
-        withCredentials: true, // Important for cookies
+        withCredentials: true, // Important for cookies (optional for the login process)
       });
+      this.saveUserData(response.data.token, response.data.user);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Login failed");
@@ -36,46 +30,16 @@ export class AuthService {
   }
 
   /**
-   * Logout user (client-side and server-side cleanup)
+   * Logout user (client-side cleanup)
    */
   static logout = async () => {
     try {
-      // Optional: Call server-side logout endpoint first
-      // This can invalidate the token on the server and clear httpOnly cookies
-      try {
-        await api.post("/auth/logout", {}, { withCredentials: true });
-      } catch (error) {
-        // Don't throw if server logout fails - still clean up client-side
-        console.warn("Server logout failed:", error);
-      }
-
-      // Clear localStorage
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken'); // if you store refresh token locally
-      
-      // Clear sessionStorage as well (if used)
-      sessionStorage.removeItem('user');
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('refreshToken');
-      
-      // Clear cookies - try different path/domain combinations if needed
-      Cookies.remove('token');
-      Cookies.remove('refreshToken');
-      Cookies.remove('user');
-      
-      // If cookies were set with specific options, match them:
-      Cookies.remove('token', { path: '/' });
-      Cookies.remove('refreshToken', { path: '/' });
-      Cookies.remove('user', { path: '/' });
-      
-      // If you have domain-specific cookies:
-      // Cookies.remove('token', { path: '/', domain: '.yourdomain.com' });
-      
+      // Optional: Call server-side logout endpoint if needed
+      await api.post("/auth/logout", {}, { withCredentials: true }); // This is optional
+      this.clearAllAuthData(); // Clean up client-side storage (localStorage)
     } catch (error) {
-      console.error('Logout cleanup failed:', error);
-      // Still attempt to clear what we can
-      this.clearAllAuthData();
+      console.warn("Logout error:", error);
+      this.clearAllAuthData(); // Ensure client-side data is cleared
     }
   };
 
@@ -84,28 +48,17 @@ export class AuthService {
    */
   static clearAllAuthData(): void {
     try {
-      // Clear all localStorage auth-related items
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
+      // Clear localStorage (remove all auth-related items)
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("refreshToken"); // If using refresh tokens
       
-      // Clear sessionStorage
-      sessionStorage.removeItem('user');
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('refreshToken');
-      
-      // Clear cookies with different path combinations
-      const cookieNames = ['token', 'refreshToken', 'user', 'authToken', 'sessionId'];
-      cookieNames.forEach(name => {
-        Cookies.remove(name);
-        Cookies.remove(name, { path: '/' });
-        Cookies.remove(name, { path: '/', domain: window.location.hostname });
-        // Add domain if you have specific domain cookies
-        // Cookies.remove(name, { path: '/', domain: '.yourdomain.com' });
-      });
-      
+      // Clear sessionStorage (optional, if you're using sessionStorage as well)
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("refreshToken");
     } catch (error) {
-      console.error('Failed to clear auth data:', error);
+      console.error("Failed to clear auth data:", error);
     }
   }
 
@@ -113,32 +66,21 @@ export class AuthService {
    * Check if user is authenticated (client-side check)
    */
   static isAuthenticated(): boolean {
-    if (typeof window === "undefined") return false;
-
-    const token = localStorage.getItem("token") || Cookies.get("token");
-    return !!token;
+    const token = localStorage.getItem("token");
+    return !!token; // If token exists in localStorage, return true, else false
   }
 
   /**
-   * Get current user from localStorage or cookies
+   * Get current user from localStorage
    */
   static getCurrentUser(): User | null {
-    if (typeof window === "undefined") return null;
-
-    // Try localStorage first
-    let userStr = localStorage.getItem("user");
-    
-    // Fallback to cookies if not in localStorage
-    if (!userStr) {
-      userStr = Cookies.get("user") || null;
-    }
-
+    const userStr = localStorage.getItem("user");
     if (!userStr) return null;
 
     try {
       return JSON.parse(userStr);
     } catch {
-      return null;
+      return null; // If parsing fails, return null
     }
   }
 
@@ -146,31 +88,15 @@ export class AuthService {
    * Save user data to localStorage
    */
   static saveUserData(token: string, user: User): void {
-    if (typeof window === "undefined") return;
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    
-    // Optionally also save to cookies as backup
-    // Cookies.set("token", token, { expires: 7, secure: true, sameSite: 'strict' });
-    // Cookies.set("user", JSON.stringify(user), { expires: 7, secure: true, sameSite: 'strict' });
+    localStorage.setItem("token", token); // Store token in localStorage
+    localStorage.setItem("user", JSON.stringify(user)); // Store user object in localStorage
   }
 
   /**
-   * Get stored token from localStorage or cookies
+   * Get stored token from localStorage
    */
   static getToken(): string | null {
-    if (typeof window === "undefined") return null;
-    
-    // Try localStorage first
-    let token = localStorage.getItem("token");
-    
-    // Fallback to cookies if not in localStorage
-    if (!token) {
-      token = Cookies.get("token") || null;
-    }
-    
-    return token;
+    return localStorage.getItem("token"); // Only retrieving from localStorage
   }
 
   /**
@@ -185,10 +111,9 @@ export class AuthService {
       if (response.data.token && response.data.user) {
         this.saveUserData(response.data.token, response.data.user);
       }
-      
+
       return response.data;
     } catch (error: any) {
-      // If refresh fails, clear all auth data
       this.clearAllAuthData();
       throw new Error(error.response?.data?.message || "Token refresh failed");
     }
@@ -203,7 +128,7 @@ export class AuthService {
       const currentTime = Date.now() / 1000;
       return payload.exp < currentTime;
     } catch {
-      return true; // If we can't parse, assume expired
+      return true; // If parsing fails, assume expired
     }
   }
 }

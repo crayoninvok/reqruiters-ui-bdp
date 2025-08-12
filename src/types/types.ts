@@ -59,6 +59,10 @@ export interface RecruitmentForm {
   updatedAt: string;
 }
 
+interface RecruitmentResponse {
+  recruiters: RecruitmentForm[];  // or rename to 'applications'
+}
+
 // Recruiter Data Types
 export interface RecruiterData {
   id: string;

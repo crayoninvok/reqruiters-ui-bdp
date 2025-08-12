@@ -5,6 +5,7 @@ import React, {
   useContext,
   createContext,
   ReactNode,
+  useCallback,
 } from "react";
 import { useRouter } from "next/navigation";
 import AuthService from "../services/auth.service";
@@ -19,6 +20,7 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => void;
+  refreshAuth: () => Promise<void>;
 }
 
 // Create Auth Context
@@ -40,19 +42,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkAuth();
   }, []);
 
-  // Check if user is authenticated
-  const checkAuth = () => {
+  // Memoized checkAuth to prevent unnecessary re-renders
+  const checkAuth = useCallback(() => {
     try {
       setLoading(true);
 
-      // Get user from localStorage
+      // Get user from localStorage/cookies
       const savedUser = AuthService.getCurrentUser();
       const token = AuthService.getToken();
 
       if (savedUser && token) {
-        setUser(savedUser); // If token exists, authenticate user
+        // Check if token is expired
+        if (AuthService.isTokenExpired(token)) {
+          // Token expired, try to refresh
+          refreshAuth().catch(() => {
+            // If refresh fails, clear auth data
+            setUser(null);
+          });
+        } else {
+          setUser(savedUser);
+        }
       } else {
-        setUser(null); // No token, not authenticated
+        setUser(null);
       }
     } catch (error) {
       console.error("Auth check failed:", error);
@@ -60,7 +71,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Refresh authentication
+  const refreshAuth = useCallback(async () => {
+    try {
+      const result = await AuthService.refreshToken();
+      
+      if (result.token && result.user) {
+        AuthService.saveUserData(result.token, result.user);
+        setUser(result.user);
+      } else {
+        throw new Error("Invalid refresh response");
+      }
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      // Clear auth data and redirect to login
+      await logout();
+      throw error;
+    }
+  }, []);
 
   // Login function
   const login = async (credentials: LoginCredentials) => {
@@ -71,7 +101,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (result.token && result.user) {
         AuthService.saveUserData(result.token, result.user);
         setUser(result.user);
-        router.push("/dashboard"); // Redirect to dashboard or desired page
+        router.push("/dashboard");
       } else {
         throw new Error("Invalid login response");
       }
@@ -91,6 +121,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (result.user) {
         // Optionally auto-login after registration
+        // For now, just redirect to login
         router.push("/login");
       }
     } catch (error) {
@@ -101,15 +132,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // Logout function
+  // Enhanced logout function
   const logout = async () => {
     try {
       setLoading(true);
-      await AuthService.logout(); // Ensure the logout removes both localStorage and cookies
+      
+      // Call AuthService logout (handles both client and server cleanup)
+      await AuthService.logout();
+      
+      // Clear user state
       setUser(null);
+      
+      // Redirect to login
       router.push("/login");
+      
     } catch (error) {
       console.error("Logout failed:", error);
+      
+      // Even if logout fails, clear user state and redirect
+      setUser(null);
+      
+      // Force clear all auth data as fallback
+      AuthService.clearAllAuthData();
+      
+      router.push("/login");
     } finally {
       setLoading(false);
     }
@@ -117,6 +163,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Check if user is authenticated
   const isAuthenticated = !!user;
+
+  // Auto-refresh token before it expires
+  useEffect(() => {
+    if (!user) return;
+
+    const token = AuthService.getToken();
+    if (!token) return;
+
+    // Set up token refresh interval (e.g., every 15 minutes)
+    const refreshInterval = setInterval(async () => {
+      try {
+        // Only refresh if token will expire in next 5 minutes
+        const willExpireSoon = AuthService.isTokenExpired(token);
+        if (willExpireSoon) {
+          await refreshAuth();
+        }
+      } catch (error) {
+        console.error("Auto-refresh failed:", error);
+        // If auto-refresh fails, user will be logged out on next interaction
+      }
+    }, 15 * 60 * 1000); // 15 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, [user, refreshAuth]);
 
   const value: AuthContextType = {
     user,
@@ -126,6 +196,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     register,
     logout,
     checkAuth,
+    refreshAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -125,7 +125,7 @@ function RecruitmentFormPage() {
 
       // Reset form after success
       setTimeout(() => {
-        router.push("/thank-you"); // Redirect to thank you page
+        router.push("/terima-kasih"); // Redirect to thank you page
       }, 2000);
     } catch (err: any) {
       setError(err.message);
@@ -154,11 +154,10 @@ function RecruitmentFormPage() {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">
-            Application Submitted!
+            Lamaran Berhasil Dikirim!
           </h2>
           <p className="text-slate-400">
-            Thank you for your application. We will review it and contact you
-            soon.
+            Terima kasih atas lamaran Anda. Kami akan meninjau dan menghubungi Anda segera.
           </p>
         </div>
       </div>
@@ -172,10 +171,10 @@ function RecruitmentFormPage() {
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
             <h1 className="text-3xl font-bold text-white">
-              Recruitment Application
+              Formulir Lamaran Kerja
             </h1>
             <p className="text-blue-100 mt-2">
-              Please fill out all required information
+              Mohon lengkapi semua informasi yang diperlukan
             </p>
           </div>
 
@@ -192,14 +191,14 @@ function RecruitmentFormPage() {
               <div className="flex items-center gap-2 pb-2 border-b border-slate-600">
                 <User className="w-5 h-5 text-blue-400" />
                 <h2 className="text-xl font-semibold text-white">
-                  Personal Information
+                  Informasi Pribadi
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Full Name *
+                    Nama Lengkap *
                   </label>
                   <input
                     type="text"
@@ -213,7 +212,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Birth Place *
+                    Tempat Lahir *
                   </label>
                   <input
                     type="text"
@@ -227,7 +226,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Birth Date *
+                    Tanggal Lahir *
                   </label>
                   <input
                     type="date"
@@ -241,7 +240,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Province *
+                    Provinsi *
                   </label>
                   <select
                     name="province"
@@ -250,7 +249,7 @@ function RecruitmentFormPage() {
                     required
                     className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   >
-                    <option value="">Select Province</option>
+                    <option value="">Pilih Provinsi</option>
                     {Object.values(Province).map((province) => (
                       <option key={province} value={province}>
                         {province.replace(/_/g, " ")}
@@ -261,7 +260,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Height (cm) *
+                    Tinggi Badan (cm) *
                   </label>
                   <input
                     type="number"
@@ -277,7 +276,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Weight (kg) *
+                    Berat Badan (kg) *
                   </label>
                   <input
                     type="number"
@@ -293,7 +292,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Marital Status *
+                    Status Pernikahan *
                   </label>
                   <select
                     name="maritalStatus"
@@ -302,7 +301,7 @@ function RecruitmentFormPage() {
                     required
                     className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   >
-                    <option value="">Select Status</option>
+                    <option value="">Pilih Status</option>
                     {Object.values(MaritalStatus).map((status) => (
                       <option key={status} value={status}>
                         {status}
@@ -313,7 +312,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    WhatsApp Number *
+                    Nomor WhatsApp *
                   </label>
                   <input
                     type="tel"
@@ -328,7 +327,7 @@ function RecruitmentFormPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Address *
+                  Alamat *
                 </label>
                 <textarea
                   name="address"
@@ -358,14 +357,14 @@ function RecruitmentFormPage() {
                   />
                 </svg>
                 <h2 className="text-xl font-semibold text-white">
-                  Uniform Sizes
+                  Ukuran Seragam
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Shirt Size *
+                    Ukuran Baju *
                   </label>
                   <select
                     name="shirtSize"
@@ -374,7 +373,7 @@ function RecruitmentFormPage() {
                     required
                     className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   >
-                    <option value="">Select Size</option>
+                    <option value="">Pilih Ukuran</option>
                     {Object.values(ShirtSize).map((size) => (
                       <option key={size} value={size}>
                         {size}
@@ -385,7 +384,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Safety Shoes Size *
+                    Ukuran Sepatu Safety *
                   </label>
                   <select
                     name="safetyShoesSize"
@@ -394,7 +393,7 @@ function RecruitmentFormPage() {
                     required
                     className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   >
-                    <option value="">Select Size</option>
+                    <option value="">Pilih Ukuran</option>
                     {Object.values(SafetyShoesSize).map((size) => (
                       <option key={size} value={size}>
                         {size.replace("SIZE_", "")}
@@ -405,7 +404,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Pants Size *
+                    Ukuran Celana *
                   </label>
                   <select
                     name="pantsSize"
@@ -414,7 +413,7 @@ function RecruitmentFormPage() {
                     required
                     className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   >
-                    <option value="">Select Size</option>
+                    <option value="">Pilih Ukuran</option>
                     {Object.values(PantsSize).map((size) => (
                       <option key={size} value={size}>
                         {size.replace("SIZE_", "")}
@@ -430,14 +429,14 @@ function RecruitmentFormPage() {
               <div className="flex items-center gap-2 pb-2 border-b border-slate-600">
                 <Award className="w-5 h-5 text-blue-400" />
                 <h2 className="text-xl font-semibold text-white">
-                  Education & Experience
+                  Pendidikan & Pengalaman
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Education Level *
+                    Tingkat Pendidikan *
                   </label>
                   <select
                     name="education"
@@ -446,7 +445,7 @@ function RecruitmentFormPage() {
                     required
                     className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   >
-                    <option value="">Select Education</option>
+                    <option value="">Pilih Pendidikan</option>
                     {Object.values(EducationLevel).map((level) => (
                       <option key={level} value={level}>
                         {level}
@@ -457,7 +456,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    School Name *
+                    Nama Sekolah *
                   </label>
                   <input
                     type="text"
@@ -471,7 +470,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Applied Position *
+                    Posisi yang Dilamar *
                   </label>
                   <select
                     name="appliedPosition"
@@ -480,7 +479,7 @@ function RecruitmentFormPage() {
                     required
                     className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   >
-                    <option value="">Select Position</option>
+                    <option value="">Pilih Posisi</option>
                     {Object.values(Position).map((position) => (
                       <option key={position} value={position}>
                         {position.replace(/_/g, " ")}
@@ -491,7 +490,7 @@ function RecruitmentFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Experience Level *
+                    Level Pengalaman *
                   </label>
                   <select
                     name="experienceLevel"
@@ -500,7 +499,7 @@ function RecruitmentFormPage() {
                     required
                     className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   >
-                    <option value="">Select Experience</option>
+                    <option value="">Pilih Pengalaman</option>
                     {Object.values(ExperienceLevel).map((level) => (
                       <option key={level} value={level}>
                         {level.replace("_", " ")}
@@ -512,14 +511,14 @@ function RecruitmentFormPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Work Experience
+                  Pengalaman Kerja
                 </label>
                 <textarea
                   name="workExperience"
                   value={formData.workExperience}
                   onChange={handleInputChange}
                   rows={3}
-                  placeholder="Describe your work experience (optional)"
+                  placeholder="Jelaskan pengalaman kerja Anda (opsional)"
                   className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                 />
               </div>
@@ -527,7 +526,7 @@ function RecruitmentFormPage() {
               {/* Certificates */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Certificates
+                  Sertifikat
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   {Object.values(Certificate).map((cert) => (
@@ -555,28 +554,28 @@ function RecruitmentFormPage() {
               <div className="flex items-center gap-2 pb-2 border-b border-slate-600">
                 <FileText className="w-5 h-5 text-blue-400" />
                 <h2 className="text-xl font-semibold text-white">
-                  Document Uploads
+                  Upload Dokumen
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
-                  { name: "documentPhoto", label: "Photo", required: false },
+                  { name: "documentPhoto", label: "Foto", required: false },
                   { name: "documentCv", label: "CV/Resume", required: false },
                   {
                     name: "documentKtp",
-                    label: "KTP/ID Card",
+                    label: "KTP/Kartu Identitas",
                     required: false,
                   },
                   { name: "documentSkck", label: "SKCK", required: false },
                   {
                     name: "documentVaccine",
-                    label: "Vaccine Certificate",
+                    label: "Sertifikat Vaksin",
                     required: false,
                   },
                   {
                     name: "supportingDocs",
-                    label: "Supporting Documents",
+                    label: "Dokumen Pendukung",
                     required: false,
                   },
                 ].map(({ name, label, required }) => (
@@ -600,7 +599,7 @@ function RecruitmentFormPage() {
                         <span className="text-sm text-slate-300">
                           {files[name as keyof typeof files]
                             ? files[name as keyof typeof files]?.name
-                            : `Choose ${label}`}
+                            : `Pilih ${label}`}
                         </span>
                       </label>
                     </div>
@@ -639,10 +638,10 @@ function RecruitmentFormPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Submitting...
+                    Mengirim...
                   </div>
                 ) : (
-                  "Submit Application"
+                  "Kirim Lamaran"
                 )}
               </button>
             </div>

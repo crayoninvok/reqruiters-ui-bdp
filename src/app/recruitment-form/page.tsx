@@ -16,6 +16,7 @@ import {
   Loader,
   Home,
 } from "lucide-react";
+import Swal from "sweetalert2";
 
 interface FormOptions {
   provinces: string[];
@@ -81,6 +82,12 @@ const PublicRecruitmentPage: React.FC = () => {
         setOptions(response.options);
       } catch (error) {
         console.error("Failed to load form options:", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'Gagal memuat data formulir. Silakan refresh halaman.',
+          confirmButtonColor: '#2563eb'
+        });
       }
     };
 
@@ -162,15 +169,19 @@ const PublicRecruitmentPage: React.FC = () => {
           allowedFormats = "PDF";
           break;
         default:
-          allowedFormats = "supported";
+          allowedFormats = "yang didukung";
       }
-      alert(
-        `Invalid file type! Please upload only ${allowedFormats} files for ${field
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Jenis File Tidak Valid!',
+        text: `Mohon upload hanya file ${allowedFormats} untuk ${field
           .replace("document", "")
           .replace(/([A-Z])/g, " $1")
           .toLowerCase()
-          .trim()}.`
-      );
+          .trim()}.`,
+        confirmButtonColor: '#2563eb'
+      });
       return;
     }
 
@@ -178,15 +189,20 @@ const PublicRecruitmentPage: React.FC = () => {
     if (file.size > maxSize) {
       const maxSizeMB = Math.round(maxSize / (1024 * 1024));
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      alert(
-        `File size too large! ${
-          file.name
-        } is ${fileSizeMB}MB. Maximum allowed size for ${field
-          .replace("document", "")
-          .replace(/([A-Z])/g, " $1")
-          .toLowerCase()
-          .trim()} is ${maxSizeMB}MB.`
-      );
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Ukuran File Terlalu Besar!',
+        html: `
+          <p><strong>${file.name}</strong> berukuran <strong>${fileSizeMB}MB</strong></p>
+          <p>Ukuran maksimal untuk ${field
+            .replace("document", "")
+            .replace(/([A-Z])/g, " $1")
+            .toLowerCase()
+            .trim()} adalah <strong>${maxSizeMB}MB</strong></p>
+        `,
+        confirmButtonColor: '#2563eb'
+      });
       return;
     }
 
@@ -199,6 +215,17 @@ const PublicRecruitmentPage: React.FC = () => {
     if (errors.length > 0) {
       setErrors([]);
     }
+
+    // Show success message for file upload
+    Swal.fire({
+      icon: 'success',
+      title: 'File Berhasil Diupload!',
+      text: `${file.name} berhasil dipilih.`,
+      timer: 2000,
+      showConfirmButton: false,
+      toast: true,
+      position: 'top-end'
+    });
   };
 
   const handleCertificateChange = (certificate: string, checked: boolean) => {
@@ -210,16 +237,87 @@ const PublicRecruitmentPage: React.FC = () => {
     }));
   };
 
+  // Validate all documents are uploaded
+  const validateDocuments = (): boolean => {
+    const requiredDocuments = [
+      { key: 'documentPhoto', label: 'Foto Profil' },
+      { key: 'documentCv', label: 'CV/Resume' },
+      { key: 'documentKtp', label: 'KTP (Kartu Identitas)' },
+      { key: 'documentSkck', label: 'SKCK (Catatan Kepolisian)' },
+      { key: 'documentVaccine', label: 'Sertifikat Vaksin' },
+      { key: 'supportingDocs', label: 'Dokumen Pendukung' }
+    ];
+
+    const missingDocuments: string[] = [];
+
+    requiredDocuments.forEach(({ key, label }) => {
+      if (!files[key as keyof FormFiles]) {
+        missingDocuments.push(label);
+      }
+    });
+
+    if (missingDocuments.length > 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Dokumen Belum Lengkap!',
+        html: `
+          <p>Mohon upload dokumen berikut:</p>
+          <ul style="text-align: left; margin: 10px 0;">
+            ${missingDocuments.map(doc => `<li>• ${doc}</li>`).join('')}
+          </ul>
+        `,
+        confirmButtonColor: '#2563eb'
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const validateAndSubmit = async () => {
     // Validate form data
     const formErrors = PublicRecruitmentService.validateFormData(formData);
-    const fileErrors = PublicRecruitmentService.validateFileUploads(files);
+    
+    // Validate all documents are uploaded
+    if (!validateDocuments()) {
+      setCurrentStep(3); // Go to document upload step
+      return;
+    }
 
+    const fileErrors = PublicRecruitmentService.validateFileUploads(files);
     const allErrors = [...formErrors, ...fileErrors];
 
     if (allErrors.length > 0) {
       setErrors(allErrors);
       setCurrentStep(1); // Go back to first step to show errors
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Data Belum Lengkap!',
+        html: `
+          <p>Mohon perbaiki kesalahan berikut:</p>
+          <ul style="text-align: left; margin: 10px 0;">
+            ${allErrors.map(error => `<li>• ${error}</li>`).join('')}
+          </ul>
+        `,
+        confirmButtonColor: '#2563eb'
+      });
+      return;
+    }
+
+    // Show confirmation dialog before submitting
+    const result = await Swal.fire({
+      icon: 'question',
+      title: 'Konfirmasi Pengiriman',
+      text: 'Apakah Anda yakin ingin mengirim lamaran ini? Data tidak dapat diubah setelah dikirim.',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Kirim Lamaran',
+      cancelButtonText: 'Batal'
+    });
+
+    if (!result.isConfirmed) {
       return;
     }
 
@@ -248,6 +346,15 @@ const PublicRecruitmentPage: React.FC = () => {
         applicationId: response.applicationId,
       });
       setIsSubmitted(true);
+
+      // Show success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Lamaran Berhasil Dikirim!',
+        text: 'Terima kasih atas lamaran Anda. Kami akan menghubungi Anda segera.',
+        confirmButtonColor: '#10b981'
+      });
+
     } catch (error: any) {
       const errorMessage = PublicRecruitmentService.formatErrorMessage(error);
       setSubmissionResult({
@@ -255,6 +362,14 @@ const PublicRecruitmentPage: React.FC = () => {
         message: errorMessage,
       });
       setErrors([errorMessage]);
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Mengirim Lamaran!',
+        text: errorMessage,
+        confirmButtonColor: '#dc2626'
+      });
+
     } finally {
       setIsLoading(false);
       setUploadProgress(0);
@@ -269,60 +384,129 @@ const PublicRecruitmentPage: React.FC = () => {
   };
 
   const goToHomepage = () => {
-    // Replace with your actual homepage route
-    window.location.href = "/";
-    // Or if using Next.js router:
-    // router.push('/');
-    // Or if using React Router:
-    // navigate('/');
+    Swal.fire({
+      icon: 'question',
+      title: 'Kembali ke Beranda?',
+      text: 'Anda akan diarahkan ke halaman utama website.',
+      showCancelButton: true,
+      confirmButtonColor: '#2563eb',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Kembali',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location.href = "www.bataramining.com";
+      }
+    });
   };
 
   const resetForm = () => {
-    setFormData({
-      fullName: "",
-      birthPlace: "",
-      birthDate: "",
-      province: "",
-      heightCm: 0,
-      weightKg: 0,
-      shirtSize: "",
-      safetyShoesSize: "",
-      pantsSize: "",
-      address: "",
-      whatsappNumber: "",
-      certificate: [],
-      education: "",
-      schoolName: "",
-      workExperience: "",
-      maritalStatus: "",
-      appliedPosition: "",
-      experienceLevel: "",
+    Swal.fire({
+      icon: 'question',
+      title: 'Reset Formulir?',
+      text: 'Semua data yang telah diisi akan hilang. Apakah Anda yakin?',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Reset',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setFormData({
+          fullName: "",
+          birthPlace: "",
+          birthDate: "",
+          province: "",
+          heightCm: 0,
+          weightKg: 0,
+          shirtSize: "",
+          safetyShoesSize: "",
+          pantsSize: "",
+          address: "",
+          whatsappNumber: "",
+          certificate: [],
+          education: "",
+          schoolName: "",
+          workExperience: "",
+          maritalStatus: "",
+          appliedPosition: "",
+          experienceLevel: "",
+        });
+        setFiles({});
+        setIsSubmitted(false);
+        setSubmissionResult(null);
+        setErrors([]);
+        setCurrentStep(1);
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Formulir Berhasil Direset!',
+          timer: 2000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      }
     });
-    setFiles({});
-    setIsSubmitted(false);
-    setSubmissionResult(null);
-    setErrors([]);
-    setCurrentStep(1);
   };
 
   // Helper function to get file format text for each document type
   const getFileFormatText = (key: string) => {
     switch (key) {
       case "documentPhoto":
-        return "JPG, PNG only. Max size: 3MB";
+        return "JPG, PNG saja. Ukuran maksimal: 3MB";
       case "documentCv":
-        return "PDF only. Max size: 2MB";
+        return "PDF saja. Ukuran maksimal: 2MB";
       case "documentKtp":
-        return "PDF, JPG, PNG. Max size: 1MB";
+        return "PDF, JPG, PNG. Ukuran maksimal: 1MB";
       case "documentSkck":
-        return "PDF only. Max size: 2MB";
+        return "PDF saja. Ukuran maksimal: 2MB";
       case "documentVaccine":
-        return "PDF, JPG, PNG. Max size: 2MB";
+        return "PDF, JPG, PNG. Ukuran maksimal: 2MB";
       case "supportingDocs":
-        return "PDF only. Max size: 3MB";
+        return "PDF saja. Ukuran maksimal: 3MB - NPWP, Surat Keterangan Kerja dan Sertifikat masukan disini";
       default:
-        return "Supported formats: PDF, JPG, PNG. Max size: 5MB";
+        return "Format yang didukung: PDF, JPG, PNG. Ukuran maksimal: 5MB";
     }
+  };
+
+  const handleNextStep = () => {
+    // Validate current step before proceeding
+    if (currentStep === 1) {
+      const requiredFields = ['fullName', 'birthPlace', 'birthDate', 'province', 'heightCm', 'weightKg', 'address', 'whatsappNumber', 'maritalStatus'];
+      const missingFields = requiredFields.filter(field => {
+        const value = formData[field as keyof PublicRecruitmentFormData];
+        return !value || (typeof value === 'number' && value === 0);
+      });
+
+      if (missingFields.length > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Data Belum Lengkap!',
+          text: 'Mohon lengkapi semua data pribadi yang wajib diisi sebelum melanjutkan.',
+          confirmButtonColor: '#2563eb'
+        });
+        return;
+      }
+    } else if (currentStep === 2) {
+      const requiredFields = ['education', 'schoolName', 'appliedPosition', 'experienceLevel', 'shirtSize', 'safetyShoesSize', 'pantsSize'];
+      const missingFields = requiredFields.filter(field => {
+        const value = formData[field as keyof PublicRecruitmentFormData];
+        return !value;
+      });
+
+      if (missingFields.length > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Data Profesional Belum Lengkap!',
+          text: 'Mohon lengkapi semua data profesional yang wajib diisi sebelum melanjutkan.',
+          confirmButtonColor: '#2563eb'
+        });
+        return;
+      }
+    }
+
+    setCurrentStep(currentStep + 1);
   };
 
   if (!options) {
@@ -330,7 +514,7 @@ const PublicRecruitmentPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <Loader className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading application form...</p>
+          <p className="text-gray-600">Memuat formulir lamaran...</p>
         </div>
       </div>
     );
@@ -345,17 +529,17 @@ const PublicRecruitmentPage: React.FC = () => {
             Lamaran Tersubmit!
           </h1>
           <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            Screenshot Page ini untuk tracking lamaran
+            Screenshot Halaman ini untuk tracking lamaran
           </h1>
           <p className="text-gray-600 mb-6">{submissionResult.message}</p>
           {submissionResult.applicationId && (
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <p className="text-sm text-gray-600 mb-2">Your Application ID:</p>
+              <p className="text-sm text-gray-600 mb-2">ID Lamaran Anda:</p>
               <p className="text-lg font-mono font-bold text-blue-600">
                 {submissionResult.applicationId}
               </p>
               <p className="text-xs text-gray-500 mt-2">
-                Save this ID to check your application status
+                Simpan ID ini untuk memeriksa status lamaran
               </p>
             </div>
           )}
@@ -365,7 +549,7 @@ const PublicRecruitmentPage: React.FC = () => {
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
             >
               <Home className="h-4 w-4 mr-2" />
-              Back to Batara Homepage
+              Kembali ke Beranda Batara
             </button>
           </div>
         </div>
@@ -379,10 +563,10 @@ const PublicRecruitmentPage: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Join Our Team
+            Bergabunglah dengan PT. Batara Dharma Persada
           </h1>
           <p className="text-xl text-gray-600">
-            Submit your application and take the next step in your career
+            Kirimkan lamaran Anda dan ambil langkah selanjutnya dalam karir
           </p>
         </div>
 
@@ -419,7 +603,7 @@ const PublicRecruitmentPage: React.FC = () => {
               <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
               <div>
                 <h3 className="text-red-800 font-semibold mb-2">
-                  Please fix the following errors:
+                  Mohon perbaiki kesalahan berikut:
                 </h3>
                 <ul className="text-red-700 space-y-1">
                   {errors.map((error, index) => (
@@ -439,13 +623,13 @@ const PublicRecruitmentPage: React.FC = () => {
             <div>
               <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
                 <User className="h-6 w-6 mr-2 text-blue-600" />
-                Personal Information
+                Informasi Pribadi
               </h2>
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name *
+                    Nama Lengkap *
                   </label>
                   <input
                     type="text"
@@ -454,13 +638,13 @@ const PublicRecruitmentPage: React.FC = () => {
                       handleInputChange("fullName", e.target.value)
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter your full name"
+                    placeholder="Masukkan nama lengkap Anda"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Birth Place *
+                    Tempat Lahir *
                   </label>
                   <input
                     type="text"
@@ -469,13 +653,13 @@ const PublicRecruitmentPage: React.FC = () => {
                       handleInputChange("birthPlace", e.target.value)
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter your birth place"
+                    placeholder="Masukkan tempat lahir Anda"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Birth Date *
+                    Tanggal Lahir *
                   </label>
                   <input
                     type="date"
@@ -489,7 +673,7 @@ const PublicRecruitmentPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Province *
+                    Provinsi *
                   </label>
                   <select
                     value={formData.province}
@@ -498,7 +682,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Province</option>
+                    <option value="">Pilih Provinsi</option>
                     {options.provinces.map((province) => (
                       <option key={province} value={province}>
                         {formatEnumValue(province)}
@@ -509,7 +693,7 @@ const PublicRecruitmentPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Height (cm) *
+                    Tinggi Badan (cm) *
                   </label>
                   <input
                     type="number"
@@ -529,7 +713,7 @@ const PublicRecruitmentPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Weight (kg) *
+                    Berat Badan (kg) *
                   </label>
                   <input
                     type="number"
@@ -549,7 +733,7 @@ const PublicRecruitmentPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Marital Status *
+                    Status Pernikahan *
                   </label>
                   <select
                     value={formData.maritalStatus}
@@ -558,7 +742,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Status</option>
+                    <option value="">Pilih Status</option>
                     {options.maritalStatuses.map((status) => (
                       <option key={status} value={status}>
                         {formatEnumValue(status)}
@@ -570,20 +754,20 @@ const PublicRecruitmentPage: React.FC = () => {
 
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address *
+                  Alamat *
                 </label>
                 <textarea
                   value={formData.address}
                   onChange={(e) => handleInputChange("address", e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your complete address"
+                  placeholder="Masukkan alamat lengkap Anda"
                 />
               </div>
 
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  WhatsApp Number *
+                  Nomor WhatsApp *
                 </label>
                 <input
                   type="text"
@@ -592,7 +776,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     handleInputChange("whatsappNumber", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="+62812345678 or 08123456789"
+                  placeholder="+62812345678 atau 08123456789"
                 />
               </div>
             </div>
@@ -602,13 +786,13 @@ const PublicRecruitmentPage: React.FC = () => {
             <div>
               <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
                 <GraduationCap className="h-6 w-6 mr-2 text-blue-600" />
-                Professional Information
+                Informasi Profesional
               </h2>
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Education Level *
+                    Tingkat Pendidikan *
                   </label>
                   <select
                     value={formData.education}
@@ -617,7 +801,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Education</option>
+                    <option value="">Pilih Pendidikan</option>
                     {options.educationLevels.map((level) => (
                       <option key={level} value={level}>
                         {level}
@@ -628,7 +812,7 @@ const PublicRecruitmentPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    School/University Name *
+                    Nama Sekolah/Universitas *
                   </label>
                   <input
                     type="text"
@@ -637,13 +821,13 @@ const PublicRecruitmentPage: React.FC = () => {
                       handleInputChange("schoolName", e.target.value)
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter institution name"
+                    placeholder="Masukkan nama institusi"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Applied Position *
+                    Posisi yang Dilamar *
                   </label>
                   <select
                     value={formData.appliedPosition}
@@ -652,7 +836,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Position</option>
+                    <option value="">Pilih Posisi</option>
                     {options.positions.map((position) => (
                       <option key={position} value={position}>
                         {formatEnumValue(position)}
@@ -663,7 +847,7 @@ const PublicRecruitmentPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Experience Level *
+                    Level Pengalaman *
                   </label>
                   <select
                     value={formData.experienceLevel}
@@ -672,7 +856,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Experience</option>
+                    <option value="">Pilih Pengalaman</option>
                     {options.experienceLevels.map((level) => (
                       <option key={level} value={level}>
                         {formatEnumValue(level)}
@@ -684,7 +868,7 @@ const PublicRecruitmentPage: React.FC = () => {
                 {/* Uniform Sizes */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Shirt Size *
+                    Ukuran Baju *
                   </label>
                   <select
                     value={formData.shirtSize}
@@ -693,7 +877,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Size</option>
+                    <option value="">Pilih Ukuran</option>
                     {options.shirtSizes.map((size) => (
                       <option key={size} value={size}>
                         {size}
@@ -704,7 +888,7 @@ const PublicRecruitmentPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Safety Shoes Size *
+                    Ukuran Sepatu Safety *
                   </label>
                   <select
                     value={formData.safetyShoesSize}
@@ -713,7 +897,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Size</option>
+                    <option value="">Pilih Ukuran</option>
                     {options.safetyShoeSizes.map((size) => (
                       <option key={size} value={size}>
                         {size.replace("SIZE_", "")}
@@ -724,7 +908,7 @@ const PublicRecruitmentPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pants Size *
+                    Ukuran Celana *
                   </label>
                   <select
                     value={formData.pantsSize}
@@ -733,7 +917,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Size</option>
+                    <option value="">Pilih Ukuran</option>
                     {options.pantsSizes.map((size) => (
                       <option key={size} value={size}>
                         {size.replace("SIZE_", "")}
@@ -745,7 +929,7 @@ const PublicRecruitmentPage: React.FC = () => {
 
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Work Experience (Optional)
+                  Pengalaman Kerja (Opsional)
                 </label>
                 <textarea
                   value={formData.workExperience}
@@ -754,13 +938,13 @@ const PublicRecruitmentPage: React.FC = () => {
                   }
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Describe your relevant work experience"
+                  placeholder="Jelaskan pengalaman kerja yang relevan"
                 />
               </div>
 
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Certificates (Optional)
+                  Sertifikat (Opsional)
                 </label>
                 <div className="grid md:grid-cols-2 gap-3">
                   {options.certificates.map((cert) => (
@@ -787,44 +971,62 @@ const PublicRecruitmentPage: React.FC = () => {
             <div>
               <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
                 <FileText className="h-6 w-6 mr-2 text-blue-600" />
-                Document Upload
+                Upload Dokumen
               </h2>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-yellow-800 font-semibold mb-1">
+                      Semua Dokumen Wajib Diupload!
+                    </h3>
+                    <p className="text-yellow-700 text-sm">
+                      Pastikan semua dokumen telah diupload dengan format dan ukuran yang sesuai sebelum mengirim lamaran.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               <div className="space-y-6">
                 {[
                   {
                     key: "documentPhoto",
-                    label: "Profile Photo",
-                    required: false,
+                    label: "Foto Profil",
+                    required: true,
                   },
-                  { key: "documentCv", label: "CV/Resume", required: false },
+                  { key: "documentCv", label: "CV/Resume", required: true },
                   {
                     key: "documentKtp",
-                    label: "KTP (ID Card)",
-                    required: false,
+                    label: "KTP (Kartu Identitas)",
+                    required: true,
                   },
                   {
                     key: "documentSkck",
-                    label: "SKCK (Police Record)",
-                    required: false,
+                    label: "SKCK (Catatan Kepolisian)",
+                    required: true,
                   },
                   {
                     key: "documentVaccine",
-                    label: "Vaccine Certificate",
-                    required: false,
+                    label: "Sertifikat Vaksin",
+                    required: true,
                   },
                   {
                     key: "supportingDocs",
-                    label: "Supporting Documents",
-                    required: false,
+                    label: "Dokumen Pendukung",
+                    required: true,
                   },
                 ].map(({ key, label, required }) => (
                   <div
                     key={key}
-                    className="border border-gray-200 rounded-lg p-4"
+                    className={`border rounded-lg p-4 ${
+                      files[key as keyof FormFiles] 
+                        ? 'border-green-200 bg-green-50' 
+                        : 'border-gray-200'
+                    }`}
                   >
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {label} {required && "*"}
+                      {label} {required && <span className="text-red-500">*</span>}
                     </label>
                     <div className="flex items-center space-x-3">
                       <input
@@ -841,15 +1043,22 @@ const PublicRecruitmentPage: React.FC = () => {
                       />
                       <label
                         htmlFor={key}
-                        className="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-lg border border-blue-200 transition-colors flex items-center"
+                        className={`cursor-pointer px-4 py-2 rounded-lg border transition-colors flex items-center ${
+                          files[key as keyof FormFiles]
+                            ? 'bg-green-50 hover:bg-green-100 text-green-700 border-green-200'
+                            : 'bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200'
+                        }`}
                       >
                         <Upload className="h-4 w-4 mr-2" />
-                        Choose File
+                        {files[key as keyof FormFiles] ? 'Ganti File' : 'Pilih File'}
                       </label>
                       {files[key as keyof FormFiles] && (
-                        <span className="text-sm text-gray-600 truncate">
-                          {files[key as keyof FormFiles]?.name}
-                        </span>
+                        <div className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                          <span className="text-sm text-gray-600 truncate">
+                            {files[key as keyof FormFiles]?.name}
+                          </span>
+                        </div>
                       )}
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
@@ -865,7 +1074,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     <Loader className="animate-spin h-5 w-5 text-blue-600 mr-3" />
                     <div className="flex-1">
                       <p className="text-blue-800 font-medium">
-                        Submitting your application...
+                        Mengirim lamaran Anda...
                       </p>
                       <div className="mt-2 bg-blue-200 rounded-full h-2">
                         <div
@@ -874,7 +1083,7 @@ const PublicRecruitmentPage: React.FC = () => {
                         />
                       </div>
                       <p className="text-blue-600 text-sm mt-1">
-                        {uploadProgress}% complete
+                        {uploadProgress}% selesai
                       </p>
                     </div>
                   </div>
@@ -894,32 +1103,43 @@ const PublicRecruitmentPage: React.FC = () => {
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               } transition-colors`}
             >
-              Previous
+              Sebelumnya
             </button>
 
-            {currentStep < 3 ? (
-              <button
-                onClick={() => setCurrentStep(currentStep + 1)}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                onClick={validateAndSubmit}
-                disabled={isLoading}
-                className="px-8 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-400 transition-colors flex items-center"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader className="animate-spin h-4 w-4 mr-2" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Application"
-                )}
-              </button>
-            )}
+            <div className="flex space-x-3">
+              {currentStep < 3 && (
+                <button
+                  onClick={resetForm}
+                  className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors text-sm"
+                >
+                  Reset Form
+                </button>
+              )}
+              
+              {currentStep < 3 ? (
+                <button
+                  onClick={handleNextStep}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Selanjutnya
+                </button>
+              ) : (
+                <button
+                  onClick={validateAndSubmit}
+                  disabled={isLoading}
+                  className="px-8 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-400 transition-colors flex items-center"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader className="animate-spin h-4 w-4 mr-2" />
+                      Mengirim...
+                    </>
+                  ) : (
+                    "Kirim Lamaran"
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

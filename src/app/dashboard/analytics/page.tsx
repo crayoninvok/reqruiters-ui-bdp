@@ -1,6 +1,7 @@
+// Updated AnalyticsPage.tsx with filter support
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Users, UserCheck, Clock, CheckCircle, TrendingUp, Building } from 'lucide-react';
 import analyticsService, { 
   DashboardStats, 
@@ -9,7 +10,8 @@ import analyticsService, {
   ProvinceData, 
   TrendData,
   AgeDistribution,
-  EducationData
+  EducationData,
+  FilterOptions
 } from '@/services/analytics.service';
 
 // Import components
@@ -35,6 +37,7 @@ function AnalyticsPage() {
   const [educationData, setEducationData] = useState<EducationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('status');
+  const [statusFilters, setStatusFilters] = useState<FilterOptions>({});
 
   useEffect(() => {
     fetchAnalyticsData();
@@ -44,7 +47,6 @@ function AnalyticsPage() {
     try {
       const [
         dashboardResponse,
-        statusResponse,
         positionResponse,
         provinceResponse,
         trendResponse,
@@ -52,7 +54,6 @@ function AnalyticsPage() {
         educationResponse
       ] = await Promise.all([
         analyticsService.getDashboardStats(),
-        analyticsService.getApplicationsByStatus(),
         analyticsService.getApplicationsByPosition(),
         analyticsService.getApplicationsByProvince(),
         analyticsService.getApplicationsTrend(),
@@ -60,10 +61,8 @@ function AnalyticsPage() {
         analyticsService.getApplicationsByEducation()
       ]);
 
-      console.log('Analytics data:', { dashboardResponse, statusResponse, positionResponse });
-
       setDashboardStats(dashboardResponse);
-      setStatusData(statusResponse);
+      
       // Format position names for better display
       const formattedPositions = positionResponse.map(item => ({
         ...item,
@@ -74,12 +73,29 @@ function AnalyticsPage() {
       setTrendData(trendResponse);
       setAgeData(ageResponse);
       setEducationData(educationResponse);
+
+      // Fetch status data separately to allow for filtering
+      await fetchStatusData();
     } catch (error) {
       console.error('Error fetching analytics data:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchStatusData = useCallback(async (filters?: FilterOptions) => {
+    try {
+      const statusResponse = await analyticsService.getApplicationsByStatus(filters);
+      setStatusData(statusResponse);
+    } catch (error) {
+      console.error('Error fetching status data:', error);
+    }
+  }, []);
+
+  const handleStatusFiltersChange = useCallback((newFilters: FilterOptions) => {
+    setStatusFilters(newFilters);
+    fetchStatusData(newFilters);
+  }, [fetchStatusData]);
 
   if (loading) {
     return (
@@ -106,7 +122,13 @@ function AnalyticsPage() {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'status':
-        return <StatusChart data={statusData} />;
+        return (
+          <StatusChart 
+            data={statusData} 
+            positions={positionData}
+            onFiltersChange={handleStatusFiltersChange}
+          />
+        );
       case 'positions':
         return <PositionChart data={positionData} />;
       case 'provinces':
@@ -116,7 +138,13 @@ function AnalyticsPage() {
       case 'demographics':
         return <DemographicsChart ageData={ageData} educationData={educationData} />;
       default:
-        return <StatusChart data={statusData} />;
+        return (
+          <StatusChart 
+            data={statusData} 
+            positions={positionData}
+            onFiltersChange={handleStatusFiltersChange}
+          />
+        );
     }
   };
 
@@ -271,4 +299,5 @@ function AnalyticsPage() {
     </div>
   );
 }
+
 export default withAuthGuard(AnalyticsPage);

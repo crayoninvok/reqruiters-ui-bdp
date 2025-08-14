@@ -60,7 +60,7 @@ export interface RecruitmentForm {
 }
 
 interface RecruitmentResponse {
-  recruiters: RecruitmentForm[];  // or rename to 'applications'
+  recruiters: RecruitmentForm[]; // or rename to 'applications'
 }
 
 // Recruiter Data Types
@@ -224,6 +224,12 @@ export enum MaritalStatus {
 export enum RecruitmentStatus {
   PENDING = "PENDING",
   ON_PROGRESS = "ON_PROGRESS",
+  INTERVIEW = "INTERVIEW",
+  PSIKOTEST = "PSIKOTEST",
+  USER_INTERVIEW = "USER_INTERVIEW",
+  MEDICAL_CHECKUP = "MEDICAL_CHECKUP",
+  MEDICAL_FOLLOWUP = "MEDICAL_FOLLOWUP",
+  REJECTED = "REJECTED",
   COMPLETED = "COMPLETED",
 }
 

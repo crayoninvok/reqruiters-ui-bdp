@@ -60,6 +60,13 @@ export interface CustomAnalyticsParams {
   metric: 'applications_by_status' | 'applications_by_position' | 'applications_by_province';
 }
 
+export interface FilterOptions {
+  position?: string;
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+}
+
 class AnalyticsService {
   // Dashboard overview
   async getDashboardStats(): Promise<DashboardStats> {
@@ -67,9 +74,21 @@ class AnalyticsService {
     return response.data;
   }
 
-  // Applications breakdowns
-  async getApplicationsByStatus(): Promise<StatusBreakdown[]> {
-    const response = await api.get('/analytics/applications/status');
+  // Applications breakdowns with optional filters
+  async getApplicationsByStatus(filters?: FilterOptions): Promise<StatusBreakdown[]> {
+    const params: any = {};
+    
+    if (filters?.position && filters.position !== 'all') {
+      params.position = filters.position;
+    }
+    if (filters?.startDate) {
+      params.startDate = filters.startDate;
+    }
+    if (filters?.endDate) {
+      params.endDate = filters.endDate;
+    }
+
+    const response = await api.get('/analytics/applications/status', { params });
     return response.data;
   }
 

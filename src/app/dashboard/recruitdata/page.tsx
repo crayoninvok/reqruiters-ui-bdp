@@ -18,15 +18,15 @@ import { exportRecruitmentToPDF } from "@/utils/export-pdf-recruitdata";
 import { useAuth } from "@/context/useAuth";
 import { withAuthGuard } from "@/components/withGuard";
 
- function RecruitmentDataPage() {
+function RecruitmentDataPage() {
   const { user } = useAuth();
 
   const [recruitmentForms, setRecruitmentForms] = useState<RecruitmentForm[]>(
     []
   );
-  const [allRecruitmentForms, setAllRecruitmentForms] = useState<RecruitmentForm[]>(
-    []
-  );
+  const [allRecruitmentForms, setAllRecruitmentForms] = useState<
+    RecruitmentForm[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [pagination, setPagination] = useState({
@@ -122,17 +122,20 @@ import { withAuthGuard } from "@/components/withGuard";
       const exportData = allRecruitmentForms.map((form) => ({
         "Full Name": form.fullName,
         "WhatsApp Number": form.whatsappNumber,
-        "Applied Position": form.appliedPosition?.replace(/_/g, " ") || "Not specified",
-        "Education": form.education,
-        "Province": form.province.replace(/_/g, " "),
-        "Status": form.status,
-        "Application Date": form.createdAt ? new Date(form.createdAt).toLocaleDateString() : "N/A",
+        "Applied Position":
+          form.appliedPosition?.replace(/_/g, " ") || "Not specified",
+        Education: form.education,
+        Province: form.province.replace(/_/g, " "),
+        Status: form.status,
+        "Application Date": form.createdAt
+          ? new Date(form.createdAt).toLocaleDateString()
+          : "N/A",
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Recruitment Data");
-      
+
       // Auto-size columns
       const colWidths = exportData.reduce((acc, row) => {
         Object.keys(row).forEach((key, index) => {
@@ -141,10 +144,12 @@ import { withAuthGuard } from "@/components/withGuard";
         });
         return acc;
       }, {} as Record<number, number>);
-      
-      worksheet['!cols'] = Object.values(colWidths).map(width => ({ width }));
 
-      const fileName = `recruitment_data_${new Date().toISOString().split('T')[0]}.xlsx`;
+      worksheet["!cols"] = Object.values(colWidths).map((width) => ({ width }));
+
+      const fileName = `recruitment_data_${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
       XLSX.writeFile(workbook, fileName);
 
       Swal.fire({
@@ -261,17 +266,38 @@ import { withAuthGuard } from "@/components/withGuard";
   };
 
   const getStatusColor = (status: RecruitmentStatus) => {
-    switch (status) {
-      case RecruitmentStatus.PENDING:
-        return "bg-yellow-100 text-yellow-800";
-      case RecruitmentStatus.ON_PROGRESS:
-        return "bg-blue-100 text-blue-800";
-      case RecruitmentStatus.COMPLETED:
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  switch (status) {
+    case RecruitmentStatus.PENDING:
+      return "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20";
+    
+    case RecruitmentStatus.ON_PROGRESS:
+      return "bg-sky-50 text-sky-700 ring-1 ring-sky-600/20";
+    
+    case RecruitmentStatus.INTERVIEW:
+      return "bg-violet-50 text-violet-700 ring-1 ring-violet-600/20";
+    
+    case RecruitmentStatus.PSIKOTEST:
+      return "bg-fuchsia-50 text-fuchsia-700 ring-1 ring-fuchsia-600/20";
+    
+    case RecruitmentStatus.USER_INTERVIEW:
+      return "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600/20";
+    
+    case RecruitmentStatus.MEDICAL_CHECKUP:
+      return "bg-teal-50 text-teal-700 ring-1 ring-teal-600/20";
+    
+    case RecruitmentStatus.MEDICAL_FOLLOWUP:
+      return "bg-orange-50 text-orange-700 ring-1 ring-orange-600/20";
+    
+    case RecruitmentStatus.REJECTED:
+      return "bg-red-50 text-red-700 ring-1 ring-red-600/20";
+    
+    case RecruitmentStatus.COMPLETED:
+      return "bg-green-50 text-green-700 ring-1 ring-green-600/20";
+    
+    default:
+      return "bg-gray-50 text-gray-700 ring-1 ring-gray-600/20";
+  }
+};
 
   if (loading && recruitmentForms.length === 0) {
     return (
@@ -293,7 +319,7 @@ import { withAuthGuard } from "@/components/withGuard";
             Manage candidate applications and track recruitment progress
           </p>
         </div>
-        
+
         {/* Export Buttons */}
         <div className="flex gap-2">
           <button
@@ -304,13 +330,23 @@ import { withAuthGuard } from "@/components/withGuard";
             {exporting ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
             ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
             )}
             Export Excel
           </button>
-          
+
           <button
             onClick={exportToPDF}
             disabled={exporting || allRecruitmentForms.length === 0}
@@ -319,8 +355,18 @@ import { withAuthGuard } from "@/components/withGuard";
             {exporting ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
             ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
             )}
             Export PDF

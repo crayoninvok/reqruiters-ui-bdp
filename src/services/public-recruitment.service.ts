@@ -139,7 +139,7 @@ export class PublicRecruitmentService {
     }
 
     return this.makeRequest(async () => {
-      const response = await api.get(`/public/recruitment/status/${applicationId}`, {
+      const response = await api.get(`/public-recruitment/status/${applicationId}`, {
         timeout: 10000,
       });
 

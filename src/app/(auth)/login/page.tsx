@@ -6,13 +6,13 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/useAuth";
 import { LoginCredentials } from "@/types/types";
+import Swal from "sweetalert2";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState<LoginCredentials>({
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { login } = useAuth();
@@ -24,33 +24,68 @@ export default function LoginPage() {
       ...prev,
       [name]: value,
     }));
-    if (error) setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
-  setIsSubmitting(true);
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  try {
-    // Call the login function from the useAuth hook
-    await login(formData);
-    
-    // After login, store the token in localStorage
-    const token = localStorage.getItem("token"); // Assuming the token is saved here
-    if (token) {
-      // Redirect to the dashboard or home page
-      router.push("/dashboard");  // You can change this route as needed
-    } else {
-      setError("Authentication failed. Please try again.");
+    try {
+      // Call the login function from the useAuth hook
+      await login(formData);
+      
+      // After login, store the token in localStorage
+      const token = localStorage.getItem("token");
+      if (token) {
+        // Success alert
+        await Swal.fire({
+          title: 'Login Successful!',
+          text: 'Welcome back to your HR management platform',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+          background: '#1e293b',
+          color: '#ffffff',
+          customClass: {
+            popup: 'rounded-xl border border-slate-700'
+          }
+        });
+        
+        // Redirect to the dashboard
+        router.push("/dashboard");
+      } else {
+        // Authentication failed alert
+        Swal.fire({
+          title: 'Authentication Failed',
+          text: 'Please try again.',
+          icon: 'error',
+          confirmButtonText: 'Try Again',
+          background: '#1e293b',
+          color: '#ffffff',
+          confirmButtonColor: '#dc2626',
+          customClass: {
+            popup: 'rounded-xl border border-slate-700'
+          }
+        });
+      }
+    } catch (err: any) {
+      // Error alert
+      Swal.fire({
+        title: 'Login Failed',
+        text: err.message || 'An error occurred during login. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'Try Again',
+        background: '#1e293b',
+        color: '#ffffff',
+        confirmButtonColor: '#dc2626',
+        customClass: {
+          popup: 'rounded-xl border border-slate-700'
+        }
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (err: any) {
-    setError(err.message || "Login failed. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900">
@@ -72,12 +107,6 @@ export default function LoginPage() {
               Access your HR management platform
             </p>
           </div>
-
-          {error && (
-            <div className="bg-red-900/50 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg mb-6 text-sm">
-              {error}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>

@@ -15,8 +15,12 @@ import Link from "next/link";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 import { exportRecruitmentToPDF } from "@/utils/export-pdf-recruitdata";
+import { useAuth } from "@/context/useAuth";
+import { withAuthGuard } from "@/components/withGuard";
 
-export default function RecruitmentDataPage() {
+ function RecruitmentDataPage() {
+  const { user } = useAuth();
+
   const [recruitmentForms, setRecruitmentForms] = useState<RecruitmentForm[]>(
     []
   );
@@ -613,3 +617,4 @@ export default function RecruitmentDataPage() {
     </div>
   );
 }
+export default withAuthGuard(RecruitmentDataPage);

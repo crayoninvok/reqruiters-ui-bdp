@@ -206,7 +206,7 @@ export class PublicRecruitmentService {
 
     if (!data.address?.trim()) {
       errors.push("Address is required");
-    } else if (data.address.length < 10) {
+    } else if (data.address.length < 5) {
       errors.push("Please provide a complete address");
     }
 

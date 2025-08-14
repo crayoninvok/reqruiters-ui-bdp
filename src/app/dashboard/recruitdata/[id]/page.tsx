@@ -4,8 +4,11 @@ import { useParams, useRouter } from "next/navigation";
 import { RecruitmentFormService } from "@/services/recruitment.service";
 import { RecruitmentForm, RecruitmentStatus } from "@/types/types";
 import Swal from "sweetalert2";
+import { useAuth } from "@/context/useAuth";
+import { withAuthGuard } from "@/components/withGuard";
 
-export default function RecruitmentViewPage() {
+function RecruitmentViewPage() {
+  const { user } = useAuth();
   const params = useParams();
   const router = useRouter();
   const [recruitmentForm, setRecruitmentForm] =
@@ -976,3 +979,5 @@ export default function RecruitmentViewPage() {
     </>
   );
 }
+
+export default withAuthGuard(RecruitmentViewPage);

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 
 interface FeatureCardProps {
   icon: string;
@@ -9,11 +10,6 @@ interface FeatureCardProps {
 
 interface StatCardProps {
   number: string;
-  label: string;
-}
-
-interface FooterLinkProps {
-  href: string;
   label: string;
 }
 
@@ -110,22 +106,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 bg-slate-900 text-slate-400">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <p className="text-sm">
-                © 2025 Batara Dharma Persada. All rights reserved.
-              </p>
-            </div>
-            <div className="flex space-x-6">
-              <FooterLink href="#" label="Privacy" />
-              <FooterLink href="#" label="Terms" />
-              <FooterLink href="#" label="Support" />
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
@@ -154,16 +135,5 @@ function StatCard({ number, label }: StatCardProps) {
       <div className="text-2xl font-semibold text-white mb-1">{number}</div>
       <div className="text-sm text-blue-100">{label}</div>
     </div>
-  );
-}
-
-function FooterLink({ href, label }: FooterLinkProps) {
-  return (
-    <Link
-      href={href}
-      className="text-sm hover:text-white transition-colors duration-200"
-    >
-      {label}
-    </Link>
   );
 }

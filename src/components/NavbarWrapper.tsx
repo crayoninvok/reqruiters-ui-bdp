@@ -18,6 +18,7 @@ export default function NavbarWrapper({
     "/dashboard/recruitdata",
     "/dashboard/inputformdata",
     "/dashboard/profile",
+    "/recruitment-form"
   ];
 
   // Check if the current pathname starts with any of the no-navbar routes

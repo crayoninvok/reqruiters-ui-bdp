@@ -23,8 +23,11 @@ import {
   Award,
   Phone,
 } from "lucide-react";
+import { useAuth } from "@/context/useAuth";
+import { withAdminGuard, withAuthGuard } from "@/components/withGuard";
 
-export default function RecruitmentFormPage() {
+function RecruitmentFormPage() {
+  const { user } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -649,3 +652,4 @@ export default function RecruitmentFormPage() {
     </div>
   );
 }
+export default withAuthGuard(RecruitmentFormPage);

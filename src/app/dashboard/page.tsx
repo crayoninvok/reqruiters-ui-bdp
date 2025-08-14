@@ -2,27 +2,10 @@
 import React from "react";
 import { useAuth } from "@/context/useAuth";
 import Link from "next/link";
+import { withAuthGuard, withGuard } from "@/components/withGuard";
 
-export default function DashboardPage() {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center text-center">
-        <h2 className="text-2xl font-bold text-red-500">
-          You are not logged in
-        </h2>
-      </div>
-    );
-  }
+function DashboardPage() {
+  const { user } = useAuth();
 
   return (
     <div className="space-y-8">
@@ -55,7 +38,7 @@ export default function DashboardPage() {
             <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
               Hello,{" "}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-                {user.name || user.email}!
+                {user?.name || user?.email}!
               </span>
             </h1>
             <p className="text-lg lg:text-xl text-gray-200 leading-relaxed mb-6">
@@ -67,7 +50,7 @@ export default function DashboardPage() {
                 <span>System Status: Online</span>
               </div>
               <div className="mx-4 w-1 h-1 bg-white/40 rounded-full"></div>
-              <span>Role: {user.role}</span>
+              <span>Role: {user?.role}</span>
             </div>
           </div>
         </div>
@@ -213,150 +196,12 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-
-      {/* Analytics & Quick Stats */}
-      <div>
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Overview Statistics
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Quick insights into your recruitment data
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 hover:shadow-xl transition-all duration-300 group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                <svg
-                  className="w-6 h-6 text-blue-600 dark:text-blue-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-              </div>
-              <span className="text-green-500 text-sm font-medium">+12%</span>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                247
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Active Candidates
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 hover:shadow-xl transition-all duration-300 group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                <svg
-                  className="w-6 h-6 text-green-600 dark:text-green-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <span className="text-green-500 text-sm font-medium">+8%</span>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                89
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Forms Completed
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 hover:shadow-xl transition-all duration-300 group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                <svg
-                  className="w-6 h-6 text-purple-600 dark:text-purple-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-              </div>
-              <span className="text-red-500 text-sm font-medium">-3%</span>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                15
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Pending Reviews
-              </p>
-            </div>
-          </div>
-
-          <Link href="/dashboard/analytics" className="group block">
-            <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 text-white h-full">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
-                    />
-                  </svg>
-                </div>
-                <svg
-                  className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-lg font-bold mb-1">
-                  View Analytics
-                </p>
-                <p className="text-sm text-orange-100">
-                  Detailed insights & reports
-                </p>
-              </div>
-            </div>
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }
+
+// Export the guarded component
+export default withGuard(DashboardPage, {
+  allowedRoles: ['HR', 'ADMIN'],
+  unauthorizedRedirect: '/custom-401'
+});

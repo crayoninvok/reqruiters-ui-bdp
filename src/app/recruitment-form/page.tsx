@@ -17,7 +17,7 @@ import {
   Home,
 } from "lucide-react";
 import Swal from "sweetalert2";
-
+import SubmittedApp from "@/components/SubmittedApp";
 interface FormOptions {
   provinces: string[];
   shirtSizes: string[];
@@ -395,7 +395,7 @@ const PublicRecruitmentPage: React.FC = () => {
       cancelButtonText: 'Batal'
     }).then((result) => {
       if (result.isConfirmed) {
-        window.location.href = "www.bataramining.com";
+        window.location.href = "/tracking";
       }
     });
   };
@@ -520,40 +520,15 @@ const PublicRecruitmentPage: React.FC = () => {
     );
   }
 
+  // Use the separate FinnishTest component for success page
   if (isSubmitted && submissionResult?.success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            Lamaran Tersubmit!
-          </h1>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            Screenshot Halaman ini untuk tracking lamaran
-          </h1>
-          <p className="text-gray-600 mb-6">{submissionResult.message}</p>
-          {submissionResult.applicationId && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <p className="text-sm text-gray-600 mb-2">ID Lamaran Anda:</p>
-              <p className="text-lg font-mono font-bold text-blue-600">
-                {submissionResult.applicationId}
-              </p>
-              <p className="text-xs text-gray-500 mt-2">
-                Simpan ID ini untuk memeriksa status lamaran
-              </p>
-            </div>
-          )}
-          <div className="space-y-3">
-            <button
-              onClick={goToHomepage}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              Kembali ke Beranda Batara
-            </button>
-          </div>
-        </div>
-      </div>
+      <SubmittedApp 
+        submissionResult={{
+          message: submissionResult.message,
+          applicationId: submissionResult.applicationId
+        }} 
+      />
     );
   }
 

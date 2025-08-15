@@ -9,6 +9,8 @@ export interface RecruitmentFormFilters {
   province?: string;
   education?: string;
   appliedPosition?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 interface RecruitmentFormsResponse {
@@ -102,6 +104,8 @@ export class RecruitmentFormService {
       if (filters.page) params.append("page", filters.page.toString());
       if (filters.limit) params.append("limit", filters.limit.toString());
       if (filters.search) params.append("search", filters.search);
+      if (filters.startDate) params.append("startDate", filters.startDate);
+      if (filters.endDate) params.append("endDate", filters.endDate);
       if (filters.status) params.append("status", filters.status);
       if (filters.province) params.append("province", filters.province);
       if (filters.education) params.append("education", filters.education);

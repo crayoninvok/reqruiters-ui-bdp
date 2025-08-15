@@ -75,6 +75,7 @@ export default function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-1">
           <NavLink href="/" label="Home" />
+          <NavLink href="/tracking" label="Track Lamaran" />
           <NavLink href="/recruitment-form" label="Apply Now" highlight />
 
           {isAuthenticated ? (
@@ -128,8 +129,9 @@ export default function Navbar() {
       >
         <div className="px-4 py-4 space-y-2">
           <MobileNavLink
-            href="/"
-            label="Home"
+            href="/tracking"
+            label="Track Lamaran"
+
             onClick={() => setIsMobileMenuOpen(false)}
           />
           <MobileNavLink

@@ -45,6 +45,8 @@ function RecruitmentDataPage() {
     province: "",
     education: "",
     appliedPosition: "",
+    startDate: "",
+    endDate: "",
   });
   const [stats, setStats] = useState<any>(null);
 
@@ -266,38 +268,38 @@ function RecruitmentDataPage() {
   };
 
   const getStatusColor = (status: RecruitmentStatus) => {
-  switch (status) {
-    case RecruitmentStatus.PENDING:
-      return "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20";
-    
-    case RecruitmentStatus.ON_PROGRESS:
-      return "bg-sky-50 text-sky-700 ring-1 ring-sky-600/20";
-    
-    case RecruitmentStatus.INTERVIEW:
-      return "bg-violet-50 text-violet-700 ring-1 ring-violet-600/20";
-    
-    case RecruitmentStatus.PSIKOTEST:
-      return "bg-fuchsia-50 text-fuchsia-700 ring-1 ring-fuchsia-600/20";
-    
-    case RecruitmentStatus.USER_INTERVIEW:
-      return "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600/20";
-    
-    case RecruitmentStatus.MEDICAL_CHECKUP:
-      return "bg-teal-50 text-teal-700 ring-1 ring-teal-600/20";
-    
-    case RecruitmentStatus.MEDICAL_FOLLOWUP:
-      return "bg-orange-50 text-orange-700 ring-1 ring-orange-600/20";
-    
-    case RecruitmentStatus.REJECTED:
-      return "bg-red-50 text-red-700 ring-1 ring-red-600/20";
-    
-    case RecruitmentStatus.COMPLETED:
-      return "bg-green-50 text-green-700 ring-1 ring-green-600/20";
-    
-    default:
-      return "bg-gray-50 text-gray-700 ring-1 ring-gray-600/20";
-  }
-};
+    switch (status) {
+      case RecruitmentStatus.PENDING:
+        return "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20";
+
+      case RecruitmentStatus.ON_PROGRESS:
+        return "bg-sky-50 text-sky-700 ring-1 ring-sky-600/20";
+
+      case RecruitmentStatus.INTERVIEW:
+        return "bg-violet-50 text-violet-700 ring-1 ring-violet-600/20";
+
+      case RecruitmentStatus.PSIKOTEST:
+        return "bg-fuchsia-50 text-fuchsia-700 ring-1 ring-fuchsia-600/20";
+
+      case RecruitmentStatus.USER_INTERVIEW:
+        return "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600/20";
+
+      case RecruitmentStatus.MEDICAL_CHECKUP:
+        return "bg-teal-50 text-teal-700 ring-1 ring-teal-600/20";
+
+      case RecruitmentStatus.MEDICAL_FOLLOWUP:
+        return "bg-orange-50 text-orange-700 ring-1 ring-orange-600/20";
+
+      case RecruitmentStatus.REJECTED:
+        return "bg-red-50 text-red-700 ring-1 ring-red-600/20";
+
+      case RecruitmentStatus.COMPLETED:
+        return "bg-green-50 text-green-700 ring-1 ring-green-600/20";
+
+      default:
+        return "bg-gray-50 text-gray-700 ring-1 ring-gray-600/20";
+    }
+  };
 
   if (loading && recruitmentForms.length === 0) {
     return (
@@ -434,6 +436,86 @@ function RecruitmentDataPage() {
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        {/* Date Range Filter - Add this as first row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 pb-4 border-b border-gray-200 dark:border-gray-600">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Start Date
+            </label>
+            <input
+              type="date"
+              value={filters.startDate}
+              onChange={(e) => handleFilterChange("startDate", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              End Date
+            </label>
+            <input
+              type="date"
+              value={filters.endDate}
+              onChange={(e) => handleFilterChange("endDate", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                setFilters((prev) => ({
+                  ...prev,
+                  startDate: "",
+                  endDate: "",
+                  page: 1,
+                }));
+              }}
+              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-md transition-colors flex items-center gap-2"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+              Clear Dates
+            </button>
+          </div>
+
+          <div className="flex items-end">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {filters.startDate || filters.endDate ? (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Date filter active
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {/* Existing filters - keep as they are */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
           <div>
             <input
@@ -441,55 +523,15 @@ function RecruitmentDataPage() {
               placeholder="Search name, phone..."
               value={filters.search}
               onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          <select
-            value={filters.status}
-            onChange={(e) => handleFilterChange("status", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Status</option>
-            {Object.values(RecruitmentStatus).map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.province}
-            onChange={(e) => handleFilterChange("province", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Provinces</option>
-            {Object.values(Province).map((province) => (
-              <option key={province} value={province}>
-                {province.replace("_", " ")}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.education}
-            onChange={(e) => handleFilterChange("education", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Education</option>
-            {Object.values(EducationLevel).map((education) => (
-              <option key={education} value={education}>
-                {education}
-              </option>
-            ))}
-          </select>
-
           <select
             value={filters.appliedPosition}
             onChange={(e) =>
               handleFilterChange("appliedPosition", e.target.value)
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Positions</option>
             {Object.values(Position).map((position) => (
@@ -500,11 +542,47 @@ function RecruitmentDataPage() {
           </select>
 
           <select
+            value={filters.education}
+            onChange={(e) => handleFilterChange("education", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Education</option>
+            {Object.values(EducationLevel).map((education) => (
+              <option key={education} value={education}>
+                {education}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filters.province}
+            onChange={(e) => handleFilterChange("province", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Provinces</option>
+            {Object.values(Province).map((province) => (
+              <option key={province} value={province}>
+                {province.replace("_", " ")}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filters.status}
+            onChange={(e) => handleFilterChange("status", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Status</option>
+            {Object.values(RecruitmentStatus).map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+          <select
             value={filters.limit}
             onChange={(e) =>
               handleFilterChange("limit", parseInt(e.target.value))
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value={10}>10 per page</option>
             <option value={25}>25 per page</option>

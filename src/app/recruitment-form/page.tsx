@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import SubmittedApp from "@/components/SubmittedApp";
+
 interface FormOptions {
   provinces: string[];
   shirtSizes: string[];
@@ -37,6 +38,10 @@ interface FormFiles {
   documentSkck?: File;
   documentVaccine?: File;
   supportingDocs?: File;
+}
+
+interface UploadProgress {
+  [key: string]: number;
 }
 
 const PublicRecruitmentPage: React.FC = () => {
@@ -71,7 +76,8 @@ const PublicRecruitmentPage: React.FC = () => {
     applicationId?: string;
   } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({});
+  const [currentUploadingFile, setCurrentUploadingFile] = useState<string>("");
   const [currentStep, setCurrentStep] = useState(1);
 
   // Load form options on component mount
@@ -219,7 +225,7 @@ const PublicRecruitmentPage: React.FC = () => {
     // Show success message for file upload
     Swal.fire({
       icon: 'success',
-      title: 'File Berhasil Diupload!',
+      title: 'File Berhasil Dipilih!',
       text: `${file.name} berhasil dipilih.`,
       timer: 2000,
       showConfirmButton: false,
@@ -323,20 +329,19 @@ const PublicRecruitmentPage: React.FC = () => {
 
     setIsLoading(true);
     setErrors([]);
+    setUploadProgress({});
 
     try {
-      const formDataToSubmit = PublicRecruitmentService.createFormData(
+      // Use the new direct upload method
+      const response = await PublicRecruitmentService.submitRecruitmentFormWithDirectUpload(
         formData,
-        files
-      );
-
-      const response = await PublicRecruitmentService.submitRecruitmentForm(
-        formDataToSubmit,
-        (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          setUploadProgress(percentCompleted);
+        files,
+        (fieldName, progress) => {
+          setCurrentUploadingFile(fieldName);
+          setUploadProgress(prev => ({
+            ...prev,
+            [fieldName]: progress
+          }));
         }
       );
 
@@ -372,7 +377,8 @@ const PublicRecruitmentPage: React.FC = () => {
 
     } finally {
       setIsLoading(false);
-      setUploadProgress(0);
+      setUploadProgress({});
+      setCurrentUploadingFile("");
     }
   };
 
@@ -437,6 +443,8 @@ const PublicRecruitmentPage: React.FC = () => {
         setSubmissionResult(null);
         setErrors([]);
         setCurrentStep(1);
+        setUploadProgress({});
+        setCurrentUploadingFile("");
 
         Swal.fire({
           icon: 'success',
@@ -509,6 +517,13 @@ const PublicRecruitmentPage: React.FC = () => {
     setCurrentStep(currentStep + 1);
   };
 
+  // Calculate overall upload progress
+  const getOverallProgress = () => {
+    const progressValues = Object.values(uploadProgress);
+    if (progressValues.length === 0) return 0;
+    return Math.round(progressValues.reduce((sum, progress) => sum + progress, 0) / progressValues.length);
+  };
+
   if (!options) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -520,7 +535,7 @@ const PublicRecruitmentPage: React.FC = () => {
     );
   }
 
-  // Use the separate FinnishTest component for success page
+  // Use the separate SubmittedApp component for success page
   if (isSubmitted && submissionResult?.success) {
     return (
       <SubmittedApp 
@@ -1043,25 +1058,49 @@ const PublicRecruitmentPage: React.FC = () => {
                 ))}
               </div>
 
+              {/* Enhanced Upload Progress Display */}
               {isLoading && (
                 <div className="mt-6 bg-blue-50 rounded-lg p-4">
-                  <div className="flex items-center">
+                  <div className="flex items-center mb-3">
                     <Loader className="animate-spin h-5 w-5 text-blue-600 mr-3" />
                     <div className="flex-1">
                       <p className="text-blue-800 font-medium">
                         Mengirim lamaran Anda...
                       </p>
-                      <div className="mt-2 bg-blue-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
-                      <p className="text-blue-600 text-sm mt-1">
-                        {uploadProgress}% selesai
-                      </p>
+                      {currentUploadingFile && (
+                        <p className="text-blue-600 text-sm">
+                          Mengupload: {currentUploadingFile.replace('document', '').replace(/([A-Z])/g, ' $1').toLowerCase()}
+                        </p>
+                      )}
                     </div>
                   </div>
+
+                  {/* Overall Progress Bar */}
+                  <div className="mb-3">
+                    <div className="bg-blue-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${getOverallProgress()}%` }}
+                      />
+                    </div>
+                    <p className="text-blue-600 text-sm mt-1">
+                      {getOverallProgress()}% selesai
+                    </p>
+                  </div>
+
+                  {/* Individual File Progress */}
+                  {Object.keys(uploadProgress).length > 0 && (
+                    <div className="space-y-2">
+                      {Object.entries(uploadProgress).map(([fieldName, progress]) => (
+                        <div key={fieldName} className="flex items-center justify-between text-sm">
+                          <span className="text-blue-700">
+                            {fieldName.replace('document', '').replace(/([A-Z])/g, ' $1').toLowerCase()}
+                          </span>
+                          <span className="text-blue-600 font-medium">{progress}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

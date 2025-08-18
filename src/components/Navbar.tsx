@@ -74,9 +74,10 @@ export default function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-1">
-          <NavLink href="/" label="Home" />
+          <NavLink href="/" label="Beranda" />
+          <NavLink href="/position" label="Informasi Posisi" />
           <NavLink href="/tracking" label="Track Lamaran" />
-          <NavLink href="/recruitment-form" label="Apply Now" highlight />
+          <NavLink href="/recruitment-form" label="Apply Sekarang" highlight />
 
           {isAuthenticated ? (
             <ProfileDropdown
@@ -131,12 +132,11 @@ export default function Navbar() {
           <MobileNavLink
             href="/tracking"
             label="Track Lamaran"
-
             onClick={() => setIsMobileMenuOpen(false)}
           />
           <MobileNavLink
             href="/recruitment-form"
-            label="Apply Now"
+            label="Apply Sekarang"
             highlight
             onClick={() => setIsMobileMenuOpen(false)}
           />
@@ -407,7 +407,11 @@ function MobileProfileSection({
         </div>
       </div>
 
-      <MobileNavLink href="/dashboard/profile" label="Profile" onClick={onClose} />
+      <MobileNavLink
+        href="/dashboard/profile"
+        label="Profile"
+        onClick={onClose}
+      />
       <MobileNavLink href="/dashboard" label="Dashboard" onClick={onClose} />
       <MobileNavLink href="/settings" label="Settings" onClick={onClose} />
 

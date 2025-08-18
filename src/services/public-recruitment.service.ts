@@ -1,6 +1,6 @@
 import api from "./api";
 
-// Public recruitment form interfaces
+// Public recruitment form interfaces (keep existing)
 export interface PublicRecruitmentFormData {
   fullName: string;
   birthPlace: string;
@@ -22,7 +22,27 @@ export interface PublicRecruitmentFormData {
   experienceLevel: string;
 }
 
-// Response interfaces
+// ADD NEW INTERFACE for file URLs
+export interface RecruitmentFormWithUrls extends PublicRecruitmentFormData {
+  documentPhotoUrl?: string;
+  documentCvUrl?: string;
+  documentKtpUrl?: string;
+  documentSkckUrl?: string;
+  documentVaccineUrl?: string;
+  supportingDocsUrl?: string;
+}
+
+// ADD NEW INTERFACE for upload signature
+interface UploadSignatureResponse {
+  signature: string;
+  timestamp: number;
+  api_key: string;
+  folder: string;
+  public_id: string;
+  cloud_name: string;
+}
+
+// Keep existing interfaces
 interface PublicSubmissionResponse {
   message: string;
   success: boolean;
@@ -68,7 +88,7 @@ export class PublicRecruitmentService {
     return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
   }
 
-  // Generic retry logic with exponential backoff
+  // Keep existing retry logic
   private static async makeRequest<T>(
     requestFn: () => Promise<T>, 
     retries = 3,
@@ -82,7 +102,6 @@ export class PublicRecruitmentService {
       } catch (error: any) {
         lastError = error;
         
-        // Don't retry on client errors (4xx) except 408 (timeout), 429 (rate limit)
         if (error.response?.status >= 400 && error.response?.status < 500) {
           if (error.response.status !== 408 && error.response.status !== 429) {
             throw error;
@@ -93,8 +112,7 @@ export class PublicRecruitmentService {
           throw lastError;
         }
         
-        // Exponential backoff with jitter
-        const jitter = Math.random() * 0.3; // Add 0-30% jitter
+        const jitter = Math.random() * 0.3;
         const waitTime = delay * Math.pow(2, attempt - 1) * (1 + jitter);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       }
@@ -103,7 +121,115 @@ export class PublicRecruitmentService {
     throw lastError;
   }
 
-  // Submit recruitment form (public endpoint - no auth required)
+  // NEW METHOD: Get upload signature for direct Cloudinary upload
+  static async getUploadSignature(fieldName: string): Promise<UploadSignatureResponse> {
+    return this.makeRequest(async () => {
+      const response = await api.post("/public-recruitment/upload-signature", {
+        fieldName
+      }, {
+        timeout: 10000,
+      });
+
+      return response.data;
+    });
+  }
+
+  // NEW METHOD: Upload file directly to Cloudinary
+  static async uploadFileToCloudinary(
+    file: File, 
+    fieldName: string,
+    onProgress?: (progress: number) => void
+  ): Promise<string> {
+    try {
+      // Step 1: Get upload signature
+      const signatureData = await this.getUploadSignature(fieldName);
+
+      // Step 2: Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('signature', signatureData.signature);
+      formData.append('timestamp', signatureData.timestamp.toString());
+      formData.append('api_key', signatureData.api_key);
+      formData.append('folder', signatureData.folder);
+      formData.append('public_id', signatureData.public_id);
+
+      const uploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/upload`,
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload to Cloudinary');
+      }
+
+      const result = await uploadResponse.json();
+      return result.secure_url;
+
+    } catch (error) {
+      console.error(`Error uploading ${fieldName}:`, error);
+      throw error;
+    }
+  }
+
+  // NEW METHOD: Submit form with direct Cloudinary upload (RECOMMENDED)
+  static async submitRecruitmentFormWithDirectUpload(
+    formData: PublicRecruitmentFormData,
+    files: {
+      documentPhoto?: File;
+      documentCv?: File;
+      documentKtp?: File;
+      documentSkck?: File;
+      documentVaccine?: File;
+      supportingDocs?: File;
+    },
+    onUploadProgress?: (fieldName: string, progress: number) => void
+  ): Promise<PublicSubmissionResponse> {
+    try {
+      // Step 1: Upload all files to Cloudinary first
+      const uploadPromises = Object.entries(files)
+        .filter(([_, file]) => file !== null && file !== undefined)
+        .map(async ([fieldName, file]) => {
+          const url = await this.uploadFileToCloudinary(
+            file!, 
+            fieldName,
+            (progress) => onUploadProgress?.(fieldName, progress)
+          );
+          return { fieldName: `${fieldName}Url`, url };
+        });
+
+      const uploadResults = await Promise.all(uploadPromises);
+
+      // Step 2: Create object with uploaded URLs
+      const documentUrls = uploadResults.reduce((acc, result) => {
+        acc[result.fieldName] = result.url;
+        return acc;
+      }, {} as any);
+
+      // Step 3: Submit form data with URLs
+      return this.makeRequest(async () => {
+        const response = await api.post("/public-recruitment/submit-with-urls", {
+          ...formData,
+          ...documentUrls
+        }, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 30000,
+        });
+
+        return response.data;
+      }, 1);
+
+    } catch (error) {
+      console.error('Form submission with direct upload error:', error);
+      throw error;
+    }
+  }
+
+  // KEEP EXISTING METHOD for backward compatibility
   static async submitRecruitmentForm(
     formData: FormData,
     onUploadProgress?: (progressEvent: any) => void
@@ -113,15 +239,15 @@ export class PublicRecruitmentService {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        timeout: 120000, // 2 minutes for file uploads
+        timeout: 120000,
         onUploadProgress,
       });
 
       return response.data;
-    }, 1); // Don't retry form submissions to prevent duplicates
+    }, 1);
   }
 
-  // Get form field options (public endpoint)
+  // Keep all existing methods unchanged
   static async getFormOptions(): Promise<FormOptionsResponse> {
     return this.makeRequest(async () => {
       const response = await api.get("/public-recruitment/options", {
@@ -132,7 +258,6 @@ export class PublicRecruitmentService {
     });
   }
 
-  // Check application status by ID (public endpoint)
   static async checkApplicationStatus(applicationId: string): Promise<ApplicationStatusResponse> {
     if (!applicationId?.trim()) {
       throw new Error("Application ID is required");
@@ -147,11 +272,10 @@ export class PublicRecruitmentService {
     });
   }
 
-  // Validate form data before submission
+  // Keep existing validation methods unchanged
   static validateFormData(data: PublicRecruitmentFormData): string[] {
     const errors: string[] = [];
 
-    // Required field validation
     if (!data.fullName?.trim()) {
       errors.push("Full name is required");
     } else if (data.fullName.length < 2 || data.fullName.length > 100) {
@@ -178,14 +302,12 @@ export class PublicRecruitmentService {
       errors.push("Province is required");
     }
 
-    // Height validation
     if (!data.heightCm) {
       errors.push("Height is required");
     } else if (data.heightCm < 100 || data.heightCm > 250) {
       errors.push("Height must be between 100-250 cm");
     }
 
-    // Weight validation  
     if (!data.weightKg) {
       errors.push("Weight is required");
     } else if (data.weightKg < 30 || data.weightKg > 200) {
@@ -210,7 +332,6 @@ export class PublicRecruitmentService {
       errors.push("Please provide a complete address");
     }
 
-    // WhatsApp number validation (Indonesian format)
     if (!data.whatsappNumber?.trim()) {
       errors.push("WhatsApp number is required");
     } else {
@@ -245,7 +366,7 @@ export class PublicRecruitmentService {
     return errors;
   }
 
-  // Validate file uploads
+  // UPDATED: File validation with proper size limits per field
   static validateFileUploads(files: {
     documentPhoto?: File;
     documentCv?: File;
@@ -255,36 +376,47 @@ export class PublicRecruitmentService {
     supportingDocs?: File;
   }): string[] {
     const errors: string[] = [];
-    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    
+    // Define size limits per field (in MB)
+    const sizeLimits = {
+      documentPhoto: 3,
+      documentCv: 2,
+      documentKtp: 1,
+      documentSkck: 2,
+      documentVaccine: 2,
+      supportingDocs: 3,
+    };
+
     const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     const allowedDocTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 
-    // Photo validation (if provided)
+    // Photo validation
     if (files.documentPhoto) {
       if (!allowedImageTypes.includes(files.documentPhoto.type)) {
         errors.push("Photo must be in JPEG, JPG, or PNG format");
       }
-      if (files.documentPhoto.size > maxFileSize) {
-        errors.push("Photo file size must be less than 5MB");
+      if (files.documentPhoto.size > sizeLimits.documentPhoto * 1024 * 1024) {
+        errors.push(`Photo file size must be less than ${sizeLimits.documentPhoto}MB`);
       }
     }
 
-    // Document validations
+    // Document validations with specific size limits
     const docFields = [
-      { file: files.documentCv, name: "CV" },
-      { file: files.documentKtp, name: "KTP" },
-      { file: files.documentSkck, name: "SKCK" },
-      { file: files.documentVaccine, name: "Vaccine Certificate" },
-      { file: files.supportingDocs, name: "Supporting Documents" },
+      { file: files.documentCv, name: "CV", field: "documentCv" },
+      { file: files.documentKtp, name: "KTP", field: "documentKtp" },
+      { file: files.documentSkck, name: "SKCK", field: "documentSkck" },
+      { file: files.documentVaccine, name: "Vaccine Certificate", field: "documentVaccine" },
+      { file: files.supportingDocs, name: "Supporting Documents", field: "supportingDocs" },
     ];
 
-    docFields.forEach(({ file, name }) => {
+    docFields.forEach(({ file, name, field }) => {
       if (file) {
         if (!allowedDocTypes.includes(file.type)) {
           errors.push(`${name} must be in PDF, JPEG, JPG, or PNG format`);
         }
-        if (file.size > maxFileSize) {
-          errors.push(`${name} file size must be less than 5MB`);
+        const limit = sizeLimits[field as keyof typeof sizeLimits];
+        if (file.size > limit * 1024 * 1024) {
+          errors.push(`${name} file size must be less than ${limit}MB`);
         }
       }
     });
@@ -292,7 +424,7 @@ export class PublicRecruitmentService {
     return errors;
   }
 
-  // Create FormData object from form data and files
+  // Keep existing utility methods unchanged
   static createFormData(
     data: PublicRecruitmentFormData,
     files?: {
@@ -306,11 +438,9 @@ export class PublicRecruitmentService {
   ): FormData {
     const formData = new FormData();
 
-    // Append text fields
     Object.entries(data).forEach(([key, value]) => {
       if (value !== null && value !== undefined) {
         if (Array.isArray(value)) {
-          // Handle certificate array
           value.forEach((item) => {
             formData.append(`${key}[]`, item);
           });
@@ -320,7 +450,6 @@ export class PublicRecruitmentService {
       }
     });
 
-    // Append files if provided
     if (files) {
       Object.entries(files).forEach(([key, file]) => {
         if (file) {
@@ -332,7 +461,6 @@ export class PublicRecruitmentService {
     return formData;
   }
 
-  // Format error messages from API responses
   static formatErrorMessage(error: any): string {
     if (error.response?.data?.message) {
       return error.response.data.message;
@@ -345,7 +473,6 @@ export class PublicRecruitmentService {
     return "An unexpected error occurred. Please try again.";
   }
 
-  // Get status color/badge info for UI
   static getStatusInfo(status: string): {
     color: string;
     label: string;
@@ -376,7 +503,6 @@ export class PublicRecruitmentService {
     };
   }
 
-  // Helper to format phone number for display
   static formatPhoneNumber(phoneNumber: string): string {
     const cleaned = phoneNumber.replace(/\D/g, '');
     
@@ -389,7 +515,6 @@ export class PublicRecruitmentService {
     return phoneNumber;
   }
 
-  // Helper to clean phone number for submission
   static cleanPhoneNumber(phoneNumber: string): string {
     return phoneNumber.replace(/[\s-]/g, '');
   }

@@ -34,27 +34,31 @@ export default function Home() {
         <div className="max-w-6xl mx-auto relative z-10 pt-16">
           <div className="text-center space-y-6">
             <h1 className="text-6xl md:text-8xl font-light text-white leading-tight">
+              <span className="block text-blue-200 font-medium text-s">
+                Batara Dharma Persada
+              </span>
               HR Management
               <span className="block text-blue-200 font-medium">
                 Simplified
               </span>
             </h1>
             <p className="text-2xl text-blue-50 max-w-3xl mx-auto leading-relaxed">
-              Streamline employee data management with our professional, secure
-              platform built for modern organizations.
+              Permudah pengelolaan data rekrutmen karyawan dengan platform
+              profesional dan aman yang dirancang untuk organisasi modern dan
+              mudah.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
               <Link
                 href="/login"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-8 rounded-lg text-lg transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                Access Platform
+                HR Dashboard
               </Link>
               <Link
                 href="/recruitment-form"
                 className="bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white text-slate-700 font-medium py-4 px-8 rounded-lg text-lg transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                Apply Now
+                Apply Sekarang!
               </Link>
             </div>
           </div>

@@ -75,7 +75,7 @@ export default function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-1">
           <NavLink href="/" label="Beranda" />
-          <NavLink href="/position" label="Informasi Posisi" />
+          <NavLink href="/informasi-posisi" label="Informasi Posisi" />
           <NavLink href="/tracking" label="Track Lamaran" />
           <NavLink href="/recruitment-form" label="Apply Sekarang" highlight />
 

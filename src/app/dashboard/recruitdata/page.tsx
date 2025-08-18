@@ -205,33 +205,49 @@ function RecruitmentDataPage() {
     }
   };
 
-  // Handle status update
+  // Handle status update with confirmation
   const handleStatusUpdate = async (
     id: string,
-    newStatus: RecruitmentStatus
+    newStatus: RecruitmentStatus,
+    candidateName: string
   ) => {
-    try {
-      await RecruitmentFormService.updateRecruitmentStatus(id, newStatus);
-      await fetchRecruitmentForms(); // Refresh data
-      await fetchAllRecruitmentForms(); // Refresh export data
-      Swal.fire({
-        title: "Success",
-        text: "Status updated successfully",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      Swal.fire({
-        title: "Error",
-        text: "Failed to update status",
-        icon: "error",
-        confirmButtonColor: "#dc2626",
-      });
+    const result = await Swal.fire({
+      title: "Confirm Status Update",
+      text: `Change status to "${newStatus.replace(/_/g, " ")}" for ${candidateName}?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3b82f6",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, update it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await RecruitmentFormService.updateRecruitmentStatus(id, newStatus);
+        
+        await Swal.fire({
+          title: "Success",
+          text: "Status updated successfully",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        // Refresh the page
+        window.location.reload();
+      } catch (error) {
+        Swal.fire({
+          title: "Error",
+          text: "Failed to update status",
+          icon: "error",
+          confirmButtonColor: "#dc2626",
+        });
+      }
     }
   };
 
-  // Handle delete
+  // Handle delete with confirmation and page refresh
   const handleDelete = async (id: string, name: string) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -247,15 +263,17 @@ function RecruitmentDataPage() {
     if (result.isConfirmed) {
       try {
         await RecruitmentFormService.deleteRecruitmentForm(id);
-        await fetchRecruitmentForms();
-        await fetchAllRecruitmentForms();
-        Swal.fire({
+        
+        await Swal.fire({
           title: "Deleted!",
           text: "Recruitment form has been deleted.",
           icon: "success",
           timer: 1500,
           showConfirmButton: false,
         });
+
+        // Refresh the page
+        window.location.reload();
       } catch (error) {
         Swal.fire({
           title: "Error",
@@ -665,7 +683,8 @@ function RecruitmentDataPage() {
                         onChange={(e) =>
                           handleStatusUpdate(
                             form.id,
-                            e.target.value as RecruitmentStatus
+                            e.target.value as RecruitmentStatus,
+                            form.fullName
                           )
                         }
                         className={`text-xs px-2 py-1 rounded-full border-0 ${getStatusColor(
@@ -686,12 +705,6 @@ function RecruitmentDataPage() {
                           className="text-blue-600 hover:text-blue-900"
                         >
                           View
-                        </Link>
-                        <Link
-                          href={`/dashboard/inputformdata/${form.id}`}
-                          className="text-green-600 hover:text-green-900"
-                        >
-                          Edit
                         </Link>
                         <button
                           onClick={() => handleDelete(form.id, form.fullName)}

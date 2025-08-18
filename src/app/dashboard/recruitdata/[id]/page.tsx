@@ -11,8 +11,7 @@ function RecruitmentViewPage() {
   const { user } = useAuth();
   const params = useParams();
   const router = useRouter();
-  const [recruitmentForm, setRecruitmentForm] =
-    useState<RecruitmentForm | null>(null);
+  const [recruitmentForm, setRecruitmentForm] = useState<RecruitmentForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
@@ -24,90 +23,305 @@ function RecruitmentViewPage() {
 
   const id = params.id as string;
 
-  // Enhanced print styles with document support
+  // Enhanced print styles with professional layout
   useEffect(() => {
-    const printStyles = `
-      <style id="print-styles">
-        @media print {
-          body { font-size: 12px !important; }
-          .no-print { display: none !important; }
-          .print-only { display: block !important; }
-          .print-break { page-break-before: always; }
-          .print-avoid-break { page-break-inside: avoid; }
-          .print-photo { 
-            width: 120px !important; 
-            height: 120px !important; 
-            float: right !important;
-            margin: 0 0 10px 10px !important;
-          }
-          .print-header {
-            border-bottom: 2px solid #000 !important;
-            padding-bottom: 10px !important;
-            margin-bottom: 20px !important;
-          }
-          .print-section {
-            margin-bottom: 15px !important;
-            border: 1px solid #ccc !important;
-            padding: 10px !important;
-          }
-          .print-grid {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 15px !important;
-          }
-          .print-grid-3 {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr 1fr !important;
-            gap: 10px !important;
-          }
-          .print-title {
-            font-weight: bold !important;
-            font-size: 14px !important;
-            margin-bottom: 8px !important;
-            color: #000 !important;
-          }
-          .print-label {
-            font-weight: 600 !important;
-            color: #333 !important;
-            margin-bottom: 2px !important;
-          }
-          .print-value {
-            color: #000 !important;
-            margin-bottom: 8px !important;
-          }
-          .print-certificates {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            gap: 5px !important;
-          }
-          .print-cert-item {
-            background: #f0f0f0 !important;
-            padding: 2px 6px !important;
-            border-radius: 3px !important;
-            font-size: 10px !important;
-            color: #000 !important;
-          }
-          .print-document {
-            width: 100% !important;
-            height: 600px !important;
-            border: 1px solid #ccc !important;
-            margin: 10px 0 !important;
-          }
-          .print-document-section {
-            page-break-before: always !important;
-            margin-top: 20px !important;
-          }
-          .print-document-title {
-            font-weight: bold !important;
-            font-size: 16px !important;
-            margin-bottom: 10px !important;
-            text-align: center !important;
-            border-bottom: 1px solid #000 !important;
-            padding-bottom: 5px !important;
-          }
-        }
-      </style>
-    `;
+    // Replace the print footer CSS section in your useEffect with this updated version:
+
+const printStyles = `
+  <style id="print-styles">
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      
+      @page {
+        margin: 0.75in;
+        size: A4;
+      }
+      
+      body { 
+        font-family: 'Arial', sans-serif !important;
+        font-size: 11px !important;
+        line-height: 1.4 !important;
+        color: #000 !important;
+        background: white !important;
+      }
+      
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      .print-break { page-break-before: always !important; }
+      .print-avoid-break { page-break-inside: avoid !important; }
+      
+      /* Header Styling */
+      .print-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        border-bottom: 3px solid #2563eb !important;
+        padding-bottom: 15px !important;
+        margin-bottom: 25px !important;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+        padding: 20px !important;
+        border-radius: 8px !important;
+        position: relative !important;
+      }
+      
+      .print-company-logo {
+        position: absolute !important;
+        top: 10px !important;
+        left: 20px !important;
+        width: 80px !important;
+        height: 80px !important;
+        opacity: 0.9 !important;
+      }
+      
+      .print-header-content {
+        margin-left: 100px !important;
+        flex: 1 !important;
+      }
+      
+      .print-header-left h1 {
+        font-size: 24px !important;
+        font-weight: bold !important;
+        color: #1e40af !important;
+        margin: 0 0 5px 0 !important;
+      }
+      
+      .print-header-left p {
+        font-size: 12px !important;
+        color: #64748b !important;
+        margin: 0 !important;
+      }
+      
+      .print-photo-container {
+        width: 120px !important;
+        height: 120px !important;
+        border: 3px solid #2563eb !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+      }
+      
+      .print-photo {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+      }
+      
+      /* Status Badge */
+      .print-status {
+        background: #dcfce7 !important;
+        color: #166534 !important;
+        padding: 6px 12px !important;
+        border-radius: 20px !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        border: 1px solid #bbf7d0 !important;
+        display: inline-block !important;
+        margin-top: 10px !important;
+      }
+      
+      /* Section Styling */
+      .print-section {
+        background: white !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        padding: 20px !important;
+        margin-bottom: 20px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        page-break-inside: avoid !important;
+      }
+      
+      .print-section-title {
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: #1e40af !important;
+        margin: 0 0 15px 0 !important;
+        padding-bottom: 8px !important;
+        border-bottom: 2px solid #3b82f6 !important;
+        display: flex !important;
+        align-items: center !important;
+      }
+      
+      .print-section-title::before {
+        content: "📋" !important;
+        margin-right: 8px !important;
+        font-size: 14px !important;
+      }
+      
+      /* Grid Layout */
+      .print-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 15px !important;
+      }
+      
+      .print-grid-3 {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 12px !important;
+      }
+      
+      .print-grid-full {
+        grid-column: 1 / -1 !important;
+      }
+      
+      /* Field Styling */
+      .print-field {
+        margin-bottom: 12px !important;
+      }
+      
+      .print-label {
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        color: #475569 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        margin-bottom: 3px !important;
+        display: block !important;
+      }
+      
+      .print-value {
+        font-size: 12px !important;
+        color: #1e293b !important;
+        font-weight: 500 !important;
+        padding: 6px 10px !important;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 4px !important;
+        margin: 0 !important;
+      }
+      
+      /* Certificates */
+      .print-certificates {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        margin-top: 10px !important;
+      }
+      
+      .print-cert-item {
+        background: #dbeafe !important;
+        color: #1e40af !important;
+        padding: 4px 10px !important;
+        border-radius: 12px !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        border: 1px solid #3b82f6 !important;
+      }
+      
+      /* Updated Footer - appears directly after content, not as page footer */
+      .print-footer {
+        margin-top: 30px !important;
+        padding: 20px !important;
+        border-top: 2px solid #e2e8f0 !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        background: #f8fafc !important;
+        text-align: center !important;
+        font-size: 10px !important;
+        color: #64748b !important;
+        page-break-inside: avoid !important;
+        position: relative !important;
+        /* Remove any absolute positioning or fixed positioning */
+        /* This makes it flow naturally after the content */
+      }
+      
+      .print-footer-content {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin-bottom: 10px !important;
+        page-break-inside: avoid !important;
+      }
+      
+      .print-footer-logo {
+        width: 50px !important;
+        height: 50px !important;
+        margin-right: 12px !important;
+        opacity: 0.7 !important;
+      }
+      
+      .print-footer-text {
+        text-align: left !important;
+      }
+      
+      .print-footer-title {
+        font-weight: bold !important;
+        margin: 0 !important;
+        font-size: 11px !important;
+        color: #374151 !important;
+      }
+      
+      .print-footer-date {
+        margin: 0 !important;
+        font-size: 9px !important;
+        color: #6b7280 !important;
+      }
+      
+      .print-footer-copyright {
+        margin: 5px 0 0 0 !important;
+        font-size: 9px !important;
+        text-align: center !important;
+        color: #9ca3af !important;
+      }
+      
+      /* Document Sections */
+      .print-document-section {
+        page-break-before: always !important;
+        margin-top: 30px !important;
+      }
+      
+      .print-document-title {
+        font-size: 18px !important;
+        font-weight: bold !important;
+        color: #1e40af !important;
+        text-align: center !important;
+        margin-bottom: 20px !important;
+        padding: 15px !important;
+        background: #f1f5f9 !important;
+        border: 2px solid #3b82f6 !important;
+        border-radius: 8px !important;
+      }
+      
+      .print-document {
+        width: 100% !important;
+        height: 700px !important;
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        margin: 15px 0 !important;
+      }
+      
+      .print-document-image {
+        width: 100% !important;
+        max-height: 700px !important;
+        object-fit: contain !important;
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        margin: 15px 0 !important;
+      }
+      
+      /* Special styling for personal info section */
+      .print-personal-info .print-section-title::before {
+        content: "👤" !important;
+      }
+      
+      .print-physical-info .print-section-title::before {
+        content: "📏" !important;
+      }
+      
+      .print-education-info .print-section-title::before {
+        content: "🎓" !important;
+      }
+      
+      .print-certificates-section .print-section-title::before {
+        content: "🏆" !important;
+      }
+    }
+  </style>
+`;
 
     const existingStyles = document.getElementById("print-styles");
     if (existingStyles) {
@@ -246,6 +460,38 @@ function RecruitmentViewPage() {
     }
   };
 
+  // PDF Download function using browser's print to PDF
+  const downloadAsPDF = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const printContent = document.querySelector('.print-container')?.innerHTML || '';
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${recruitmentForm?.fullName} - Recruitment Form</title>
+          <style>
+            ${document.getElementById('print-styles')?.innerHTML || ''}
+            body { margin: 0; padding: 20px; }
+          </style>
+        </head>
+        <body>
+          ${printContent}
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
   const viewDocument = (url: string, name: string, type: "image" | "pdf") => {
     setCurrentDocument({ url, name, type });
     setShowDocumentModal(true);
@@ -270,18 +516,8 @@ function RecruitmentViewPage() {
             onClick={() => setShowPhotoModal(false)}
             className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
           <img
@@ -320,18 +556,8 @@ function RecruitmentViewPage() {
               onClick={() => setShowDocumentModal(false)}
               className="text-gray-500 hover:text-gray-700"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
@@ -385,26 +611,23 @@ function RecruitmentViewPage() {
 
   return (
     <>
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6 print-container">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print-header">
-          <div>
+          {/* Company Logo - Print Only */}
+          <img 
+            src="/logohr.svg" 
+            alt="Company Logo" 
+            className="print-company-logo hidden print:block"
+          />
+          
+          <div className="print-header-content">
             <button
               onClick={() => router.back()}
               className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-2 no-print"
             >
-              <svg
-                className="w-4 h-4 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               Back to List
             </button>
@@ -414,30 +637,30 @@ function RecruitmentViewPage() {
             <p className="text-gray-600 dark:text-gray-400">
               Application submitted on {formatDate(recruitmentForm.createdAt)}
             </p>
-            {/* Photo in print mode */}
-            {recruitmentForm.documentPhotoUrl && (
-              <div className="hidden print:block print-photo">
-                <img
-                  src={recruitmentForm.documentPhotoUrl}
-                  alt={`${recruitmentForm.fullName}'s photo`}
-                  className="w-full h-full object-cover rounded border"
-                />
-              </div>
-            )}
+            {/* Status for print */}
+            <div className="hidden print:block print-status">
+              Status: {recruitmentForm.status.replace("_", " ")}
+            </div>
           </div>
+          
+          {/* Photo in print mode */}
+          {recruitmentForm.documentPhotoUrl && (
+            <div className="hidden print:block print-photo-container">
+              <img
+                src={recruitmentForm.documentPhotoUrl}
+                alt={`${recruitmentForm.fullName}'s photo`}
+                className="print-photo"
+              />
+            </div>
+          )}
+          
           <div className="flex items-center space-x-3 no-print">
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                recruitmentForm.status
-              )}`}
-            >
+            <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(recruitmentForm.status)}`}>
               {recruitmentForm.status.replace("_", " ")}
             </span>
             <select
               value={recruitmentForm.status}
-              onChange={(e) =>
-                handleStatusUpdate(e.target.value as RecruitmentStatus)
-              }
+              onChange={(e) => handleStatusUpdate(e.target.value as RecruitmentStatus)}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {Object.values(RecruitmentStatus).map((status) => (
@@ -453,8 +676,8 @@ function RecruitmentViewPage() {
           {/* Main Info */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Information */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 print-title">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section print-personal-info">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 print-section-title">
                 Personal Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print-grid">
@@ -471,8 +694,7 @@ function RecruitmentViewPage() {
                     Birth Place & Date
                   </label>
                   <p className="text-gray-900 dark:text-white print-value">
-                    {recruitmentForm.birthPlace},{" "}
-                    {formatDate(recruitmentForm.birthDate)}
+                    {recruitmentForm.birthPlace}, {formatDate(recruitmentForm.birthDate)}
                   </p>
                 </div>
                 <div>
@@ -499,12 +721,20 @@ function RecruitmentViewPage() {
                     {recruitmentForm.address}
                   </p>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
+                    Marital Status
+                  </label>
+                  <p className="text-gray-900 dark:text-white print-value">
+                    {recruitmentForm.maritalStatus}
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Physical & Size Information */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 print-title">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section print-physical-info">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 print-section-title">
                 Physical & Size Information
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 print-grid">
@@ -552,8 +782,8 @@ function RecruitmentViewPage() {
             </div>
 
             {/* Education & Experience */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 print-title">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section print-education-info">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 print-section-title">
                 Education & Experience
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print-grid">
@@ -578,8 +808,7 @@ function RecruitmentViewPage() {
                     Experience Level
                   </label>
                   <p className="text-gray-900 dark:text-white print-value">
-                    {recruitmentForm.experienceLevel?.replace("_", " ") ||
-                      "Not specified"}
+                    {recruitmentForm.experienceLevel?.replace("_", " ") || "Not specified"}
                   </p>
                 </div>
                 <div>
@@ -587,8 +816,7 @@ function RecruitmentViewPage() {
                     Applied Position
                   </label>
                   <p className="text-gray-900 dark:text-white print-value">
-                    {recruitmentForm.appliedPosition?.replace(/_/g, " ") ||
-                      "Not specified"}
+                    {recruitmentForm.appliedPosition?.replace(/_/g, " ") || "Not specified"}
                   </p>
                 </div>
                 {recruitmentForm.workExperience && (
@@ -605,8 +833,8 @@ function RecruitmentViewPage() {
             </div>
 
             {/* Certificates */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 print-title">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section print-certificates-section">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 print-section-title">
                 Certificates
               </h2>
               <div className="flex flex-wrap gap-2 print-certificates">
@@ -675,40 +903,22 @@ function RecruitmentViewPage() {
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Status:
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded text-xs ${getStatusColor(
-                      recruitmentForm.status
-                    )}`}
-                  >
+                  <span className="text-gray-500 dark:text-gray-400">Status:</span>
+                  <span className={`px-2 py-1 rounded text-xs ${getStatusColor(recruitmentForm.status)}`}>
                     {recruitmentForm.status}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Marital Status:
-                  </span>
-                  <span className="text-gray-900 dark:text-white">
-                    {recruitmentForm.maritalStatus}
-                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">Marital Status:</span>
+                  <span className="text-gray-900 dark:text-white">{recruitmentForm.maritalStatus}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Applied:
-                  </span>
-                  <span className="text-gray-900 dark:text-white">
-                    {formatDate(recruitmentForm.createdAt)}
-                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">Applied:</span>
+                  <span className="text-gray-900 dark:text-white">{formatDate(recruitmentForm.createdAt)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Updated:
-                  </span>
-                  <span className="text-gray-900 dark:text-white">
-                    {formatDate(recruitmentForm.updatedAt)}
-                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">Updated:</span>
+                  <span className="text-gray-900 dark:text-white">{formatDate(recruitmentForm.updatedAt)}</span>
                 </div>
               </div>
             </div>
@@ -721,9 +931,7 @@ function RecruitmentViewPage() {
               <div className="space-y-3">
                 {recruitmentForm.documentCvUrl && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                      CV
-                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">CV</span>
                     <div className="flex space-x-2">
                       <button
                         onClick={() =>
@@ -739,10 +947,7 @@ function RecruitmentViewPage() {
                       </button>
                       <button
                         onClick={() =>
-                          downloadDocument(
-                            recruitmentForm.documentCvUrl!,
-                            "cv.pdf"
-                          )
+                          downloadDocument(recruitmentForm.documentCvUrl!, "cv.pdf")
                         }
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
@@ -753,9 +958,7 @@ function RecruitmentViewPage() {
                 )}
                 {recruitmentForm.documentKtpUrl && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                      KTP
-                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">KTP</span>
                     <div className="flex space-x-2">
                       <button
                         onClick={() =>
@@ -771,10 +974,7 @@ function RecruitmentViewPage() {
                       </button>
                       <button
                         onClick={() =>
-                          downloadDocument(
-                            recruitmentForm.documentKtpUrl!,
-                            "ktp.jpg"
-                          )
+                          downloadDocument(recruitmentForm.documentKtpUrl!, "ktp.jpg")
                         }
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
@@ -785,9 +985,7 @@ function RecruitmentViewPage() {
                 )}
                 {recruitmentForm.documentSkckUrl && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                      SKCK
-                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">SKCK</span>
                     <div className="flex space-x-2">
                       <button
                         onClick={() =>
@@ -803,10 +1001,7 @@ function RecruitmentViewPage() {
                       </button>
                       <button
                         onClick={() =>
-                          downloadDocument(
-                            recruitmentForm.documentSkckUrl!,
-                            "skck.pdf"
-                          )
+                          downloadDocument(recruitmentForm.documentSkckUrl!, "skck.pdf")
                         }
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
@@ -890,85 +1085,56 @@ function RecruitmentViewPage() {
               <div className="space-y-3">
                 <button
                   onClick={() => window.print()}
-                  className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center"
                 >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                  </svg>
                   Print Details
+                </button>
+                <button
+                  onClick={downloadAsPDF}
+                  className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download as PDF
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Print-only document sections */}
-        <div className="hidden print:block">
-          {recruitmentForm.documentCvUrl && (
-            <div className="print-document-section">
-              <h2 className="print-document-title">CV Document</h2>
-              <iframe
-                src={`${recruitmentForm.documentCvUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                className="print-document"
-                title="CV Document"
-              />
+        {/* Print Footer */}
+        <div className="hidden print:block print-footer">
+          <div className="print-footer-content">
+            <img 
+              src="/logohr.svg" 
+              alt="Company Logo" 
+              className="print-footer-logo"
+            />
+            <div className="print-footer-text">
+              <p className="print-footer-title">
+                HR Recruitment System
+              </p>
+              <p className="print-footer-date">
+                Generated on {new Date().toLocaleDateString("id-ID", {
+                  year: "numeric",
+                  month: "long", 
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit"
+                })}
+              </p>
             </div>
-          )}
-
-          {recruitmentForm.documentKtpUrl && (
-            <div className="print-document-section">
-              <h2 className="print-document-title">KTP Document</h2>
-              {getFileType(recruitmentForm.documentKtpUrl) === "image" ? (
-                <img
-                  src={recruitmentForm.documentKtpUrl}
-                  alt="KTP Document"
-                  className="print-document"
-                  style={{
-                    height: "400px",
-                    objectFit: "contain",
-                    width: "100%",
-                  }}
-                />
-              ) : (
-                <iframe
-                  src={`${recruitmentForm.documentKtpUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                  className="print-document"
-                  title="KTP Document"
-                />
-              )}
-            </div>
-          )}
-
-          {recruitmentForm.documentSkckUrl && (
-            <div className="print-document-section">
-              <h2 className="print-document-title">SKCK Document</h2>
-              <iframe
-                src={`${recruitmentForm.documentSkckUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                className="print-document"
-                title="SKCK Document"
-              />
-            </div>
-          )}
-
-          {recruitmentForm.documentVaccineUrl && (
-            <div className="print-document-section">
-              <h2 className="print-document-title">Vaccine Certificate</h2>
-              <iframe
-                src={`${recruitmentForm.documentVaccineUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                className="print-document"
-                title="Vaccine Certificate"
-              />
-            </div>
-          )}
-
-          {recruitmentForm.supportingDocsUrl && (
-            <div className="print-document-section">
-              <h2 className="print-document-title">Supporting Documents</h2>
-              <iframe
-                src={`${recruitmentForm.supportingDocsUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                className="print-document"
-                title="Supporting Documents"
-              />
-            </div>
-          )}
+          </div>
+          <p className="print-footer-copyright">
+            © 2024 Recruitment Management System - Confidential Document
+          </p>
         </div>
+
+        {/* Documents summary for print only - REMOVED */}
       </div>
 
       {/* Photo Modal */}

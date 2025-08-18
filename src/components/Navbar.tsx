@@ -66,7 +66,7 @@ export default function Navbar() {
                 BDP Recruitment Portal
               </span>
               <span className="text-xs text-purple-300 opacity-80 hidden sm:block">
-                Building Dreams Together
+                Property of www.bataramining.com
               </span>
             </div>
           </Link>

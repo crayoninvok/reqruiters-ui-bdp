@@ -14,11 +14,20 @@ interface StatCardProps {
 // Mock Footer component since it's not defined
 function Footer() {
   return (
-    <footer className="bg-slate-900 text-white py-12 px-6">
+    <footer className="bg-slate-900 text-white py-16 px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>
-            <h3 className="text-lg font-semibold mb-4">Batara Dharma Persada</h3>
+            <div className="flex items-center mb-6">
+              <img
+                src="/bdplogo01.png"
+                alt="Batara Dharma Persada Logo"
+                className="h-14 w-auto mr-4"
+              />
+              <h3 className="text-xl text-teal-600 font-semibold">
+                Dharma Persada
+              </h3>
+            </div>
             <p className="text-slate-300">
               Professional HR management solution for modern organizations.
             </p>
@@ -26,22 +35,47 @@ function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
             <div className="space-y-2">
-              <a href="/about" className="block text-slate-300 hover:text-white">About Us</a>
-              <a href="/careers" className="block text-slate-300 hover:text-white">Careers</a>
-              <a href="/contact" className="block text-slate-300 hover:text-white">Contact</a>
+              <a
+                href="https://www.bataramining.com"
+                className="block text-slate-300 hover:text-white"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                About Us
+              </a>
+              <a
+                href="https://www.bataramining.com/kontak"
+                className="block text-slate-300 hover:text-white"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Contact Us
+              </a>
             </div>
           </div>
           <div>
             <h4 className="text-lg font-semibold mb-4">Support</h4>
             <div className="space-y-2">
-              <a href="/help" className="block text-slate-300 hover:text-white">Help Center</a>
-              <a href="/privacy" className="block text-slate-300 hover:text-white">Privacy Policy</a>
-              <a href="/terms" className="block text-slate-300 hover:text-white">Terms of Service</a>
+              <a href="/help" className="block text-slate-300 hover:text-white">
+                Help Center
+              </a>
+              <a
+                href="/privacy"
+                className="block text-slate-300 hover:text-white"
+              >
+                Privacy Policy
+              </a>
+              <a
+                href="/terms"
+                className="block text-slate-300 hover:text-white"
+              >
+                Terms of Service
+              </a>
             </div>
           </div>
         </div>
         <div className="border-t border-slate-700 mt-8 pt-8 text-center text-slate-400">
-          <p>&copy; 2024 Batara Dharma Persada. All rights reserved.</p>
+          <p>&copy; 2025 Batara Dharma Persada. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -68,7 +102,12 @@ export default function Home() {
           <div className="text-center space-y-4 sm:space-y-6 md:space-y-8">
             <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-light text-white leading-tight">
               <span className="block text-blue-200 font-medium text-sm sm:text-base md:text-lg lg:text-xl mb-2 sm:mb-4">
-                Batara Dharma Persada
+                PT
+                <span className=" text-teal-600 font-medium text-sm sm:text-base md:text-lg lg:text-xl mb-2 sm:mb-4">
+                  {" "}
+                  Batara
+                </span>{" "}
+                Dharma Persada
               </span>
               <span className="block">HR Management</span>
               <span className="block text-blue-200 font-medium text-lg sm:text-xl md:text-2xl lg:text-3xl mt-2 sm:mt-4">
@@ -154,8 +193,12 @@ function FeatureCard({ icon, title, description }: FeatureCardProps) {
       <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 bg-blue-50 rounded-full flex items-center justify-center text-2xl sm:text-3xl">
         {icon}
       </div>
-      <h3 className="text-lg sm:text-xl font-medium text-slate-900 mb-2 sm:mb-3">{title}</h3>
-      <p className="text-sm sm:text-base text-slate-600 leading-relaxed">{description}</p>
+      <h3 className="text-lg sm:text-xl font-medium text-slate-900 mb-2 sm:mb-3">
+        {title}
+      </h3>
+      <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+        {description}
+      </p>
     </div>
   );
 }
@@ -163,7 +206,9 @@ function FeatureCard({ icon, title, description }: FeatureCardProps) {
 function StatCard({ number, label }: StatCardProps) {
   return (
     <div className="py-2">
-      <div className="text-xl sm:text-2xl md:text-3xl font-semibold text-white mb-1">{number}</div>
+      <div className="text-xl sm:text-2xl md:text-3xl font-semibold text-white mb-1">
+        {number}
+      </div>
       <div className="text-xs sm:text-sm text-blue-100">{label}</div>
     </div>
   );

@@ -1,6 +1,6 @@
 // dashboard/layout.tsx
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/useAuth";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -15,6 +15,12 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  // Reset image error when user changes or avatarUrl changes
+useEffect(() => {
+  console.log(user); // Ensure user data is correct
+}, [user]);
 
   const handleLogout = async () => {
     // Show confirmation dialog
@@ -213,6 +219,22 @@ export default function DashboardLayout({
     return pathname.startsWith(href);
   };
 
+  // Function to get user avatar with fallback
+const getUserAvatar = () => {
+  if (user?.avatarUrl && !imageError) {
+    return (
+      <img
+        src={user.avatarUrl || "/default-avatar.png"} // Use a default avatar if URL is missing
+        alt={`${user.name || user.email}'s avatar`}
+        className="w-full h-full object-cover rounded-full"
+        onError={() => setImageError(true)}
+        onLoad={() => setImageError(false)}
+      />
+    );
+  }
+};
+
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Mobile sidebar overlay */}
@@ -278,11 +300,8 @@ export default function DashboardLayout({
               <div className="relative overflow-hidden bg-gradient-to-r from-slate-700/50 to-slate-600/50 backdrop-blur-sm p-4 rounded-2xl border border-slate-600/30">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10"></div>
                 <div className="relative flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                    <span className="text-lg font-bold text-white">
-                      {user.name?.charAt(0).toUpperCase() ||
-                        user.email.charAt(0).toUpperCase()}
-                    </span>
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+                    {getUserAvatar()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-slate-400 uppercase tracking-wide">

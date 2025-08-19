@@ -1,11 +1,16 @@
 import api from "./api";
-import { RecruitmentForm, CreateRecruitmentFormData, ApiResponse } from "@/types/types";
+import {
+  RecruitmentForm,
+  CreateRecruitmentFormData,
+  ApiResponse,
+} from "@/types/types";
 
 export interface RecruitmentFormFilters {
   page?: number;
   limit?: number;
   search?: string;
   status?: string;
+  certificate?: string[];
   province?: string;
   education?: string;
   appliedPosition?: string;
@@ -48,7 +53,7 @@ export class RecruitmentFormService {
   private static getCookie(name: string): string | null {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
     return null;
   }
 
@@ -58,70 +63,79 @@ export class RecruitmentFormService {
   }
 
   private static getBaseUrl(): string {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
   }
 
   // Generic retry logic for failed requests
   private static async makeRequest<T>(
-    requestFn: () => Promise<T>, 
+    requestFn: () => Promise<T>,
     retries = 3,
     delay = 1000
   ): Promise<T> {
     let lastError: any;
-    
+
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         return await requestFn();
       } catch (error: any) {
         lastError = error;
-        
+
         // Don't retry on client errors (4xx) except 408, 429
         if (error.response?.status >= 400 && error.response?.status < 500) {
           if (error.response.status !== 408 && error.response.status !== 429) {
             throw error;
           }
         }
-        
+
         if (attempt === retries) {
           throw lastError;
         }
-        
+
         // Wait before retrying with exponential backoff
-        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+        await new Promise((resolve) => setTimeout(resolve, delay * attempt));
       }
     }
-    
+
     throw lastError;
   }
 
   // Get all recruitment forms with pagination and filtering
-  static async getRecruitmentForms(
-    filters: RecruitmentFormFilters = {}
-  ): Promise<RecruitmentFormsResponse> {
-    return this.makeRequest(async () => {
-      const params = new URLSearchParams();
+ static async getRecruitmentForms(
+  filters: RecruitmentFormFilters = {}
+): Promise<RecruitmentFormsResponse> {
+  return this.makeRequest(async () => {
+    const params = new URLSearchParams();
 
-      if (filters.page) params.append("page", filters.page.toString());
-      if (filters.limit) params.append("limit", filters.limit.toString());
-      if (filters.search) params.append("search", filters.search);
-      if (filters.startDate) params.append("startDate", filters.startDate);
-      if (filters.endDate) params.append("endDate", filters.endDate);
-      if (filters.status) params.append("status", filters.status);
-      if (filters.province) params.append("province", filters.province);
-      if (filters.education) params.append("education", filters.education);
-      if (filters.appliedPosition) params.append("appliedPosition", filters.appliedPosition);
+    if (filters.page) params.append("page", filters.page.toString());
+    if (filters.limit) params.append("limit", filters.limit.toString());
+    if (filters.search) params.append("search", filters.search);
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    if (filters.status) params.append("status", filters.status);
+    
+    // Handle multiple certificates
+    if (filters.certificate && filters.certificate.length > 0) {
+      params.append("certificate", filters.certificate.join(','));
+    }
+    
+    if (filters.province) params.append("province", filters.province);
+    if (filters.education) params.append("education", filters.education);
+    if (filters.appliedPosition)
+      params.append("appliedPosition", filters.appliedPosition);
 
-      const response = await api.get(`/recruitment?${params.toString()}`, {
-        headers: this.getAuthHeader(),
-        timeout: 30000, // 30 seconds timeout
-      });
-
-      return response.data;
+    const response = await api.get(`/recruitment?${params.toString()}`, {
+      headers: this.getAuthHeader(),
+      timeout: 30000,
     });
-  }
+
+    return response.data;
+  });
+}
 
   // Get single recruitment form by ID
-  static async getRecruitmentFormById(id: string): Promise<RecruitmentFormResponse> {
+  static async getRecruitmentFormById(
+    id: string
+  ): Promise<RecruitmentFormResponse> {
     return this.makeRequest(async () => {
       const response = await api.get(`/recruitment/${id}`, {
         headers: this.getAuthHeader(),
@@ -173,13 +187,17 @@ export class RecruitmentFormService {
     status: string
   ): Promise<RecruitmentFormResponse> {
     return this.makeRequest(async () => {
-      const response = await api.patch(`/recruitment/${id}/status`, { status }, {
-        headers: {
-          ...this.getAuthHeader(),
-          "Content-Type": "application/json",
-        },
-        timeout: 10000,
-      });
+      const response = await api.patch(
+        `/recruitment/${id}/status`,
+        { status },
+        {
+          headers: {
+            ...this.getAuthHeader(),
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        }
+      );
 
       return response.data;
     });
@@ -213,17 +231,21 @@ export class RecruitmentFormService {
 
   // Bulk status update
   static async bulkUpdateStatus(
-    ids: string[], 
+    ids: string[],
     status: string
   ): Promise<ApiResponse> {
     return this.makeRequest(async () => {
-      const response = await api.patch("/recruitment/bulk-status", { ids, status }, {
-        headers: {
-          ...this.getAuthHeader(),
-          "Content-Type": "application/json",
-        },
-        timeout: 30000,
-      });
+      const response = await api.patch(
+        "/recruitment/bulk-status",
+        { ids, status },
+        {
+          headers: {
+            ...this.getAuthHeader(),
+            "Content-Type": "application/json",
+          },
+          timeout: 30000,
+        }
+      );
 
       return response.data;
     });
@@ -232,24 +254,28 @@ export class RecruitmentFormService {
   // Export recruitment forms (if supported by backend)
   static async exportRecruitmentForms(
     filters: RecruitmentFormFilters = {},
-    format: 'csv' | 'excel' = 'excel'
+    format: "csv" | "excel" = "excel"
   ): Promise<Blob> {
     return this.makeRequest(async () => {
       const params = new URLSearchParams();
-      
+
       if (filters.search) params.append("search", filters.search);
       if (filters.status) params.append("status", filters.status);
       if (filters.province) params.append("province", filters.province);
       if (filters.education) params.append("education", filters.education);
-      if (filters.appliedPosition) params.append("appliedPosition", filters.appliedPosition);
-      
+      if (filters.appliedPosition)
+        params.append("appliedPosition", filters.appliedPosition);
+
       params.append("format", format);
 
-      const response = await api.get(`/recruitment/export?${params.toString()}`, {
-        headers: this.getAuthHeader(),
-        responseType: 'blob',
-        timeout: 60000,
-      });
+      const response = await api.get(
+        `/recruitment/export?${params.toString()}`,
+        {
+          headers: this.getAuthHeader(),
+          responseType: "blob",
+          timeout: 60000,
+        }
+      );
 
       return response.data;
     }, 1); // Don't retry exports
@@ -270,13 +296,17 @@ export class RecruitmentFormService {
       errors.push("Weight must be between 30-200 kg");
     }
     if (!data.address?.trim()) errors.push("Address is required");
-    if (!data.whatsappNumber?.trim()) errors.push("WhatsApp number is required");
+    if (!data.whatsappNumber?.trim())
+      errors.push("WhatsApp number is required");
     if (!data.education) errors.push("Education level is required");
     if (!data.schoolName?.trim()) errors.push("School name is required");
     if (!data.maritalStatus) errors.push("Marital status is required");
 
     // Validate WhatsApp number format (Indonesian)
-    if (data.whatsappNumber && !/^(\+62|62|0)[0-9]{9,13}$/.test(data.whatsappNumber)) {
+    if (
+      data.whatsappNumber &&
+      !/^(\+62|62|0)[0-9]{9,13}$/.test(data.whatsappNumber)
+    ) {
       errors.push("Invalid WhatsApp number format");
     }
 

@@ -12,6 +12,7 @@ import {
   Copy,
   Check,
   QrCode,
+  Download,
 } from "lucide-react";
 
 // ShareModal Component
@@ -47,6 +48,113 @@ const ShareModal: React.FC<ShareModalProps> = ({
     }
   };
 
+  // Check if device is mobile
+  const isMobile = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+  };
+
+  // Check if Web Share API is supported
+  const canUseNativeShare = () => {
+    return typeof navigator.share === "function" && isMobile();
+  };
+
+  const shareQRCode = async (platform: string) => {
+    const qrImageUrl = `${window.location.origin}/qrcode.jpg`;
+    const message = `🚀 Join our team! Scan this QR code to apply: ${shareUrl}`;
+
+    // Use native sharing on mobile when available
+    if (canUseNativeShare() && platform !== "copy") {
+      try {
+        await navigator.share({
+          title: "BDP Recruitment - QR Code",
+          text: `🚀 Join our team! Apply now: ${shareUrl}\n\n📱 QR Code: ${qrImageUrl}`,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        // Fall back to platform-specific sharing if native share fails
+        console.log("Native share failed, falling back to platform sharing");
+      }
+    }
+
+    switch (platform) {
+      case "whatsapp":
+        const whatsappMessage = `🚀 Join our team! Apply now through our recruitment portal: ${shareUrl}\n\n📱 QR Code available at: ${qrImageUrl}`;
+        if (isMobile()) {
+          // Use WhatsApp mobile app URL scheme
+          window.location.href = `whatsapp://send?text=${encodeURIComponent(
+            whatsappMessage
+          )}`;
+        } else {
+          window.open(
+            `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`,
+            "_blank"
+          );
+        }
+        break;
+
+      case "linkedin":
+        const linkedinText = `🚀 We Are Hiring Now!! \n\n Exciting career opportunities available at PT.Batara Dharma Persada!\n\n✨ We're looking for talented individuals to join our growing team.\n\n📝 Apply now: ${shareUrl}\n\n📱 QR Code: ${qrImageUrl}\n\n#Bataramining #BataraDharmaPersada #BDP #Recruitment #BataraRecruitment`;
+        if (isMobile()) {
+          // Use LinkedIn mobile app URL scheme
+          window.location.href = `linkedin://sharing/share-offsite/?url=${encodeURIComponent(
+            shareUrl
+          )}&title=${encodeURIComponent(
+            "BDP Recruitment"
+          )}&summary=${encodeURIComponent(linkedinText)}`;
+        } else {
+          window.open(
+            `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(
+              linkedinText
+            )}`,
+            "_blank"
+          );
+        }
+        break;
+
+      case "instagram":
+        if (isMobile()) {
+          // Try Instagram app URL scheme first
+          const instagramUrl = `instagram://share?text=${encodeURIComponent(
+            `🚀 Join our team! ${shareUrl}`
+          )}`;
+          const fallbackMessage = `QR code and link copied! You can now paste it in Instagram.\n\nLink: ${shareUrl}\nQR Code: Download from the app`;
+
+          // Try to open Instagram app, fallback to copy
+          try {
+            window.location.href = instagramUrl;
+            setTimeout(() => {
+              copyToClipboard();
+              alert(fallbackMessage);
+            }, 1000);
+          } catch (err) {
+            copyToClipboard();
+            alert(fallbackMessage);
+          }
+        } else {
+          copyToClipboard();
+          alert(
+            `QR code image and link copied! \n\nYou can now:\n1. Save the QR code image from /qrcode.jpg\n2. Post it on Instagram\n3. Add the link ${shareUrl} to your bio or story`
+          );
+        }
+        break;
+
+      case "copy":
+        try {
+          await navigator.clipboard.writeText(
+            `QR Code Image: ${qrImageUrl}\nRecruitment Link: ${shareUrl}`
+          );
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+          copyToClipboard();
+        }
+        break;
+    }
+  };
+
   const shareOptions = [
     {
       name: "WhatsApp",
@@ -54,10 +162,37 @@ const ShareModal: React.FC<ShareModalProps> = ({
       color: "bg-green-500 hover:bg-green-600",
       action: () => {
         const message = `🚀 Join our team! Apply now through our recruitment portal: ${shareUrl}`;
-        window.open(
-          `https://wa.me/?text=${encodeURIComponent(message)}`,
-          "_blank"
-        );
+
+        if (canUseNativeShare()) {
+          navigator
+            .share({
+              title: "BDP Recruitment Opportunity",
+              text: message,
+              url: shareUrl,
+            })
+            .catch(() => {
+              // Fallback to WhatsApp URL
+              if (isMobile()) {
+                window.location.href = `whatsapp://send?text=${encodeURIComponent(
+                  message
+                )}`;
+              } else {
+                window.open(
+                  `https://wa.me/?text=${encodeURIComponent(message)}`,
+                  "_blank"
+                );
+              }
+            });
+        } else if (isMobile()) {
+          window.location.href = `whatsapp://send?text=${encodeURIComponent(
+            message
+          )}`;
+        } else {
+          window.open(
+            `https://wa.me/?text=${encodeURIComponent(message)}`,
+            "_blank"
+          );
+        }
       },
     },
     {
@@ -65,16 +200,42 @@ const ShareModal: React.FC<ShareModalProps> = ({
       icon: Linkedin,
       color: "bg-blue-600 hover:bg-blue-700",
       action: () => {
-        const title = "Career Opportunity at BDP - Join Our Team!";
         const text = `🚀 We Are Hiring Now!! \n\n Exciting career opportunities available at PT.Batara Dharma Persada!\n\n✨ We're looking for talented individuals to join our growing team.\n\n📝 Apply now: ${shareUrl}\n\n#Bataramining #BataraDharmaPersada #BDP #Recruitment #BataraRecruitment`;
 
-        // Use LinkedIn's post composer with pre-filled text
-        window.open(
-          `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(
-            text
-          )}`,
-          "_blank"
-        );
+        if (canUseNativeShare()) {
+          navigator
+            .share({
+              title: "BDP Career Opportunity",
+              text: text,
+              url: shareUrl,
+            })
+            .catch(() => {
+              // Fallback to LinkedIn URL
+              if (isMobile()) {
+                window.location.href = `linkedin://sharing/share-offsite/?url=${encodeURIComponent(
+                  shareUrl
+                )}`;
+              } else {
+                window.open(
+                  `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(
+                    text
+                  )}`,
+                  "_blank"
+                );
+              }
+            });
+        } else if (isMobile()) {
+          window.location.href = `linkedin://sharing/share-offsite/?url=${encodeURIComponent(
+            shareUrl
+          )}`;
+        } else {
+          window.open(
+            `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(
+              text
+            )}`,
+            "_blank"
+          );
+        }
       },
     },
     {
@@ -83,11 +244,25 @@ const ShareModal: React.FC<ShareModalProps> = ({
       color:
         "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600",
       action: () => {
-        // Instagram doesn't support direct link sharing, so we'll copy the link
-        copyToClipboard();
-        alert(
-          "Link copied! You can now paste it in your Instagram bio or story."
-        );
+        if (canUseNativeShare()) {
+          navigator
+            .share({
+              title: "BDP Recruitment",
+              text: `🚀 Join our team! Apply now: ${shareUrl}`,
+              url: shareUrl,
+            })
+            .catch(() => {
+              copyToClipboard();
+              alert(
+                "Link copied! You can now paste it in your Instagram bio or story."
+              );
+            });
+        } else {
+          copyToClipboard();
+          alert(
+            "Link copied! You can now paste it in your Instagram bio or story."
+          );
+        }
       },
     },
     {
@@ -95,6 +270,34 @@ const ShareModal: React.FC<ShareModalProps> = ({
       icon: copied ? Check : Copy,
       color: copied ? "bg-green-500" : "bg-gray-600 hover:bg-gray-700",
       action: copyToClipboard,
+    },
+  ];
+
+  const qrShareOptions = [
+    {
+      name: "WhatsApp QR",
+      icon: MessageCircle,
+      color: "bg-green-500 hover:bg-green-600",
+      action: () => shareQRCode("whatsapp"),
+    },
+    {
+      name: "LinkedIn QR",
+      icon: Linkedin,
+      color: "bg-blue-600 hover:bg-blue-700",
+      action: () => shareQRCode("linkedin"),
+    },
+    {
+      name: "Instagram QR",
+      icon: Instagram,
+      color:
+        "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600",
+      action: () => shareQRCode("instagram"),
+    },
+    {
+      name: "Copy QR Info",
+      icon: Copy,
+      color: "bg-gray-600 hover:bg-gray-700",
+      action: () => shareQRCode("copy"),
     },
   ];
 
@@ -181,12 +384,24 @@ const ShareModal: React.FC<ShareModalProps> = ({
                     alt="QR Code for Recruitment Form"
                     className="w-48 h-48 border rounded-lg mb-4"
                   />
-                  <button
-                    onClick={downloadQR}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
-                  >
-                    Download QR Code
-                  </button>
+
+                  {/* QR Code Action Buttons */}
+                  <div className="flex space-x-2 mb-4">
+                    <button
+                      onClick={downloadQR}
+                      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download</span>
+                    </button>
+                    <button
+                      onClick={() => shareQRCode("copy")}
+                      className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      <span>Share QR</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -194,7 +409,9 @@ const ShareModal: React.FC<ShareModalProps> = ({
 
           {/* Share Options */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-4">Share via:</p>
+            <p className="text-sm font-medium text-gray-700 mb-4">
+              Share link via:
+            </p>
             <div className="grid grid-cols-2 gap-3">
               {shareOptions.map((option) => (
                 <button
@@ -230,6 +447,10 @@ const ShareModal: React.FC<ShareModalProps> = ({
                   • <strong>Instagram:</strong> Copy link for bio or story
                   sharing
                 </li>
+                <li>
+                  • <strong>QR Sharing:</strong> Share QR code image with link
+                  info across platforms
+                </li>
               </ul>
             </div>
           </div>
@@ -240,7 +461,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
               <div className="flex items-center space-x-2">
                 <Check className="w-5 h-5 text-green-600" />
                 <span className="text-green-800 font-medium">
-                  Link copied to clipboard!
+                  Content copied to clipboard!
                 </span>
               </div>
             </div>
@@ -250,8 +471,8 @@ const ShareModal: React.FC<ShareModalProps> = ({
         {/* Footer */}
         <div className="px-6 py-4 bg-gray-50 rounded-b-2xl">
           <p className="text-xs text-gray-500 text-center">
-            Share this link to help candidates easily access the recruitment
-            form
+            Share this link or QR code to help candidates easily access the
+            recruitment form
           </p>
         </div>
       </div>

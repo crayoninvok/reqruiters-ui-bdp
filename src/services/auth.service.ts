@@ -1,5 +1,10 @@
 import api from "./api";
-import { LoginCredentials, RegisterData, User, AuthResponse } from "@/types/types";
+import {
+  LoginCredentials,
+  RegisterData,
+  User,
+  AuthResponse,
+} from "@/types/types";
 
 export class AuthService {
   /**
@@ -30,11 +35,148 @@ export class AuthService {
   }
 
   /**
+   * Admin creates HR user
+   */
+  static async createHRUser(userData: RegisterData): Promise<AuthResponse> {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        throw new Error("No token found, please login first");
+      }
+
+      const response = await api.post("/auth/create-hr-user", userData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Creating HR user failed"
+      );
+    }
+  }
+
+  /**
+   * Admin gets all HR users
+   */
+  static async getHRUsers(): Promise<any> {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        throw new Error("No token found, please login first");
+      }
+
+      const response = await api.get("/auth/hr-users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch HR users"
+      );
+    }
+  }
+
+  /**
+   * Admin gets single HR user
+   */
+  static async getHRUser(userId: string): Promise<any> {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        throw new Error("No token found, please login first");
+      }
+
+      const response = await api.get(`/auth/hr-users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch HR user"
+      );
+    }
+  }
+
+  /**
+   * Admin updates HR user
+   */
+  static async updateHRUser(userId: string, userData: Partial<RegisterData & { avatarUrl?: string }>): Promise<any> {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        throw new Error("No token found, please login first");
+      }
+
+      const response = await api.put(`/auth/hr-users/${userId}`, userData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Failed to update HR user"
+      );
+    }
+  }
+
+  /**
+   * Admin deletes HR user
+   */
+  static async deleteHRUser(userId: string): Promise<any> {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        throw new Error("No token found, please login first");
+      }
+
+      const response = await api.delete(`/auth/hr-users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Failed to delete HR user"
+      );
+    }
+  }
+
+  /**
+   * Admin changes user role
+   */
+  static async changeUserRole(userId: string, newRole: string): Promise<any> {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        throw new Error("No token found, please login first");
+      }
+
+      const response = await api.patch(`/auth/users/${userId}/role`, { newRole }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Failed to change user role"
+      );
+    }
+  }
+
+  /**
    * Logout user (client-side cleanup)
    */
   static logout = async () => {
     try {
-      // Optional: Call server-side logout endpoint if needed
       await api.post("/auth/logout", {}, { withCredentials: true }); // This is optional
       this.clearAllAuthData(); // Clean up client-side storage (localStorage)
     } catch (error) {
@@ -48,12 +190,10 @@ export class AuthService {
    */
   static clearAllAuthData(): void {
     try {
-      // Clear localStorage (remove all auth-related items)
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("refreshToken"); // If using refresh tokens
-      
-      // Clear sessionStorage (optional, if you're using sessionStorage as well)
+
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
       sessionStorage.removeItem("refreshToken");
@@ -67,7 +207,7 @@ export class AuthService {
    */
   static isAuthenticated(): boolean {
     const token = localStorage.getItem("token");
-    return !!token; // If token exists in localStorage, return true, else false
+    return !!token;
   }
 
   /**
@@ -80,7 +220,7 @@ export class AuthService {
     try {
       return JSON.parse(userStr);
     } catch {
-      return null; // If parsing fails, return null
+      return null;
     }
   }
 
@@ -88,15 +228,15 @@ export class AuthService {
    * Save user data to localStorage
    */
   static saveUserData(token: string, user: User): void {
-    localStorage.setItem("token", token); // Store token in localStorage
-    localStorage.setItem("user", JSON.stringify(user)); // Store user object in localStorage
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
   }
 
   /**
    * Get stored token from localStorage
    */
   static getToken(): string | null {
-    return localStorage.getItem("token"); // Only retrieving from localStorage
+    return localStorage.getItem("token");
   }
 
   /**
@@ -104,10 +244,14 @@ export class AuthService {
    */
   static async refreshToken(): Promise<AuthResponse> {
     try {
-      const response = await api.post("/auth/refresh", {}, {
-        withCredentials: true,
-      });
-      
+      const response = await api.post(
+        "/auth/refresh",
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+
       if (response.data.token && response.data.user) {
         this.saveUserData(response.data.token, response.data.user);
       }
@@ -124,7 +268,7 @@ export class AuthService {
    */
   static isTokenExpired(token: string): boolean {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(token.split(".")[1]));
       const currentTime = Date.now() / 1000;
       return payload.exp < currentTime;
     } catch {

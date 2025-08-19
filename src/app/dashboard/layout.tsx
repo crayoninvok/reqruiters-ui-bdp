@@ -18,9 +18,9 @@ export default function DashboardLayout({
   const [imageError, setImageError] = useState(false);
 
   // Reset image error when user changes or avatarUrl changes
-useEffect(() => {
-  console.log(user); // Ensure user data is correct
-}, [user]);
+  useEffect(() => {
+    console.log(user); // Ensure user data is correct
+  }, [user]);
 
   const handleLogout = async () => {
     // Show confirmation dialog
@@ -89,11 +89,15 @@ useEffect(() => {
     }
   };
 
+  // Check if user is admin
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+
   const navigationItems = [
     {
       name: "Dashboard",
       href: "/dashboard",
       isDemo: false,
+      showForAdmin: false,
       icon: (
         <svg
           className="w-5 h-5"
@@ -114,6 +118,7 @@ useEffect(() => {
       name: "Analytics",
       href: "/dashboard/analytics",
       isDemo: false,
+      showForAdmin: false,
       icon: (
         <svg
           className="w-5 h-5"
@@ -134,6 +139,7 @@ useEffect(() => {
       name: "Recruitment Data",
       href: "/dashboard/recruitdata",
       isDemo: false,
+      showForAdmin: false,
       icon: (
         <svg
           className="w-5 h-5"
@@ -154,6 +160,7 @@ useEffect(() => {
       name: "Input Form",
       href: "/dashboard/inputformdata",
       isDemo: false,
+      showForAdmin: false,
       icon: (
         <svg
           className="w-5 h-5"
@@ -170,10 +177,56 @@ useEffect(() => {
         </svg>
       ),
     },
+    // Admin-only Create User menu item
+    {
+      name: "Create User",
+      href: "/dashboard/create-user",
+      isDemo: false,
+      showForAdmin: true,
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: "User List",
+      href: "/dashboard/user-list",
+      isDemo: false,
+      showForAdmin: true,
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+          <circle cx="12" cy="9" r="4" strokeWidth="2" />
+          <path d="M12 15c-3 0-6 1-6 3v1h12v-1c0-2-3-3-6-3z" />
+        </svg>
+      ),
+    },
     {
       name: "Actual vs Plan",
       href: "/dashboard/actualvsplan",
       isDemo: true,
+      showForAdmin: false,
       icon: (
         <svg
           className="w-5 h-5"
@@ -194,6 +247,7 @@ useEffect(() => {
       name: "Profile",
       href: "/dashboard/profile",
       isDemo: false,
+      showForAdmin: false,
       icon: (
         <svg
           className="w-5 h-5"
@@ -212,6 +266,14 @@ useEffect(() => {
     },
   ];
 
+  // Filter navigation items based on admin status
+  const filteredNavigationItems = navigationItems.filter((item) => {
+    if (item.showForAdmin) {
+      return isAdmin;
+    }
+    return true;
+  });
+
   const isActive = (href: string) => {
     if (href === "/dashboard") {
       return pathname === "/dashboard";
@@ -220,20 +282,19 @@ useEffect(() => {
   };
 
   // Function to get user avatar with fallback
-const getUserAvatar = () => {
-  if (user?.avatarUrl && !imageError) {
-    return (
-      <img
-        src={user.avatarUrl || "/default-avatar.png"} // Use a default avatar if URL is missing
-        alt={`${user.name || user.email}'s avatar`}
-        className="w-full h-full object-cover rounded-full"
-        onError={() => setImageError(true)}
-        onLoad={() => setImageError(false)}
-      />
-    );
-  }
-};
-
+  const getUserAvatar = () => {
+    if (user?.avatarUrl && !imageError) {
+      return (
+        <img
+          src={user.avatarUrl || "/default-avatar.png"} // Use a default avatar if URL is missing
+          alt={`${user.name || user.email}'s avatar`}
+          className="w-full h-full object-cover rounded-full"
+          onError={() => setImageError(true)}
+          onLoad={() => setImageError(false)}
+        />
+      );
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -310,9 +371,16 @@ const getUserAvatar = () => {
                     <p className="font-semibold text-white truncate text-sm">
                       {user.name || user.email}
                     </p>
-                    <p className="text-xs text-slate-300 capitalize">
-                      {user.role}
-                    </p>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-xs text-slate-300 capitalize">
+                        {user.role}
+                      </p>
+                      {isAdmin && (
+                        <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs font-medium rounded border border-emerald-400/30">
+                          ADMIN
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -322,7 +390,7 @@ const getUserAvatar = () => {
           {/* Navigation */}
           <nav className="flex-1 px-6 pb-6">
             <ul className="space-y-2">
-              {navigationItems.map((item) => (
+              {filteredNavigationItems.map((item) => (
                 <li key={item.name}>
                   <Link
                     href={item.href}
@@ -343,6 +411,13 @@ const getUserAvatar = () => {
                       {item.icon}
                     </div>
                     <span className="truncate flex-1">{item.name}</span>
+
+                    {/* Admin Badge for Create User */}
+                    {item.showForAdmin && (
+                      <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs font-medium rounded border border-emerald-400/30">
+                        ADMIN
+                      </span>
+                    )}
 
                     {/* Demo Badge */}
                     {item.isDemo && (

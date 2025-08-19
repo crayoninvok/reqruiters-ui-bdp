@@ -17,8 +17,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Database HR BDP",
-  description: "CRUD operations for HR database",
+  title: "Recruitment Portal BDP",
+  description: "PT Batara Dharma Persada Recruitment Portal",
 };
 
 export default function RootLayout({

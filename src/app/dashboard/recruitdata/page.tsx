@@ -31,25 +31,28 @@ const CertificateMultiSelect: React.FC<MultiSelectProps> = ({
   options,
   selected,
   onChange,
-  placeholder = "Select certificates..."
+  placeholder = "Select certificates...",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleToggleOption = (option: string) => {
     if (selected.includes(option)) {
-      onChange(selected.filter(item => item !== option));
+      onChange(selected.filter((item) => item !== option));
     } else {
       onChange([...selected, option]);
     }
@@ -64,7 +67,7 @@ const CertificateMultiSelect: React.FC<MultiSelectProps> = ({
       <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
         Certificates
       </label>
-      
+
       {/* Trigger Button */}
       <button
         type="button"
@@ -72,18 +75,26 @@ const CertificateMultiSelect: React.FC<MultiSelectProps> = ({
         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex items-center justify-between"
       >
         <span className="truncate">
-          {selected.length === 0 
-            ? placeholder 
-            : `${selected.length} certificate${selected.length > 1 ? 's' : ''} selected`
-          }
+          {selected.length === 0
+            ? placeholder
+            : `${selected.length} certificate${
+                selected.length > 1 ? "s" : ""
+              } selected`}
         </span>
         <svg
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
 
@@ -130,7 +141,7 @@ const CertificateMultiSelect: React.FC<MultiSelectProps> = ({
                 </button>
               )}
             </div>
-            
+
             {options.map((option) => (
               <label
                 key={option}
@@ -351,7 +362,10 @@ function RecruitmentDataPage() {
   ) => {
     const result = await Swal.fire({
       title: "Confirm Status Update",
-      text: `Change status to "${newStatus.replace(/_/g, " ")}" for ${candidateName}?`,
+      text: `Change status to "${newStatus.replace(
+        /_/g,
+        " "
+      )}" for ${candidateName}?`,
       icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#3b82f6",
@@ -363,7 +377,7 @@ function RecruitmentDataPage() {
     if (result.isConfirmed) {
       try {
         await RecruitmentFormService.updateRecruitmentStatus(id, newStatus);
-        
+
         await Swal.fire({
           title: "Success",
           text: "Status updated successfully",
@@ -401,7 +415,7 @@ function RecruitmentDataPage() {
     if (result.isConfirmed) {
       try {
         await RecruitmentFormService.deleteRecruitmentForm(id);
-        
+
         await Swal.fire({
           title: "Deleted!",
           text: "Recruitment form has been deleted.",
@@ -685,7 +699,7 @@ function RecruitmentDataPage() {
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Position
@@ -698,11 +712,15 @@ function RecruitmentDataPage() {
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All Positions</option>
-              {Object.values(Position).map((position) => (
-                <option key={position} value={position}>
-                  {position.replace(/_/g, " ")}
-                </option>
-              ))}
+              {Object.values(Position)
+                .sort((a, b) =>
+                  a.replace(/_/g, " ").localeCompare(b.replace(/_/g, " "))
+                )
+                .map((position) => (
+                  <option key={position} value={position}>
+                    {position.replace(/_/g, " ")}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -723,7 +741,7 @@ function RecruitmentDataPage() {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Province
@@ -734,14 +752,18 @@ function RecruitmentDataPage() {
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All Provinces</option>
-              {Object.values(Province).map((province) => (
-                <option key={province} value={province}>
-                  {province.replace("_", " ")}
-                </option>
-              ))}
+              {Object.values(Province)
+                .sort((a, b) =>
+                  a.replace(/_/g, " ").localeCompare(b.replace(/_/g, " "))
+                )
+                .map((province) => (
+                  <option key={province} value={province}>
+                    {province.replace(/_/g, " ")}
+                  </option>
+                ))}
             </select>
           </div>
-          
+
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Status
@@ -754,7 +776,7 @@ function RecruitmentDataPage() {
               <option value="">All Status</option>
               {Object.values(RecruitmentStatus).map((status) => (
                 <option key={status} value={status}>
-                  {status}
+                  {status.replace(/_/g, " ")}
                 </option>
               ))}
             </select>
@@ -784,16 +806,23 @@ function RecruitmentDataPage() {
             <CertificateMultiSelect
               options={Object.values(Certificate)}
               selected={filters.certificate || []}
-              onChange={(selected) => handleFilterChange("certificate", selected)}
+              onChange={(selected) =>
+                handleFilterChange("certificate", selected)
+              }
               placeholder="Select certificates to filter..."
             />
-            
+
             {/* Filter summary */}
             <div className="lg:col-span-2 flex items-end">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                {(filters.search || filters.appliedPosition || filters.education || 
-                  filters.province || filters.status || (filters.certificate && filters.certificate.length > 0) ||
-                  filters.startDate || filters.endDate) && (
+                {(filters.search ||
+                  filters.appliedPosition ||
+                  filters.education ||
+                  filters.province ||
+                  filters.status ||
+                  (filters.certificate && filters.certificate.length > 0) ||
+                  filters.startDate ||
+                  filters.endDate) && (
                   <div className="flex flex-wrap gap-2">
                     <span className="font-medium">Active filters:</span>
                     {filters.search && (
@@ -1013,31 +1042,35 @@ function RecruitmentDataPage() {
             >
               Previous
             </button>
-            
+
             {/* Page numbers */}
             <div className="flex space-x-1">
-              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                const pageNum = Math.max(1, Math.min(
-                  pagination.totalPages - 4,
-                  pagination.page - 2
-                )) + i;
-                
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => handleFilterChange("page", pageNum)}
-                    className={`px-3 py-1 text-sm rounded ${
-                      pageNum === pagination.page
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
+              {Array.from(
+                { length: Math.min(5, pagination.totalPages) },
+                (_, i) => {
+                  const pageNum =
+                    Math.max(
+                      1,
+                      Math.min(pagination.totalPages - 4, pagination.page - 2)
+                    ) + i;
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handleFilterChange("page", pageNum)}
+                      className={`px-3 py-1 text-sm rounded ${
+                        pageNum === pagination.page
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                }
+              )}
             </div>
-            
+
             <button
               onClick={() => handleFilterChange("page", pagination.page + 1)}
               disabled={!pagination.hasNextPage}

@@ -6,12 +6,54 @@ import { RecruitmentForm, RecruitmentStatus } from "@/types/types";
 import Swal from "sweetalert2";
 import { useAuth } from "@/context/useAuth";
 import { withAuthGuard } from "@/components/withGuard";
+import dynamic from "next/dynamic";
+
+const calculateBMI = (heightCm: number, weightKg: number) => {
+  const heightM = heightCm / 100;
+  const bmi = weightKg / (heightM * heightM);
+  return Math.round(bmi * 10) / 10;
+};
+
+const getBMICategory = (bmi: number) => {
+  if (bmi < 18.5)
+    return {
+      category: "Underweight",
+      color: "text-blue-600 bg-blue-50 border-blue-200",
+    };
+  if (bmi < 25)
+    return {
+      category: "Normal",
+      color: "text-green-600 bg-green-50 border-green-200",
+    };
+  if (bmi < 30)
+    return {
+      category: "Overweight",
+      color: "text-yellow-600 bg-yellow-50 border-yellow-200",
+    };
+  return { category: "Obese", color: "text-red-600 bg-red-50 border-red-200" };
+};
+
+const getBMIStatus = (bmi: number) => {
+  if (bmi < 18.5) return "Below normal weight";
+  if (bmi < 25) return "Healthy weight range";
+  if (bmi < 30) return "Above normal weight";
+  return "Significantly above normal weight";
+};
+// Dynamically import ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill"), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 h-20 rounded"></div>,
+});
+
+// Import Quill styles
+import "react-quill/dist/quill.snow.css";
 
 function RecruitmentViewPage() {
   const { user } = useAuth();
   const params = useParams();
   const router = useRouter();
-  const [recruitmentForm, setRecruitmentForm] = useState<RecruitmentForm | null>(null);
+  const [recruitmentForm, setRecruitmentForm] =
+    useState<RecruitmentForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
@@ -27,7 +69,7 @@ function RecruitmentViewPage() {
   useEffect(() => {
     // Replace the print footer CSS section in your useEffect with this updated version:
 
-const printStyles = `
+    const printStyles = `
   <style id="print-styles">
     @media print {
       * {
@@ -193,6 +235,60 @@ const printStyles = `
         border-radius: 4px !important;
         margin: 0 !important;
       }
+
+      /* Rich text content styling for print */
+      .print-rich-text {
+        font-size: 11px !important;
+        color: #1e293b !important;
+        padding: 8px 10px !important;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 4px !important;
+        margin: 0 !important;
+        line-height: 1.5 !important;
+      }
+
+      .print-rich-text p {
+        margin: 0 0 8px 0 !important;
+        font-size: 11px !important;
+      }
+
+      .print-rich-text ul, .print-rich-text ol {
+        margin: 4px 0 8px 20px !important;
+        padding: 0 !important;
+      }
+
+      .print-rich-text li {
+        margin: 2px 0 !important;
+        font-size: 11px !important;
+      }
+
+      .print-rich-text strong {
+        font-weight: 600 !important;
+      }
+
+      .print-rich-text em {
+        font-style: italic !important;
+      }
+
+      /* Hide Quill editor toolbar and make content read-only for print */
+      .ql-toolbar {
+        display: none !important;
+      }
+
+      .ql-container {
+        border: none !important;
+        font-size: 11px !important;
+      }
+
+      .ql-editor {
+        padding: 8px 10px !important;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 4px !important;
+        font-size: 11px !important;
+        line-height: 1.5 !important;
+      }
       
       /* Certificates */
       .print-certificates {
@@ -214,20 +310,21 @@ const printStyles = `
       
       /* Updated Footer - appears directly after content, not as page footer */
       .print-footer {
-        margin-top: 30px !important;
-        padding: 20px !important;
-        border-top: 2px solid #e2e8f0 !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 8px !important;
-        background: #f8fafc !important;
-        text-align: center !important;
-        font-size: 10px !important;
-        color: #64748b !important;
-        page-break-inside: avoid !important;
-        position: relative !important;
-        /* Remove any absolute positioning or fixed positioning */
-        /* This makes it flow naturally after the content */
-      }
+  margin-top: 40px !important;
+  padding: 20px !important;
+  border-top: 2px solid #e2e8f0 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  background: #f8fafc !important;
+  text-align: center !important;
+  font-size: 10px !important;
+  color: #64748b !important;
+  page-break-inside: avoid !important;
+  clear: both !important;
+  /* Ensure footer appears after all content */
+  position: relative !important;
+  z-index: 1 !important;
+}
       
       .print-footer-content {
         display: flex !important;
@@ -316,13 +413,60 @@ const printStyles = `
         content: "🎓" !important;
       }
       
-      .print-certificates-section .print-section-title::before {
-        content: "🏆" !important;
-      }
+      .print-certificates-section {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  margin-bottom: 30px !important;
+  min-height: 80px !important;
+  /* Ensure enough space for certificates */
+  overflow: visible !important;
+  position: relative !important;
+}
+
+.print-certificates-section .print-section-title::before {
+  content: "🏆" !important;
+}
+
+/* Certificates container */
+.print-certificates {
+  display: block !important;
+  margin-top: 15px !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  min-height: 40px !important;
+  padding-bottom: 10px !important;
+  /* Use CSS Grid for better control */
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+  gap: 8px !important;
+  align-items: start !important;
+}
+
+/* Individual certificate items */
+.print-cert-item {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+  padding: 6px 12px !important;
+  border-radius: 15px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  border: 1px solid #3b82f6 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  line-height: 1.2 !important;
+  height: auto !important;
+  min-height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
     }
   </style>
 `;
-
     const existingStyles = document.getElementById("print-styles");
     if (existingStyles) {
       existingStyles.remove();
@@ -462,18 +606,19 @@ const printStyles = `
 
   // PDF Download function using browser's print to PDF
   const downloadAsPDF = () => {
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
-    const printContent = document.querySelector('.print-container')?.innerHTML || '';
-    
+    const printContent =
+      document.querySelector(".print-container")?.innerHTML || "";
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
           <title>${recruitmentForm?.fullName} - Recruitment Form</title>
           <style>
-            ${document.getElementById('print-styles')?.innerHTML || ''}
+            ${document.getElementById("print-styles")?.innerHTML || ""}
             body { margin: 0; padding: 20px; }
           </style>
         </head>
@@ -482,10 +627,10 @@ const printStyles = `
         </body>
       </html>
     `);
-    
+
     printWindow.document.close();
     printWindow.focus();
-    
+
     setTimeout(() => {
       printWindow.print();
       printWindow.close();
@@ -516,8 +661,18 @@ const printStyles = `
             onClick={() => setShowPhotoModal(false)}
             className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
           <img
@@ -556,8 +711,18 @@ const printStyles = `
               onClick={() => setShowDocumentModal(false)}
               className="text-gray-500 hover:text-gray-700"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -615,19 +780,29 @@ const printStyles = `
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print-header">
           {/* Company Logo - Print Only */}
-          <img 
-            src="/logohr.svg" 
-            alt="Company Logo" 
+          <img
+            src="/logohr.svg"
+            alt="Company Logo"
             className="print-company-logo hidden print:block"
           />
-          
+
           <div className="print-header-content">
             <button
               onClick={() => router.back()}
               className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-2 no-print"
             >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
               Back to List
             </button>
@@ -642,7 +817,7 @@ const printStyles = `
               Status: {recruitmentForm.status.replace("_", " ")}
             </div>
           </div>
-          
+
           {/* Photo in print mode */}
           {recruitmentForm.documentPhotoUrl && (
             <div className="hidden print:block print-photo-container">
@@ -653,14 +828,20 @@ const printStyles = `
               />
             </div>
           )}
-          
+
           <div className="flex items-center space-x-3 no-print">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(recruitmentForm.status)}`}>
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
+                recruitmentForm.status
+              )}`}
+            >
               {recruitmentForm.status.replace("_", " ")}
             </span>
             <select
               value={recruitmentForm.status}
-              onChange={(e) => handleStatusUpdate(e.target.value as RecruitmentStatus)}
+              onChange={(e) =>
+                handleStatusUpdate(e.target.value as RecruitmentStatus)
+              }
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {Object.values(RecruitmentStatus).map((status) => (
@@ -694,7 +875,8 @@ const printStyles = `
                     Birth Place & Date
                   </label>
                   <p className="text-gray-900 dark:text-white print-value">
-                    {recruitmentForm.birthPlace}, {formatDate(recruitmentForm.birthDate)}
+                    {recruitmentForm.birthPlace},{" "}
+                    {formatDate(recruitmentForm.birthDate)}
                   </p>
                 </div>
                 <div>
@@ -780,6 +962,90 @@ const printStyles = `
                 </div>
               </div>
             </div>
+            {/* BMI Information */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 print-section-title flex items-center">
+                <span className="mr-2">⚖️</span>
+                Body Mass Index (BMI)
+              </h2>
+              {(() => {
+                const bmi = calculateBMI(
+                  recruitmentForm.heightCm,
+                  recruitmentForm.weightKg
+                );
+                const bmiInfo = getBMICategory(bmi);
+                const bmiStatus = getBMIStatus(bmi);
+
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print-grid-3">
+                    {/* BMI Value */}
+                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                        {bmi}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        BMI Value
+                      </div>
+                    </div>
+
+                    {/* BMI Category */}
+                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div
+                        className={`inline-flex px-3 py-1 rounded-full text-sm font-medium border ${bmiInfo.color}`}
+                      >
+                        {bmiInfo.category}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Category
+                      </div>
+                    </div>
+
+                    {/* BMI Status */}
+                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-sm text-gray-900 dark:text-white font-medium">
+                        {bmiStatus}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Health Status
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* BMI Reference Chart */}
+              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                  BMI Reference Chart
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      &lt; 18.5 Underweight
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      18.5-24.9 Normal
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      25.0-29.9 Overweight
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      ≥ 30.0 Obese
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Education & Experience */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section print-education-info">
@@ -808,7 +1074,8 @@ const printStyles = `
                     Experience Level
                   </label>
                   <p className="text-gray-900 dark:text-white print-value">
-                    {recruitmentForm.experienceLevel?.replace("_", " ") || "Not specified"}
+                    {recruitmentForm.experienceLevel?.replace("_", " ") ||
+                      "Not specified"}
                   </p>
                 </div>
                 <div>
@@ -816,17 +1083,36 @@ const printStyles = `
                     Applied Position
                   </label>
                   <p className="text-gray-900 dark:text-white print-value">
-                    {recruitmentForm.appliedPosition?.replace(/_/g, " ") || "Not specified"}
+                    {recruitmentForm.appliedPosition?.replace(/_/g, " ") ||
+                      "Not specified"}
                   </p>
                 </div>
                 {recruitmentForm.workExperience && (
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
+                  <div className="md:col-span-2 print-grid-full">
+                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 print-label">
                       Work Experience
                     </label>
-                    <p className="text-gray-900 dark:text-white print-value">
-                      {recruitmentForm.workExperience}
-                    </p>
+                    {/* React Quill for displaying rich text - screen view with custom styling */}
+                    <div className="no-print work-experience-container">
+                      <ReactQuill
+                        value={recruitmentForm.workExperience}
+                        readOnly={true}
+                        theme="snow"
+                        modules={{
+                          toolbar: false,
+                        }}
+                        style={{
+                          fontSize: "14px",
+                        }}
+                      />
+                    </div>
+                    {/* Print version - plain HTML rendering */}
+                    <div
+                      className="hidden print:block print-rich-text"
+                      dangerouslySetInnerHTML={{
+                        __html: recruitmentForm.workExperience,
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -903,22 +1189,40 @@ const printStyles = `
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Status:</span>
-                  <span className={`px-2 py-1 rounded text-xs ${getStatusColor(recruitmentForm.status)}`}>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Status:
+                  </span>
+                  <span
+                    className={`px-2 py-1 rounded text-xs ${getStatusColor(
+                      recruitmentForm.status
+                    )}`}
+                  >
                     {recruitmentForm.status}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Marital Status:</span>
-                  <span className="text-gray-900 dark:text-white">{recruitmentForm.maritalStatus}</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Marital Status:
+                  </span>
+                  <span className="text-gray-900 dark:text-white">
+                    {recruitmentForm.maritalStatus}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Applied:</span>
-                  <span className="text-gray-900 dark:text-white">{formatDate(recruitmentForm.createdAt)}</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Applied:
+                  </span>
+                  <span className="text-gray-900 dark:text-white">
+                    {formatDate(recruitmentForm.createdAt)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Updated:</span>
-                  <span className="text-gray-900 dark:text-white">{formatDate(recruitmentForm.updatedAt)}</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Updated:
+                  </span>
+                  <span className="text-gray-900 dark:text-white">
+                    {formatDate(recruitmentForm.updatedAt)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -931,7 +1235,9 @@ const printStyles = `
               <div className="space-y-3">
                 {recruitmentForm.documentCvUrl && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">CV</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      CV
+                    </span>
                     <div className="flex space-x-2">
                       <button
                         onClick={() =>
@@ -947,7 +1253,10 @@ const printStyles = `
                       </button>
                       <button
                         onClick={() =>
-                          downloadDocument(recruitmentForm.documentCvUrl!, "cv.pdf")
+                          downloadDocument(
+                            recruitmentForm.documentCvUrl!,
+                            "cv.pdf"
+                          )
                         }
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
@@ -958,7 +1267,9 @@ const printStyles = `
                 )}
                 {recruitmentForm.documentKtpUrl && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">KTP</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      KTP
+                    </span>
                     <div className="flex space-x-2">
                       <button
                         onClick={() =>
@@ -974,7 +1285,10 @@ const printStyles = `
                       </button>
                       <button
                         onClick={() =>
-                          downloadDocument(recruitmentForm.documentKtpUrl!, "ktp.jpg")
+                          downloadDocument(
+                            recruitmentForm.documentKtpUrl!,
+                            "ktp.jpg"
+                          )
                         }
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
@@ -985,7 +1299,9 @@ const printStyles = `
                 )}
                 {recruitmentForm.documentSkckUrl && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">SKCK</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      SKCK
+                    </span>
                     <div className="flex space-x-2">
                       <button
                         onClick={() =>
@@ -1001,7 +1317,10 @@ const printStyles = `
                       </button>
                       <button
                         onClick={() =>
-                          downloadDocument(recruitmentForm.documentSkckUrl!, "skck.pdf")
+                          downloadDocument(
+                            recruitmentForm.documentSkckUrl!,
+                            "skck.pdf"
+                          )
                         }
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
@@ -1087,8 +1406,18 @@ const printStyles = `
                   onClick={() => window.print()}
                   className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"
+                    />
                   </svg>
                   Print Details
                 </button>
@@ -1096,8 +1425,18 @@ const printStyles = `
                   onClick={downloadAsPDF}
                   className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                   Download as PDF
                 </button>
@@ -1109,22 +1448,21 @@ const printStyles = `
         {/* Print Footer */}
         <div className="hidden print:block print-footer">
           <div className="print-footer-content">
-            <img 
-              src="/logohr.svg" 
-              alt="Company Logo" 
+            <img
+              src="/logohr.svg"
+              alt="Company Logo"
               className="print-footer-logo"
             />
             <div className="print-footer-text">
-              <p className="print-footer-title">
-                HR Recruitment System
-              </p>
+              <p className="print-footer-title">HR Recruitment System</p>
               <p className="print-footer-date">
-                Generated on {new Date().toLocaleDateString("id-ID", {
+                Generated on{" "}
+                {new Date().toLocaleDateString("id-ID", {
                   year: "numeric",
-                  month: "long", 
+                  month: "long",
                   day: "numeric",
                   hour: "2-digit",
-                  minute: "2-digit"
+                  minute: "2-digit",
                 })}
               </p>
             </div>

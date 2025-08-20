@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import {
   PublicRecruitmentService,
   PublicRecruitmentFormData,
@@ -18,6 +19,10 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import SubmittedApp from "@/components/SubmittedApp";
+
+// Dynamically import ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import "react-quill/dist/quill.snow.css";
 
 interface FormOptions {
   provinces: string[];
@@ -80,6 +85,27 @@ const PublicRecruitmentPage: React.FC = () => {
   const [currentUploadingFile, setCurrentUploadingFile] = useState<string>("");
   const [currentStep, setCurrentStep] = useState(1);
 
+  // React Quill configuration
+  const quillModules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link"],
+      ["clean"],
+    ],
+  };
+
+  const quillFormats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "list",
+    "bullet",
+    "link",
+  ];
+
   // Load form options on component mount
   useEffect(() => {
     const loadOptions = async () => {
@@ -89,10 +115,10 @@ const PublicRecruitmentPage: React.FC = () => {
       } catch (error) {
         console.error("Failed to load form options:", error);
         Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: 'Gagal memuat data formulir. Silakan refresh halaman.',
-          confirmButtonColor: '#2563eb'
+          icon: "error",
+          title: "Error!",
+          text: "Gagal memuat data formulir. Silakan refresh halaman.",
+          confirmButtonColor: "#2563eb",
         });
       }
     };
@@ -113,6 +139,20 @@ const PublicRecruitmentPage: React.FC = () => {
     if (errors.length > 0) {
       setErrors([]);
     }
+  };
+
+  // Special handler for React Quill content
+  const handleQuillChange = (
+    field: keyof PublicRecruitmentFormData,
+    content: string
+  ) => {
+    // Remove HTML tags for plain text storage, or keep HTML if you want rich formatting
+    const plainText = content.replace(/<[^>]*>/g, "").trim();
+
+    // You can choose to store HTML content or plain text
+    // For plain text: use plainText
+    // For HTML content: use content
+    handleInputChange(field, content);
   };
 
   const handleFileChange = (field: keyof FormFiles, file: File | null) => {
@@ -177,16 +217,16 @@ const PublicRecruitmentPage: React.FC = () => {
         default:
           allowedFormats = "yang didukung";
       }
-      
+
       Swal.fire({
-        icon: 'error',
-        title: 'Jenis File Tidak Valid!',
+        icon: "error",
+        title: "Jenis File Tidak Valid!",
         text: `Mohon upload hanya file ${allowedFormats} untuk ${field
           .replace("document", "")
           .replace(/([A-Z])/g, " $1")
           .toLowerCase()
           .trim()}.`,
-        confirmButtonColor: '#2563eb'
+        confirmButtonColor: "#2563eb",
       });
       return;
     }
@@ -195,19 +235,21 @@ const PublicRecruitmentPage: React.FC = () => {
     if (file.size > maxSize) {
       const maxSizeMB = Math.round(maxSize / (1024 * 1024));
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      
+
       Swal.fire({
-        icon: 'error',
-        title: 'Ukuran File Terlalu Besar!',
+        icon: "error",
+        title: "Ukuran File Terlalu Besar!",
         html: `
-          <p><strong>${file.name}</strong> berukuran <strong>${fileSizeMB}MB</strong></p>
+          <p><strong>${
+            file.name
+          }</strong> berukuran <strong>${fileSizeMB}MB</strong></p>
           <p>Ukuran maksimal untuk ${field
             .replace("document", "")
             .replace(/([A-Z])/g, " $1")
             .toLowerCase()
             .trim()} adalah <strong>${maxSizeMB}MB</strong></p>
         `,
-        confirmButtonColor: '#2563eb'
+        confirmButtonColor: "#2563eb",
       });
       return;
     }
@@ -224,13 +266,13 @@ const PublicRecruitmentPage: React.FC = () => {
 
     // Show success message for file upload
     Swal.fire({
-      icon: 'success',
-      title: 'File Berhasil Dipilih!',
+      icon: "success",
+      title: "File Berhasil Dipilih!",
       text: `${file.name} berhasil dipilih.`,
       timer: 2000,
       showConfirmButton: false,
       toast: true,
-      position: 'top-end'
+      position: "top-end",
     });
   };
 
@@ -246,12 +288,12 @@ const PublicRecruitmentPage: React.FC = () => {
   // Validate all documents are uploaded
   const validateDocuments = (): boolean => {
     const requiredDocuments = [
-      { key: 'documentPhoto', label: 'Foto Profil' },
-      { key: 'documentCv', label: 'CV/Resume' },
-      { key: 'documentKtp', label: 'KTP (Kartu Identitas)' },
-      { key: 'documentSkck', label: 'SKCK (Catatan Kepolisian)' },
-      { key: 'documentVaccine', label: 'Sertifikat Vaksin' },
-      { key: 'supportingDocs', label: 'Dokumen Pendukung' }
+      { key: "documentPhoto", label: "Foto Profil" },
+      { key: "documentCv", label: "CV/Resume" },
+      { key: "documentKtp", label: "KTP (Kartu Identitas)" },
+      { key: "documentSkck", label: "SKCK (Catatan Kepolisian)" },
+      { key: "documentVaccine", label: "Sertifikat Vaksin" },
+      { key: "supportingDocs", label: "Dokumen Pendukung" },
     ];
 
     const missingDocuments: string[] = [];
@@ -264,15 +306,15 @@ const PublicRecruitmentPage: React.FC = () => {
 
     if (missingDocuments.length > 0) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Dokumen Belum Lengkap!',
+        icon: "warning",
+        title: "Dokumen Belum Lengkap!",
         html: `
           <p>Mohon upload dokumen berikut:</p>
           <ul style="text-align: left; margin: 10px 0;">
-            ${missingDocuments.map(doc => `<li>• ${doc}</li>`).join('')}
+            ${missingDocuments.map((doc) => `<li>• ${doc}</li>`).join("")}
           </ul>
         `,
-        confirmButtonColor: '#2563eb'
+        confirmButtonColor: "#2563eb",
       });
       return false;
     }
@@ -283,7 +325,7 @@ const PublicRecruitmentPage: React.FC = () => {
   const validateAndSubmit = async () => {
     // Validate form data
     const formErrors = PublicRecruitmentService.validateFormData(formData);
-    
+
     // Validate all documents are uploaded
     if (!validateDocuments()) {
       setCurrentStep(3); // Go to document upload step
@@ -296,31 +338,31 @@ const PublicRecruitmentPage: React.FC = () => {
     if (allErrors.length > 0) {
       setErrors(allErrors);
       setCurrentStep(1); // Go back to first step to show errors
-      
+
       Swal.fire({
-        icon: 'error',
-        title: 'Data Belum Lengkap!',
+        icon: "error",
+        title: "Data Belum Lengkap!",
         html: `
           <p>Mohon perbaiki kesalahan berikut:</p>
           <ul style="text-align: left; margin: 10px 0;">
-            ${allErrors.map(error => `<li>• ${error}</li>`).join('')}
+            ${allErrors.map((error) => `<li>• ${error}</li>`).join("")}
           </ul>
         `,
-        confirmButtonColor: '#2563eb'
+        confirmButtonColor: "#2563eb",
       });
       return;
     }
 
     // Show confirmation dialog before submitting
     const result = await Swal.fire({
-      icon: 'question',
-      title: 'Konfirmasi Pengiriman',
-      text: 'Apakah Anda yakin ingin mengirim lamaran ini? Data tidak dapat diubah setelah dikirim.',
+      icon: "question",
+      title: "Konfirmasi Pengiriman",
+      text: "Apakah Anda yakin ingin mengirim lamaran ini? Data tidak dapat diubah setelah dikirim.",
       showCancelButton: true,
-      confirmButtonColor: '#10b981',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Ya, Kirim Lamaran',
-      cancelButtonText: 'Batal'
+      confirmButtonColor: "#10b981",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Ya, Kirim Lamaran",
+      cancelButtonText: "Batal",
     });
 
     if (!result.isConfirmed) {
@@ -333,17 +375,18 @@ const PublicRecruitmentPage: React.FC = () => {
 
     try {
       // Use the new direct upload method
-      const response = await PublicRecruitmentService.submitRecruitmentFormWithDirectUpload(
-        formData,
-        files,
-        (fieldName, progress) => {
-          setCurrentUploadingFile(fieldName);
-          setUploadProgress(prev => ({
-            ...prev,
-            [fieldName]: progress
-          }));
-        }
-      );
+      const response =
+        await PublicRecruitmentService.submitRecruitmentFormWithDirectUpload(
+          formData,
+          files,
+          (fieldName, progress) => {
+            setCurrentUploadingFile(fieldName);
+            setUploadProgress((prev) => ({
+              ...prev,
+              [fieldName]: progress,
+            }));
+          }
+        );
 
       setSubmissionResult({
         success: true,
@@ -354,12 +397,11 @@ const PublicRecruitmentPage: React.FC = () => {
 
       // Show success message
       Swal.fire({
-        icon: 'success',
-        title: 'Lamaran Berhasil Dikirim!',
-        text: 'Terima kasih atas lamaran Anda. Kami akan menghubungi Anda segera.',
-        confirmButtonColor: '#10b981'
+        icon: "success",
+        title: "Lamaran Berhasil Dikirim!",
+        text: "Terima kasih atas lamaran Anda. Kami akan menghubungi Anda segera.",
+        confirmButtonColor: "#10b981",
       });
-
     } catch (error: any) {
       const errorMessage = PublicRecruitmentService.formatErrorMessage(error);
       setSubmissionResult({
@@ -369,12 +411,11 @@ const PublicRecruitmentPage: React.FC = () => {
       setErrors([errorMessage]);
 
       Swal.fire({
-        icon: 'error',
-        title: 'Gagal Mengirim Lamaran!',
+        icon: "error",
+        title: "Gagal Mengirim Lamaran!",
         text: errorMessage,
-        confirmButtonColor: '#dc2626'
+        confirmButtonColor: "#dc2626",
       });
-
     } finally {
       setIsLoading(false);
       setUploadProgress({});
@@ -382,23 +423,25 @@ const PublicRecruitmentPage: React.FC = () => {
     }
   };
 
-  const formatEnumValue = (value: string) => {
-    return value
+  const formatEnumValue = (value: string, isUppercase = false) => {
+    const formatted = value
       .replace(/_/g, " ")
       .toLowerCase()
       .replace(/\b\w/g, (l) => l.toUpperCase());
+
+    return isUppercase ? formatted.toUpperCase() : formatted;
   };
 
   const goToHomepage = () => {
     Swal.fire({
-      icon: 'question',
-      title: 'Kembali ke Beranda?',
-      text: 'Anda akan diarahkan ke halaman utama website.',
+      icon: "question",
+      title: "Kembali ke Beranda?",
+      text: "Anda akan diarahkan ke halaman utama website.",
       showCancelButton: true,
-      confirmButtonColor: '#2563eb',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Ya, Kembali',
-      cancelButtonText: 'Batal'
+      confirmButtonColor: "#2563eb",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Ya, Kembali",
+      cancelButtonText: "Batal",
     }).then((result) => {
       if (result.isConfirmed) {
         window.location.href = "/tracking";
@@ -408,14 +451,14 @@ const PublicRecruitmentPage: React.FC = () => {
 
   const resetForm = () => {
     Swal.fire({
-      icon: 'question',
-      title: 'Reset Formulir?',
-      text: 'Semua data yang telah diisi akan hilang. Apakah Anda yakin?',
+      icon: "question",
+      title: "Reset Formulir?",
+      text: "Semua data yang telah diisi akan hilang. Apakah Anda yakin?",
       showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Ya, Reset',
-      cancelButtonText: 'Batal'
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Ya, Reset",
+      cancelButtonText: "Batal",
     }).then((result) => {
       if (result.isConfirmed) {
         setFormData({
@@ -447,12 +490,12 @@ const PublicRecruitmentPage: React.FC = () => {
         setCurrentUploadingFile("");
 
         Swal.fire({
-          icon: 'success',
-          title: 'Formulir Berhasil Direset!',
+          icon: "success",
+          title: "Formulir Berhasil Direset!",
           timer: 2000,
           showConfirmButton: false,
           toast: true,
-          position: 'top-end'
+          position: "top-end",
         });
       }
     });
@@ -481,34 +524,52 @@ const PublicRecruitmentPage: React.FC = () => {
   const handleNextStep = () => {
     // Validate current step before proceeding
     if (currentStep === 1) {
-      const requiredFields = ['fullName', 'birthPlace', 'birthDate', 'province', 'heightCm', 'weightKg', 'address', 'whatsappNumber', 'maritalStatus'];
-      const missingFields = requiredFields.filter(field => {
+      const requiredFields = [
+        "fullName",
+        "birthPlace",
+        "birthDate",
+        "province",
+        "heightCm",
+        "weightKg",
+        "address",
+        "whatsappNumber",
+        "maritalStatus",
+      ];
+      const missingFields = requiredFields.filter((field) => {
         const value = formData[field as keyof PublicRecruitmentFormData];
-        return !value || (typeof value === 'number' && value === 0);
+        return !value || (typeof value === "number" && value === 0);
       });
 
       if (missingFields.length > 0) {
         Swal.fire({
-          icon: 'warning',
-          title: 'Data Belum Lengkap!',
-          text: 'Mohon lengkapi semua data pribadi yang wajib diisi sebelum melanjutkan.',
-          confirmButtonColor: '#2563eb'
+          icon: "warning",
+          title: "Data Belum Lengkap!",
+          text: "Mohon lengkapi semua data pribadi yang wajib diisi sebelum melanjutkan.",
+          confirmButtonColor: "#2563eb",
         });
         return;
       }
     } else if (currentStep === 2) {
-      const requiredFields = ['education', 'schoolName', 'appliedPosition', 'experienceLevel', 'shirtSize', 'safetyShoesSize', 'pantsSize'];
-      const missingFields = requiredFields.filter(field => {
+      const requiredFields = [
+        "education",
+        "schoolName",
+        "appliedPosition",
+        "experienceLevel",
+        "shirtSize",
+        "safetyShoesSize",
+        "pantsSize",
+      ];
+      const missingFields = requiredFields.filter((field) => {
         const value = formData[field as keyof PublicRecruitmentFormData];
         return !value;
       });
 
       if (missingFields.length > 0) {
         Swal.fire({
-          icon: 'warning',
-          title: 'Data Profesional Belum Lengkap!',
-          text: 'Mohon lengkapi semua data profesional yang wajib diisi sebelum melanjutkan.',
-          confirmButtonColor: '#2563eb'
+          icon: "warning",
+          title: "Data Profesional Belum Lengkap!",
+          text: "Mohon lengkapi semua data profesional yang wajib diisi sebelum melanjutkan.",
+          confirmButtonColor: "#2563eb",
         });
         return;
       }
@@ -521,7 +582,10 @@ const PublicRecruitmentPage: React.FC = () => {
   const getOverallProgress = () => {
     const progressValues = Object.values(uploadProgress);
     if (progressValues.length === 0) return 0;
-    return Math.round(progressValues.reduce((sum, progress) => sum + progress, 0) / progressValues.length);
+    return Math.round(
+      progressValues.reduce((sum, progress) => sum + progress, 0) /
+        progressValues.length
+    );
   };
 
   if (!options) {
@@ -538,11 +602,11 @@ const PublicRecruitmentPage: React.FC = () => {
   // Use the separate SubmittedApp component for success page
   if (isSubmitted && submissionResult?.success) {
     return (
-      <SubmittedApp 
+      <SubmittedApp
         submissionResult={{
           message: submissionResult.message,
-          applicationId: submissionResult.applicationId
-        }} 
+          applicationId: submissionResult.applicationId,
+        }}
       />
     );
   }
@@ -583,6 +647,39 @@ const PublicRecruitmentPage: React.FC = () => {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Step Labels */}
+        <div className="flex justify-center mb-8">
+          <div className="flex space-x-8 text-sm">
+            <div
+              className={`text-center ${
+                currentStep >= 1
+                  ? "text-blue-600 font-semibold"
+                  : "text-gray-500"
+              }`}
+            >
+              <p>Data Pribadi</p>
+            </div>
+            <div
+              className={`text-center ${
+                currentStep >= 2
+                  ? "text-blue-600 font-semibold"
+                  : "text-gray-500"
+              }`}
+            >
+              <p>Data Profesional</p>
+            </div>
+            <div
+              className={`text-center ${
+                currentStep >= 3
+                  ? "text-blue-600 font-semibold"
+                  : "text-gray-500"
+              }`}
+            >
+              <p>Upload Dokumen</p>
+            </div>
           </div>
         </div>
 
@@ -675,7 +772,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     <option value="">Pilih Provinsi</option>
                     {options.provinces.map((province) => (
                       <option key={province} value={province}>
-                        {formatEnumValue(province)}
+                        {formatEnumValue(province, true)}
                       </option>
                     ))}
                   </select>
@@ -740,34 +837,37 @@ const PublicRecruitmentPage: React.FC = () => {
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nomor WhatsApp *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.whatsappNumber}
+                    onChange={(e) =>
+                      handleInputChange("whatsappNumber", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="+62812345678 atau 08123456789"
+                  />
+                </div>
               </div>
 
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Alamat *
                 </label>
-                <textarea
+                <input
+                  type="text"
                   value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                  rows={3}
+                  onChange={(e) =>
+                    handleInputChange("address", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Masukkan alamat lengkap Anda"
                 />
-              </div>
 
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nomor WhatsApp *
-                </label>
-                <input
-                  type="text"
-                  value={formData.whatsappNumber}
-                  onChange={(e) =>
-                    handleInputChange("whatsappNumber", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="+62812345678 atau 08123456789"
-                />
               </div>
             </div>
           )}
@@ -827,11 +927,17 @@ const PublicRecruitmentPage: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Pilih Posisi</option>
-                    {options.positions.map((position) => (
-                      <option key={position} value={position}>
-                        {formatEnumValue(position)}
-                      </option>
-                    ))}
+                    {options.positions
+                      .sort((a, b) =>
+                        formatEnumValue(a, true).localeCompare(
+                          formatEnumValue(b, true)
+                        )
+                      )
+                      .map((position) => (
+                        <option key={position} value={position}>
+                          {formatEnumValue(position, true)}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -921,38 +1027,71 @@ const PublicRecruitmentPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Pengalaman Kerja (Opsional)
                 </label>
-                <textarea
-                  value={formData.workExperience}
-                  onChange={(e) =>
-                    handleInputChange("workExperience", e.target.value)
-                  }
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Jelaskan pengalaman kerja yang relevan"
-                />
+
+                {/* Example text with specific formatting */}
+                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <span className="font-bold">Contoh Penulisan:</span>
+                  </p>
+                  <div className="text-sm text-blue-700 mt-1 ml-4">
+                    <p>1. Helper Operator Double Trailer - 2 Tahun - PT.XXX</p>
+                    <p>2. Operator Double Trailer - 2 Tahun - PT.XXX</p>
+                  </div>
+                </div>
+
+                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                  <ReactQuill
+                    theme="snow"
+                    value={formData.workExperience}
+                    onChange={(content) =>
+                      handleQuillChange("workExperience", content)
+                    }
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="Jelaskan pengalaman kerja yang relevan, posisi yang pernah dipegang, pencapaian, dan keterampilan yang diperoleh..."
+                    style={{
+                      backgroundColor: "white",
+                      minHeight: "120px",
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Gunakan format teks untuk membuat pengalaman kerja lebih
+                  terstruktur dan mudah dibaca
+                </p>
               </div>
 
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Sertifikat (Opsional)
                 </label>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {options.certificates.map((cert) => (
-                    <label key={cert} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={(formData.certificate || []).includes(cert)}
-                        onChange={(e) =>
-                          handleCertificateChange(cert, e.target.checked)
-                        }
-                        className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <span className="text-sm text-gray-700">
-                        {formatEnumValue(cert)}
-                      </span>
-                    </label>
-                  ))}
+
+                {/* Fixed height container with scroll */}
+                <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {options.certificates.map((cert) => (
+                      <label
+                        key={cert}
+                        className="flex items-center hover:bg-white hover:shadow-sm rounded p-2 transition-colors cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={(formData.certificate || []).includes(cert)}
+                          onChange={(e) =>
+                            handleCertificateChange(cert, e.target.checked)
+                          }
+                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-700 leading-tight">
+                          {formatEnumValue(cert, true)}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {(formData.certificate || []).length} sertifikat dipilih
+                </p>
               </div>
             </div>
           )}
@@ -972,7 +1111,8 @@ const PublicRecruitmentPage: React.FC = () => {
                       Semua Dokumen Wajib Diupload!
                     </h3>
                     <p className="text-yellow-700 text-sm">
-                      Pastikan semua dokumen telah diupload dengan format dan ukuran yang sesuai sebelum mengirim lamaran.
+                      Pastikan semua dokumen telah diupload dengan format dan
+                      ukuran yang sesuai sebelum mengirim lamaran.
                     </p>
                   </div>
                 </div>
@@ -1010,13 +1150,14 @@ const PublicRecruitmentPage: React.FC = () => {
                   <div
                     key={key}
                     className={`border rounded-lg p-4 ${
-                      files[key as keyof FormFiles] 
-                        ? 'border-green-200 bg-green-50' 
-                        : 'border-gray-200'
+                      files[key as keyof FormFiles]
+                        ? "border-green-200 bg-green-50"
+                        : "border-gray-200"
                     }`}
                   >
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {label} {required && <span className="text-red-500">*</span>}
+                      {label}{" "}
+                      {required && <span className="text-red-500">*</span>}
                     </label>
                     <div className="flex items-center space-x-3">
                       <input
@@ -1035,17 +1176,19 @@ const PublicRecruitmentPage: React.FC = () => {
                         htmlFor={key}
                         className={`cursor-pointer px-4 py-2 rounded-lg border transition-colors flex items-center ${
                           files[key as keyof FormFiles]
-                            ? 'bg-green-50 hover:bg-green-100 text-green-700 border-green-200'
-                            : 'bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200'
+                            ? "bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                            : "bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200"
                         }`}
                       >
                         <Upload className="h-4 w-4 mr-2" />
-                        {files[key as keyof FormFiles] ? 'Ganti File' : 'Pilih File'}
+                        {files[key as keyof FormFiles]
+                          ? "Ganti File"
+                          : "Pilih File"}
                       </label>
                       {files[key as keyof FormFiles] && (
                         <div className="flex items-center">
                           <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                          <span className="text-sm text-gray-600 truncate">
+                          <span className="text-sm text-gray-600 truncate max-w-xs">
                             {files[key as keyof FormFiles]?.name}
                           </span>
                         </div>
@@ -1069,7 +1212,11 @@ const PublicRecruitmentPage: React.FC = () => {
                       </p>
                       {currentUploadingFile && (
                         <p className="text-blue-600 text-sm">
-                          Mengupload: {currentUploadingFile.replace('document', '').replace(/([A-Z])/g, ' $1').toLowerCase()}
+                          Mengupload:{" "}
+                          {currentUploadingFile
+                            .replace("document", "")
+                            .replace(/([A-Z])/g, " $1")
+                            .toLowerCase()}
                         </p>
                       )}
                     </div>
@@ -1091,14 +1238,24 @@ const PublicRecruitmentPage: React.FC = () => {
                   {/* Individual File Progress */}
                   {Object.keys(uploadProgress).length > 0 && (
                     <div className="space-y-2">
-                      {Object.entries(uploadProgress).map(([fieldName, progress]) => (
-                        <div key={fieldName} className="flex items-center justify-between text-sm">
-                          <span className="text-blue-700">
-                            {fieldName.replace('document', '').replace(/([A-Z])/g, ' $1').toLowerCase()}
-                          </span>
-                          <span className="text-blue-600 font-medium">{progress}%</span>
-                        </div>
-                      ))}
+                      {Object.entries(uploadProgress).map(
+                        ([fieldName, progress]) => (
+                          <div
+                            key={fieldName}
+                            className="flex items-center justify-between text-sm"
+                          >
+                            <span className="text-blue-700">
+                              {fieldName
+                                .replace("document", "")
+                                .replace(/([A-Z])/g, " $1")
+                                .toLowerCase()}
+                            </span>
+                            <span className="text-blue-600 font-medium">
+                              {progress}%
+                            </span>
+                          </div>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
@@ -1111,11 +1268,11 @@ const PublicRecruitmentPage: React.FC = () => {
             <button
               onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
               disabled={currentStep === 1}
-              className={`px-6 py-2 rounded-lg font-medium ${
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                 currentStep === 1
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              } transition-colors`}
+              }`}
             >
               Sebelumnya
             </button>
@@ -1129,7 +1286,7 @@ const PublicRecruitmentPage: React.FC = () => {
                   Reset Form
                 </button>
               )}
-              
+
               {currentStep < 3 ? (
                 <button
                   onClick={handleNextStep}
@@ -1157,6 +1314,72 @@ const PublicRecruitmentPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Custom Quill Styles */}
+      <style jsx global>{`
+        .ql-editor {
+          min-height: 80px;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .ql-toolbar {
+          border-top: 1px solid #d1d5db;
+          border-left: 1px solid #d1d5db;
+          border-right: 1px solid #d1d5db;
+          border-bottom: none;
+        }
+
+        .ql-container {
+          border-bottom: 1px solid #d1d5db;
+          border-left: 1px solid #d1d5db;
+          border-right: 1px solid #d1d5db;
+          border-top: none;
+          font-size: 14px;
+        }
+
+        .ql-editor.ql-blank::before {
+          font-style: italic;
+          color: #9ca3af;
+        }
+
+        .ql-editor p {
+          margin-bottom: 8px;
+        }
+
+        .ql-editor ul,
+        .ql-editor ol {
+          margin-bottom: 8px;
+        }
+
+        .ql-editor h1,
+        .ql-editor h2,
+        .ql-editor h3 {
+          margin-bottom: 8px;
+          font-weight: 600;
+        }
+
+        .ql-editor a {
+          color: #3b82f6;
+          text-decoration: underline;
+        }
+
+        .ql-snow .ql-tooltip {
+          z-index: 1000;
+        }
+
+        .ql-snow .ql-picker {
+          color: #374151;
+        }
+
+        .ql-snow .ql-stroke {
+          stroke: #374151;
+        }
+
+        .ql-snow .ql-fill {
+          fill: #374151;
+        }
+      `}</style>
     </div>
   );
 };

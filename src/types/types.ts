@@ -34,7 +34,23 @@ export interface HiredEmployee {
   recruitmentFormId: string;
   recruitmentForm?: {
     fullName: string;
+    documentPhotoUrl?: string;
+    gender: Gender;
+    religion: Religion;
     appliedPosition?: Position;
+    birthPlace: string;
+    birthDate: string;
+    province: Province;
+    whatsappNumber: string;
+    education: EducationLevel
+    workExperience: string;
+    maritalStatus: MaritalStatus;
+    heightCm: number;
+    weightKg: number;
+    shirtSize: ShirtSize;
+    safetyShoesSize: SafetyShoesSize;
+    pantsSize: PantsSize;
+    address: string;
   };
   hiredPosition: Position;
   department: Department;
@@ -93,6 +109,8 @@ export interface RecruitmentForm {
   fullName: string;
   birthPlace: string;
   birthDate: string;
+  religion: Religion;
+  gender: Gender;
   province: Province;
   heightCm: number;
   weightKg: number;
@@ -104,6 +122,7 @@ export interface RecruitmentForm {
   certificate: Certificate[];
   education: EducationLevel;
   schoolName: string;
+  jurusan?: string;
   workExperience?: string;
   maritalStatus: MaritalStatus;
   appliedPosition?: Position;
@@ -233,7 +252,6 @@ export enum Position {
   TRAINER_DOUBLE_TRAILER = "TRAINER_DOUBLE_TRAILER",
   GA_INFRASTRUCTURE = "GA_INFRASTRUCTURE",
   TOOLKEEPER = "TOOLKEEPER",
-
 }
 
 // NEW: Department enum (was missing entirely)
@@ -309,6 +327,20 @@ export enum Province {
   MALUKU_UTARA = "MALUKU_UTARA",
   PAPUA = "PAPUA",
   PAPUA_BARAT = "PAPUA_BARAT",
+}
+
+export enum Gender {
+  MALE = "MALE",
+  FEMALE = "FEMALE",
+}
+
+export enum Religion {
+  ISLAM = "ISLAM",
+  PROTESTAN = "PROTESTAN",
+  KATOLIK = "KATOLIK",
+  HINDU = "HINDU",
+  BUDDHA = "BUDDHA",
+  KONGHUCU = "KONGHUCU",
 }
 
 export enum ShirtSize {
@@ -475,6 +507,7 @@ export interface CreateRecruitmentFormData {
   certificate: Certificate[];
   education: EducationLevel;
   schoolName: string;
+  jurusan?: string;
   workExperience?: string;
   maritalStatus: MaritalStatus;
   appliedPosition?: Position;
@@ -705,7 +738,7 @@ export interface ConfirmationConfig {
 
 // Audit log entry
 export interface AuditLogEntry {
-  action: 'create' | 'update' | 'delete' | 'restore';
+  action: "create" | "update" | "delete" | "restore";
   employeeId: string;
   employeeName: string;
   changes?: Record<string, any>;
@@ -740,19 +773,19 @@ export interface EmployeeFormState {
 
 // Field labels for display
 export const EMPLOYEE_FIELD_LABELS: Record<string, string> = {
-  employeeId: 'Employee ID',
-  hiredPosition: 'Position',
-  department: 'Department',
-  startDate: 'Start Date',
-  probationEndDate: 'Probation End Date',
-  employmentStatus: 'Employment Status',
-  contractType: 'Contract Type',
-  basicSalary: 'Basic Salary',
-  supervisorId: 'Supervisor',
-  workLocation: 'Work Location',
-  shiftPattern: 'Shift Pattern',
-  emergencyContactName: 'Emergency Contact Name',
-  emergencyContactPhone: 'Emergency Contact Phone',
-  terminationDate: 'Termination Date',
-  terminationReason: 'Termination Reason',
+  employeeId: "Employee ID",
+  hiredPosition: "Position",
+  department: "Department",
+  startDate: "Start Date",
+  probationEndDate: "Probation End Date",
+  employmentStatus: "Employment Status",
+  contractType: "Contract Type",
+  basicSalary: "Basic Salary",
+  supervisorId: "Supervisor",
+  workLocation: "Work Location",
+  shiftPattern: "Shift Pattern",
+  emergencyContactName: "Emergency Contact Name",
+  emergencyContactPhone: "Emergency Contact Phone",
+  terminationDate: "Termination Date",
+  terminationReason: "Termination Reason",
 };

@@ -13,7 +13,6 @@ export const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
   const tabs = [
     { id: "overview", label: "Overview", icon: User },
     { id: "employment", label: "Employment", icon: Briefcase },
-    { id: "contact", label: "Contact", icon: Contact },
     { id: "hierarchy", label: "Hierarchy", icon: Users },
   ];
 

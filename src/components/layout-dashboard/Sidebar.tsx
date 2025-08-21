@@ -14,6 +14,7 @@ interface NavigationItem {
   name: string;
   href: string;
   isDemo: boolean;
+  isNew: boolean;
   showForAdmin: boolean;
   icon: React.ReactNode;
 }
@@ -25,7 +26,12 @@ interface SidebarProps {
   onLogout: () => void;
 }
 
-export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }: SidebarProps) {
+export default function Sidebar({
+  user,
+  sidebarOpen,
+  setSidebarOpen,
+  onLogout,
+}: SidebarProps) {
   const pathname = usePathname();
 
   // Check if user is admin
@@ -36,6 +42,7 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
       name: "Dashboard",
       href: "/dashboard",
       isDemo: false,
+      isNew: false,
       showForAdmin: false,
       icon: (
         <svg
@@ -57,6 +64,7 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
       name: "Analytics",
       href: "/dashboard/analytics",
       isDemo: false,
+      isNew: false,
       showForAdmin: false,
       icon: (
         <svg
@@ -78,6 +86,7 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
       name: "Recruitment Data",
       href: "/dashboard/recruitdata",
       isDemo: false,
+      isNew: false,
       showForAdmin: false,
       icon: (
         <svg
@@ -95,10 +104,11 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
         </svg>
       ),
     },
-     {
+    {
       name: "Migration Candidate",
       href: "/dashboard/migration-candidate",
       isDemo: false,
+      isNew: false,
       showForAdmin: false,
       icon: (
         <svg
@@ -126,6 +136,7 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
       name: "Input Form",
       href: "/dashboard/inputformdata",
       isDemo: false,
+      isNew: false,
       showForAdmin: false,
       icon: (
         <svg
@@ -147,6 +158,7 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
       name: "Create User",
       href: "/dashboard/create-user",
       isDemo: false,
+      isNew: false,
       showForAdmin: true,
       icon: (
         <svg
@@ -168,6 +180,7 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
       name: "User List",
       href: "/dashboard/user-list",
       isDemo: false,
+      isNew: false,
       showForAdmin: true,
       icon: (
         <svg
@@ -192,6 +205,7 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
       href: "/dashboard/actualvsplan",
       isDemo: true,
       showForAdmin: false,
+      isNew: false,
       icon: (
         <svg
           className="w-5 h-5"
@@ -212,6 +226,7 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
       name: "Profile",
       href: "/dashboard/profile",
       isDemo: false,
+      isNew: false,
       showForAdmin: false,
       icon: (
         <svg
@@ -358,10 +373,13 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
           )}
 
           {/* Navigation */}
-          <nav className="flex-1 px-6 pb-6 overflow-y-auto" style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: '#475569 #1e293b'
-          }}>
+          <nav
+            className="flex-1 px-6 pb-6 overflow-y-auto"
+            style={{
+              scrollbarWidth: "thin",
+              scrollbarColor: "#475569 #1e293b",
+            }}
+          >
             <style jsx>{`
               nav::-webkit-scrollbar {
                 width: 6px;
@@ -412,6 +430,11 @@ export default function Sidebar({ user, sidebarOpen, setSidebarOpen, onLogout }:
                     {item.isDemo && (
                       <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 text-xs font-medium rounded border border-amber-400/30">
                         DEMO
+                      </span>
+                    )}
+                    {item.isNew && (
+                      <span className="px-0.5 py-0.25 bg-amber-500/10 text-amber-300 text-xs font-medium rounded border border-amber-400/20">
+                        NEW
                       </span>
                     )}
 

@@ -13,6 +13,7 @@ import {
   MaritalStatus,
   Position,
   ExperienceLevel,
+  Gender,
 } from "@/types/types";
 import {
   Upload,
@@ -39,6 +40,7 @@ function RecruitmentFormPage() {
     birthPlace: "",
     birthDate: "",
     province: "" as Province,
+    gender: "" as Gender,
     heightCm: "",
     weightKg: "",
     shirtSize: "" as ShirtSize,
@@ -49,6 +51,7 @@ function RecruitmentFormPage() {
     certificate: [] as Certificate[],
     education: "" as EducationLevel,
     schoolName: "",
+    jurusan: "",
     workExperience: "",
     maritalStatus: "" as MaritalStatus,
     appliedPosition: "" as Position,
@@ -157,7 +160,8 @@ function RecruitmentFormPage() {
             Lamaran Berhasil Dikirim!
           </h2>
           <p className="text-slate-400">
-            Terima kasih atas lamaran Anda. Kami akan meninjau dan menghubungi Anda segera.
+            Terima kasih atas lamaran Anda. Kami akan meninjau dan menghubungi
+            Anda segera.
           </p>
         </div>
       </div>
@@ -253,6 +257,25 @@ function RecruitmentFormPage() {
                     {Object.values(Province).map((province) => (
                       <option key={province} value={province}>
                         {province.replace(/_/g, " ")}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Jenis Kelamin *
+                  </label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  >
+                    <option value="">Pilih Jenis Kelamin</option>
+                    {Object.values(Gender).map((gender) => (
+                      <option key={gender} value={gender}>
+                        {gender.replace(/_/g, " ")}
                       </option>
                     ))}
                   </select>
@@ -464,6 +487,19 @@ function RecruitmentFormPage() {
                     value={formData.schoolName}
                     onChange={handleInputChange}
                     required
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Jurusan Pendidikan (*Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    name="jurusan"
+                    value={formData.jurusan}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   />
                 </div>

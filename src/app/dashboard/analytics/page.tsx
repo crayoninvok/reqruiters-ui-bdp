@@ -131,7 +131,7 @@ function AnalyticsPage() {
         );
       case 'positions':
         return <PositionChart data={positionData} />;
-      case 'provinces':
+      case 'province':
         return <ProvinceChart data={provinceData} />;
       case 'trends':
         return <TrendChart data={trendData} />;
@@ -213,7 +213,7 @@ function AnalyticsPage() {
         <div className="flex flex-wrap gap-2 mb-8 p-1 bg-gray-50 dark:bg-gray-700 rounded-xl">
           <TabButton id="status" label="Status Overview" isActive={activeTab === 'status'} onClick={setActiveTab} />
           <TabButton id="positions" label="Top Positions" isActive={activeTab === 'positions'} onClick={setActiveTab} />
-          <TabButton id="provinces" label="Geographic" isActive={activeTab === 'provinces'} onClick={setActiveTab} />
+          <TabButton id="province" label="Geographic" isActive={activeTab === 'province'} onClick={setActiveTab} />
           <TabButton id="trends" label="Trends" isActive={activeTab === 'trends'} onClick={setActiveTab} />
           <TabButton id="demographics" label="Demographics" isActive={activeTab === 'demographics'} onClick={setActiveTab} />
         </div>

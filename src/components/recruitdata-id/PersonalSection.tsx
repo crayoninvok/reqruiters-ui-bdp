@@ -1,5 +1,6 @@
 import React from "react";
 import { RecruitmentForm } from "@/types/types";
+import { formatDate, calculateAge, getGeneration } from "@/utils/utils"; // Adjust the import path based on your file structure
 
 interface PersonalInfoSectionProps {
   recruitmentForm: RecruitmentForm;
@@ -8,14 +9,6 @@ interface PersonalInfoSectionProps {
 export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
   recruitmentForm,
 }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 print-section print-personal-info">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 print-section-title">
@@ -40,6 +33,38 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
+            Age
+          </label>
+          <p className="text-gray-900 dark:text-white print-value">
+            {calculateAge(recruitmentForm.birthDate)} years old
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
+            Generation
+          </label>
+          <p className="text-gray-900 dark:text-white print-value">
+            {getGeneration(recruitmentForm.birthDate)}
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
+            Religion
+          </label>
+          <p className="text-gray-900 dark:text-white print-value">
+            {recruitmentForm.religion.replace(/_/g, " ")}
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
+            Gender
+          </label>
+          <p className="text-gray-900 dark:text-white print-value">
+            {recruitmentForm.gender.replace(/_/g, " ")}
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
             Province
           </label>
           <p className="text-gray-900 dark:text-white print-value">
@@ -54,20 +79,20 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
             {recruitmentForm.whatsappNumber}
           </p>
         </div>
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
-            Address
-          </label>
-          <p className="text-gray-900 dark:text-white print-value">
-            {recruitmentForm.address}
-          </p>
-        </div>
         <div>
           <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
             Marital Status
           </label>
           <p className="text-gray-900 dark:text-white print-value">
             {recruitmentForm.maritalStatus}
+          </p>
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
+            Address
+          </label>
+          <p className="text-gray-900 dark:text-white print-value">
+            {recruitmentForm.address}
           </p>
         </div>
       </div>

@@ -42,6 +42,14 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
+            Major
+          </label>
+          <p className="text-gray-900 dark:text-white print-value">
+            {recruitmentForm.jurusan}
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">
             Experience Level
           </label>
           <p className="text-gray-900 dark:text-white print-value">

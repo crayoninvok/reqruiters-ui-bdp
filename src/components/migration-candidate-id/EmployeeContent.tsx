@@ -1,7 +1,6 @@
 import React from "react";
 import { OverviewTab } from "@/components/migration-candidate-id/OverviewTab";
 import { EmploymentTab } from "@/components/migration-candidate-id/EmploymentTab";
-import { ContactTab } from "@/components/migration-candidate-id/ContactTab";
 import { HierarchyTab } from "@/components/migration-candidate-id/HierarchyTab";
 import { HiredEmployeeService } from "@/services/hired.service";
 import {
@@ -42,8 +41,6 @@ export const EmployeeContent: React.FC<EmployeeContentProps> = ({
         return <OverviewTab employee={employee} />;
       case "employment":
         return <EmploymentTab employee={employee} />;
-      case "contact":
-        return <ContactTab employee={employee} />;
       case "hierarchy":
         return (
           <HierarchyTab

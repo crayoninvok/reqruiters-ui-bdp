@@ -5,6 +5,8 @@ export interface PublicRecruitmentFormData {
   fullName: string;
   birthPlace: string;
   birthDate: string;
+  gender: string;
+  religion: string;
   province: string;
   heightCm: number;
   weightKg: number;
@@ -16,6 +18,7 @@ export interface PublicRecruitmentFormData {
   certificate?: string[];
   education: string;
   schoolName: string;
+  jurusan?: string;
   workExperience?: string;
   maritalStatus: string;
   appliedPosition: string;
@@ -53,7 +56,9 @@ interface PublicSubmissionResponse {
 interface FormOptionsResponse {
   message: string;
   options: {
-    provinces: string[];
+    province: string[];
+    gender: string[];
+    religion:string[]
     shirtSizes: string[];
     safetyShoeSizes: string[];
     pantsSizes: string[];
@@ -300,6 +305,12 @@ export class PublicRecruitmentService {
 
     if (!data.province) {
       errors.push("Province is required");
+    }
+     if (!data.gender) {
+      errors.push("Gender is required");
+    }
+     if (!data.religion) {
+      errors.push("Gender is required");
     }
 
     if (!data.heightCm) {

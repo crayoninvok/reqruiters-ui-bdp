@@ -34,7 +34,7 @@ export class HiredEmployeeService {
   }
 
   private static getBaseUrl(): string {
-    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
   }
 
   // Generic retry logic for failed requests

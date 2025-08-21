@@ -111,7 +111,7 @@ export const formatters = {
         return "yellow";
       case "ON_PROGRESS":
         return "blue";
-      case "COMPLETED":
+      case "HIRED":
         return "green";
       default:
         return "gray";

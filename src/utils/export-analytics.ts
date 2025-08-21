@@ -58,7 +58,7 @@ export const exportToExcel = async (data: ExportData) => {
       ['Total Applications', data.dashboardStats.totalApplications || 0, ''],
       ['Pending Applications', data.dashboardStats.pendingApplications || 0, ''],
       ['In Progress', data.dashboardStats.onProgressApplications || 0, ''],
-      ['Completed', data.dashboardStats.completedApplications || 0, ''],
+      ['Hired', data.dashboardStats.hiredApplications || 0, ''],
       ['Total Recruiters', data.dashboardStats.totalRecruiters || 0, ''],
       ['Recent Applications', data.dashboardStats.recentApplications || 0, '']
     ];

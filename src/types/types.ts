@@ -27,7 +27,67 @@ export interface AuthResponse {
   user?: User;
 }
 
-// Recruitment Form Types
+// NEW: Hired Employee Types
+export interface HiredEmployee {
+  id: string;
+  employeeId: string;
+  recruitmentFormId: string;
+  recruitmentForm?: {
+    fullName: string;
+    appliedPosition?: Position;
+  };
+  hiredPosition: Position;
+  department: Department;
+  startDate: string;
+  probationEndDate?: string;
+  employmentStatus: EmploymentStatus;
+  contractType: ContractType;
+  basicSalary?: number;
+  allowances?: any;
+  supervisorId?: string;
+  supervisor?: {
+    employeeId: string;
+    recruitmentForm: {
+      fullName: string;
+    };
+  };
+  subordinates?: HiredEmployee[];
+  processedById: string;
+  processedBy?: {
+    name: string;
+    email: string;
+  };
+  hiredDate: string;
+  workLocation?: string;
+  shiftPattern: ShiftPattern;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  isActive: boolean;
+  terminationDate?: string;
+  terminationReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// NEW: Migration Request Type
+export interface MigrateToHiredRequest {
+  recruitmentFormId: string;
+  employeeId?: string;
+  hiredPosition: Position;
+  department: Department;
+  startDate: string;
+  probationEndDate?: string;
+  contractType?: ContractType;
+  basicSalary?: number;
+  allowances?: any;
+  supervisorId?: string;
+  workLocation?: string;
+  shiftPattern?: ShiftPattern;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+}
+
+// Recruitment Form Types (Updated with hiredEmployee relation)
 export interface RecruitmentForm {
   id: string;
   fullName: string;
@@ -57,6 +117,24 @@ export interface RecruitmentForm {
   experienceLevel?: ExperienceLevel;
   createdAt: string;
   updatedAt: string;
+  // NEW: Relation to hired employee
+  hiredEmployee?: {
+    employeeId: string;
+    department: Department;
+    startDate: string;
+    employmentStatus: EmploymentStatus;
+  };
+}
+
+// NEW: Ready for Hiring Candidate Type
+export interface ReadyForHiringCandidate {
+  id: string;
+  fullName: string;
+  appliedPosition?: Position;
+  whatsappNumber: string;
+  education: EducationLevel;
+  province: Province;
+  updatedAt: string;
 }
 
 interface RecruitmentResponse {
@@ -81,12 +159,31 @@ export interface RecruiterData {
   updatedAt: string;
 }
 
+// NEW: Statistics Types
+export interface RecruitmentStats {
+  totalForms: number;
+  recentForms: number;
+  statusBreakdown: {
+    status: RecruitmentStatus;
+    count: number;
+  }[];
+  topProvinces: {
+    province: Province;
+    count: number;
+  }[];
+  educationBreakdown: {
+    education: EducationLevel;
+    count: number;
+  }[];
+}
+
 // Enums (matching your Prisma schema)
 export enum Role {
   ADMIN = "ADMIN",
   HR = "HR",
 }
 
+// FIXED: Position enum values to match Prisma schema exactly
 export enum Position {
   PROD_ENG_SPV = "PROD_ENG_SPV",
   PRODUCTION_GROUP_LEADER = "PRODUCTION_GROUP_LEADER",
@@ -122,12 +219,12 @@ export enum Position {
   PURCHASING_SPV = "PURCHASING_SPV",
   IT_SUPPORT = "IT_SUPPORT",
   DOCTOR = "DOCTOR",
-  DEPT_HEAD_PRODUCTION_DEPARTMENT = "DEPT_HEADPRODUCTION_DEPARTMENT",
+  DEPT_HEAD_PRODUCTION_ENGINEERING = "DEPT_HEAD_PRODUCTION_ENGINEERING", // FIXED
   HRGA_SPV = "HRGA_SPV",
   MECHANIC_INSTRUCTOR = "MECHANIC_INSTRUCTOR",
-  DEPT_HEAD_LOGISTIC_DEPARTMENT = "DEPT_HEAD_LOGISTIC_DEPARTMENT",
+  DEPT_HEAD_PLANT_LOGISTIC = "DEPT_HEAD_PLANT_LOGISTIC", // FIXED
   OPERATOR_WATER_TRUCK = "OPERATOR_WATER_TRUCK",
-  OPERATOR_CRANE_TRUCK = "OPERATOR_CRANE_TRUC",
+  OPERATOR_CRANE_TRUCK = "OPERATOR_CRANE_TRUCK", // FIXED
   HRGA_ADMIN = "HRGA_ADMIN",
   CAMP_SERVICE_TECHNICIAN = "CAMP_SERVICE_TECHNICIAN",
   CAMP_SERVICE_HELPER = "CAMP_SERVICE_HELPER",
@@ -135,7 +232,46 @@ export enum Position {
   TRAINER_MECHANIC = "TRAINER_MECHANIC",
   TRAINER_DOUBLE_TRAILER = "TRAINER_DOUBLE_TRAILER",
   GA_INFRASTRUCTURE = "GA_INFRASTRUCTURE",
+  TOOLKEEPER = "TOOLKEEPER",
 
+}
+
+// NEW: Department enum (was missing entirely)
+export enum Department {
+  PRODUCTION_ENGINEERING = "PRODUCTION_ENGINEERING",
+  OPERATIONAL = "OPERATIONAL",
+  PLANT = "PLANT",
+  LOGISTIC = "LOGISTIC",
+  HUMAN_RESOURCES_GA = "HUMAN_RESOURCES_GA",
+  HEALTH_SAFETY_ENVIRONMENT = "HEALTH_SAFETY_ENVIRONMENT",
+  PURCHASING = "PURCHASING",
+  INFORMATION_TECHNOLOGY = "INFORMATION_TECHNOLOGY",
+  MEDICAL = "MEDICAL",
+  TRAINING_DEVELOPMENT = "TRAINING_DEVELOPMENT",
+}
+
+// NEW: Employment Status enum (was missing)
+export enum EmploymentStatus {
+  PROBATION = "PROBATION",
+  PERMANENT = "PERMANENT",
+  CONTRACT = "CONTRACT",
+  TERMINATED = "TERMINATED",
+  RESIGNED = "RESIGNED",
+}
+
+// NEW: Contract Type enum (was missing)
+export enum ContractType {
+  PERMANENT = "PERMANENT",
+  CONTRACT = "CONTRACT",
+  INTERNSHIP = "INTERNSHIP",
+}
+
+// NEW: Shift Pattern enum (was missing)
+export enum ShiftPattern {
+  DAY_SHIFT = "DAY_SHIFT",
+  NIGHT_SHIFT = "NIGHT_SHIFT",
+  ROTATING = "ROTATING",
+  FLEXIBLE = "FLEXIBLE",
 }
 
 export enum Province {
@@ -207,23 +343,26 @@ export enum PantsSize {
   SIZE_36 = "SIZE_36",
 }
 
+// FIXED: Certificate enum values to match Prisma schema exactly
 export enum Certificate {
   AHLI_K3 = "AHLI_K3",
-  SIM_A = "SIM A",
+  SIM_A = "SIM_A", // FIXED: was "SIM A"
   SIM_B_I = "SIM_B_I",
   SIM_B_II = "SIM_B_II",
-  SIM_C = "SIM C",
-  SIM_D = "SIM D",
+  SIM_C = "SIM_C", // FIXED: was "SIM C"
+  SIM_D = "SIM_D", // FIXED: was "SIM D"
   PENGAWAS_OPERASIONAL_PERTAMA = "PENGAWAS_OPERASIONAL_PERTAMA",
   PENGAWAS_OPERASIONAL_MADYA = "PENGAWAS_OPERASIONAL_MADYA",
   PENGAWAS_OPERASIONAL_UTAMA = "PENGAWAS_OPERASIONAL_UTAMA",
   BASIC_MECHANIC_COURSE = "BASIC_MECHANIC_COURSE",
   TRAINING_OF_TRAINER = "TRAINING_OF_TRAINER",
-  OPERATOR_CRANE = "OPERATOR_CRANE",
+  OPERATOR_FORKLIFT = "OPERATOR_FORKLIFT", // NEW: was missing
   SURAT_IZIN_OPERATOR_FORKLIFT = "SURAT_IZIN_OPERATOR_FORKLIFT",
+  OPERATOR_CRANE = "OPERATOR_CRANE",
+  OPERATOR_FUEL_TRUCK = "OPERATOR_FUEL_TRUCK", // NEW: was missing
   SERTIFIKAT_VAKSIN = "SERTIFIKAT_VAKSIN",
   SERTIFIKAT_LAINNYA = "SERTIFIKAT_LAINNYA",
-  SERTIFIKAT_KONSTRUKSI = "SERTIFIKAT_KONSTRUKSI",
+  SERTIFIKASI_KONSTRUKSI = "SERTIFIKASI_KONSTRUKSI", // FIXED: was SERTIFIKAT_KONSTRUKSI
   KIMPER = "KIMPER",
   SIMPER = "SIMPER",
   PLB3 = "PLB3",
@@ -239,8 +378,8 @@ export enum EducationLevel {
   SMP = "SMP",
   SMA = "SMA",
   SMK = "SMK",
-  D4 = "D4",
   D3 = "D3",
+  D4 = "D4",
   S1 = "S1",
   S2 = "S2",
   S3 = "S3",
@@ -253,6 +392,7 @@ export enum MaritalStatus {
   WIDOWED = "WIDOWED",
 }
 
+// UPDATED: Added missing COMPLETED status
 export enum RecruitmentStatus {
   PENDING = "PENDING",
   ON_PROGRESS = "ON_PROGRESS",
@@ -262,7 +402,8 @@ export enum RecruitmentStatus {
   MEDICAL_CHECKUP = "MEDICAL_CHECKUP",
   MEDICAL_FOLLOWUP = "MEDICAL_FOLLOWUP",
   REJECTED = "REJECTED",
-  COMPLETED = "COMPLETED",
+  COMPLETED = "COMPLETED", // NEW: was missing
+  HIRED = "HIRED",
 }
 
 export enum ExperienceLevel {
@@ -283,6 +424,39 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+// NEW: Pagination Response (matches your controller)
+export interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+// NEW: API Response types matching your controller responses
+export interface GetRecruitmentFormsResponse {
+  message: string;
+  recruitmentForms: RecruitmentForm[];
+  pagination: PaginationInfo;
+}
+
+export interface GetCandidatesReadyForHiringResponse {
+  message: string;
+  candidates: ReadyForHiringCandidate[];
+  count: number;
+}
+
+export interface MigrateToHiredResponse {
+  message: string;
+  hiredEmployee: HiredEmployee;
+}
+
+export interface GetRecruitmentStatsResponse {
+  message: string;
+  stats: RecruitmentStats;
 }
 
 // Form Types for Frontend
@@ -318,3 +492,267 @@ export interface CreateRecruiterData {
   employeeId?: string;
   notes?: string;
 }
+
+export interface HiredEmployeeFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  department?: Department;
+  position?: Position;
+  employmentStatus?: EmploymentStatus;
+  contractType?: ContractType;
+  shiftPattern?: ShiftPattern;
+  supervisorId?: string;
+  isActive?: boolean;
+  startDateFrom?: string;
+  startDateTo?: string;
+  probationEndDateFrom?: string;
+  probationEndDateTo?: string;
+  hiredDateFrom?: string;
+  hiredDateTo?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  workLocation?: string;
+  terminationDateFrom?: string;
+  terminationDateTo?: string;
+}
+
+export interface TransformedHiredEmployee {
+  id: string;
+  employeeId: string;
+  fullName: string;
+  hiredPosition: Position;
+  department: Department;
+  startDate: string;
+  probationEndDate?: string;
+  employmentStatus: EmploymentStatus;
+  contractType: ContractType;
+  basicSalary?: number;
+  allowances?: any;
+  workLocation?: string;
+  shiftPattern: ShiftPattern;
+  isActive: boolean;
+  terminationDate?: string;
+  terminationReason?: string;
+  hiredDate: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  whatsappNumber: string;
+  province: string;
+  education: string;
+  appliedPosition?: Position;
+  supervisor?: {
+    employeeId: string;
+    fullName: string;
+  };
+  subordinatesCount: number;
+  processedBy: {
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HiredEmployeesResponse {
+  message: string;
+  employees: TransformedHiredEmployee[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  appliedFilters: Record<string, any>;
+}
+
+export interface HiredEmployeeDetailResponse {
+  message: string;
+  employee: HiredEmployee;
+}
+
+export interface HiredEmployeeStats {
+  overview: {
+    totalEmployees: number;
+    activeEmployees: number;
+    inactiveEmployees: number;
+    recentHires: number;
+    probationaryEmployees: number;
+  };
+  departmentBreakdown: {
+    department: Department;
+    count: number;
+  }[];
+  employmentStatusBreakdown: {
+    status: EmploymentStatus;
+    count: number;
+  }[];
+  contractTypeBreakdown: {
+    type: ContractType;
+    count: number;
+  }[];
+  shiftPatternBreakdown: {
+    pattern: ShiftPattern;
+    count: number;
+  }[];
+  salaryInsights: {
+    department: Department;
+    averageSalary?: number;
+    employeeCount: number;
+  }[];
+}
+
+export interface HiredEmployeeStatsResponse {
+  message: string;
+  stats: HiredEmployeeStats;
+}
+
+export interface SupervisorOption {
+  id: string;
+  employeeId: string;
+  fullName: string;
+  position: Position;
+  department: Department;
+}
+
+export interface SupervisorsResponse {
+  message: string;
+  supervisors: SupervisorOption[];
+}
+
+export interface UpdateEmployeeData {
+  hiredPosition?: Position;
+  department?: Department;
+  employmentStatus?: EmploymentStatus;
+  contractType?: ContractType;
+  basicSalary?: number;
+  allowances?: any;
+  supervisorId?: string;
+  workLocation?: string;
+  shiftPattern?: ShiftPattern;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  probationEndDate?: string;
+}
+
+export interface TerminateEmployeeData {
+  terminationDate: string;
+  terminationReason: string;
+}
+// Add these interfaces to your types/types.ts file
+
+// Enhanced update data interface
+export interface UpdateEmployeeData {
+  employeeId?: string;
+  hiredPosition?: Position;
+  department?: Department;
+  startDate?: string;
+  probationEndDate?: string;
+  employmentStatus?: EmploymentStatus;
+  contractType?: ContractType;
+  basicSalary?: number;
+  allowances?: any; // Match existing type declaration
+  supervisorId?: string;
+  workLocation?: string;
+  shiftPattern?: ShiftPattern;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  terminationDate?: string;
+  terminationReason?: string;
+  isActive?: boolean;
+  // Add any other fields that can be updated
+}
+
+// Deletion/Termination data
+export interface DeletionData {
+  terminationReason?: string;
+  terminationDate?: string;
+  hardDelete?: boolean;
+}
+
+// Bulk operation response
+export interface BulkOperationResponse {
+  message: string;
+  processed: number;
+  failed: number;
+  errors?: Array<{
+    employeeId: string;
+    error: string;
+  }>;
+}
+
+// Employee deletability check
+export interface EmployeeDeletabilityCheck {
+  canDelete: boolean;
+  reason?: string;
+  subordinatesCount?: number;
+  activeSubordinates?: Array<{
+    employeeId: string;
+    fullName: string;
+  }>;
+}
+
+// Confirmation dialog configuration
+export interface ConfirmationConfig {
+  title: string;
+  message: string;
+  confirmText: string;
+  cancelText: string;
+  isDangerous: boolean;
+}
+
+// Audit log entry
+export interface AuditLogEntry {
+  action: 'create' | 'update' | 'delete' | 'restore';
+  employeeId: string;
+  employeeName: string;
+  changes?: Record<string, any>;
+  reason?: string;
+  timestamp: string;
+  performedBy?: string;
+}
+
+// Change tracking
+export interface FieldChange {
+  field: string;
+  label: string;
+  from: string;
+  to: string;
+}
+
+// Enhanced validation result
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings?: string[];
+}
+
+// Form state for employee editing
+export interface EmployeeFormState {
+  data: UpdateEmployeeData;
+  originalData: UpdateEmployeeData;
+  hasUnsavedChanges: boolean;
+  isSubmitting: boolean;
+  validationErrors: string[];
+}
+
+// Field labels for display
+export const EMPLOYEE_FIELD_LABELS: Record<string, string> = {
+  employeeId: 'Employee ID',
+  hiredPosition: 'Position',
+  department: 'Department',
+  startDate: 'Start Date',
+  probationEndDate: 'Probation End Date',
+  employmentStatus: 'Employment Status',
+  contractType: 'Contract Type',
+  basicSalary: 'Basic Salary',
+  supervisorId: 'Supervisor',
+  workLocation: 'Work Location',
+  shiftPattern: 'Shift Pattern',
+  emergencyContactName: 'Emergency Contact Name',
+  emergencyContactPhone: 'Emergency Contact Phone',
+  terminationDate: 'Termination Date',
+  terminationReason: 'Termination Reason',
+};

@@ -3,6 +3,13 @@ import {
   RecruitmentForm,
   CreateRecruitmentFormData,
   ApiResponse,
+  MigrateToHiredRequest,
+  HiredEmployee,
+  ReadyForHiringCandidate,
+  GetCandidatesReadyForHiringResponse,
+  MigrateToHiredResponse,
+  GetRecruitmentFormsResponse,
+  GetRecruitmentStatsResponse,
 } from "@/types/types";
 
 export interface RecruitmentFormFilters {
@@ -18,6 +25,7 @@ export interface RecruitmentFormFilters {
   endDate?: string;
 }
 
+// DEPRECATED: Use GetRecruitmentFormsResponse from types instead
 interface RecruitmentFormsResponse {
   message: string;
   recruitmentForms: RecruitmentForm[];
@@ -36,6 +44,7 @@ interface RecruitmentFormResponse {
   recruitmentForm: RecruitmentForm;
 }
 
+// DEPRECATED: Use RecruitmentStats from types instead
 interface RecruitmentStats {
   totalForms: number;
   recentForms: number;
@@ -44,6 +53,7 @@ interface RecruitmentStats {
   educationBreakdown: { education: string; count: number }[];
 }
 
+// DEPRECATED: Use GetRecruitmentStatsResponse from types instead
 interface RecruitmentStatsResponse {
   message: string;
   stats: RecruitmentStats;
@@ -100,37 +110,37 @@ export class RecruitmentFormService {
   }
 
   // Get all recruitment forms with pagination and filtering
- static async getRecruitmentForms(
-  filters: RecruitmentFormFilters = {}
-): Promise<RecruitmentFormsResponse> {
-  return this.makeRequest(async () => {
-    const params = new URLSearchParams();
+  static async getRecruitmentForms(
+    filters: RecruitmentFormFilters = {}
+  ): Promise<RecruitmentFormsResponse> {
+    return this.makeRequest(async () => {
+      const params = new URLSearchParams();
 
-    if (filters.page) params.append("page", filters.page.toString());
-    if (filters.limit) params.append("limit", filters.limit.toString());
-    if (filters.search) params.append("search", filters.search);
-    if (filters.startDate) params.append("startDate", filters.startDate);
-    if (filters.endDate) params.append("endDate", filters.endDate);
-    if (filters.status) params.append("status", filters.status);
-    
-    // Handle multiple certificates
-    if (filters.certificate && filters.certificate.length > 0) {
-      params.append("certificate", filters.certificate.join(','));
-    }
-    
-    if (filters.province) params.append("province", filters.province);
-    if (filters.education) params.append("education", filters.education);
-    if (filters.appliedPosition)
-      params.append("appliedPosition", filters.appliedPosition);
+      if (filters.page) params.append("page", filters.page.toString());
+      if (filters.limit) params.append("limit", filters.limit.toString());
+      if (filters.search) params.append("search", filters.search);
+      if (filters.startDate) params.append("startDate", filters.startDate);
+      if (filters.endDate) params.append("endDate", filters.endDate);
+      if (filters.status) params.append("status", filters.status);
+      
+      // Handle multiple certificates
+      if (filters.certificate && filters.certificate.length > 0) {
+        params.append("certificate", filters.certificate.join(','));
+      }
+      
+      if (filters.province) params.append("province", filters.province);
+      if (filters.education) params.append("education", filters.education);
+      if (filters.appliedPosition)
+        params.append("appliedPosition", filters.appliedPosition);
 
-    const response = await api.get(`/recruitment?${params.toString()}`, {
-      headers: this.getAuthHeader(),
-      timeout: 30000,
+      const response = await api.get(`/recruitment?${params.toString()}`, {
+        headers: this.getAuthHeader(),
+        timeout: 30000,
+      });
+
+      return response.data;
     });
-
-    return response.data;
-  });
-}
+  }
 
   // Get single recruitment form by ID
   static async getRecruitmentFormById(
@@ -144,6 +154,39 @@ export class RecruitmentFormService {
 
       return response.data;
     });
+  }
+
+  // NEW: Get candidates ready for hiring (HIRED status but not migrated)
+  static async getCandidatesReadyForHiring(): Promise<GetCandidatesReadyForHiringResponse> {
+    return this.makeRequest(async () => {
+      const response = await api.get(`/recruitment/ready-for-hiring`, {
+        headers: this.getAuthHeader(),
+        timeout: 15000,
+      });
+
+      return response.data;
+    });
+  }
+
+  // NEW: Migrate HIRED candidate to HiredEmployee table
+  static async migrateToHiredEmployee(
+    migrationData: MigrateToHiredRequest
+  ): Promise<MigrateToHiredResponse> {
+    return this.makeRequest(async () => {
+      const response = await api.post(
+        "/recruitment/migrate-to-hired",
+        migrationData,
+        {
+          headers: {
+            ...this.getAuthHeader(),
+            "Content-Type": "application/json",
+          },
+          timeout: 30000,
+        }
+      );
+
+      return response.data;
+    }, 1); // Don't retry migration to avoid duplicate creation
   }
 
   // Create new recruitment form with files
@@ -281,6 +324,65 @@ export class RecruitmentFormService {
     }, 1); // Don't retry exports
   }
 
+  // NEW: Validate migration data before submission
+  static validateMigrationData(data: MigrateToHiredRequest): string[] {
+    const errors: string[] = [];
+
+    if (!data.recruitmentFormId?.trim()) {
+      errors.push("Recruitment form ID is required");
+    }
+    if (!data.hiredPosition) {
+      errors.push("Hired position is required");
+    }
+    if (!data.department) {
+      errors.push("Department is required");
+    }
+    if (!data.startDate) {
+      errors.push("Start date is required");
+    }
+
+    // Validate dates
+    if (data.startDate) {
+      const startDate = new Date(data.startDate);
+      const today = new Date();
+      
+      if (isNaN(startDate.getTime())) {
+        errors.push("Invalid start date format");
+      }
+    }
+
+    if (data.probationEndDate && data.startDate) {
+      const startDate = new Date(data.startDate);
+      const probationEndDate = new Date(data.probationEndDate);
+      
+      if (isNaN(probationEndDate.getTime())) {
+        errors.push("Invalid probation end date format");
+      } else if (probationEndDate <= startDate) {
+        errors.push("Probation end date must be after start date");
+      }
+    }
+
+    // Validate salary
+    if (data.basicSalary && (data.basicSalary < 0 || data.basicSalary > 1000000000)) {
+      errors.push("Basic salary must be between 0 and 1,000,000,000");
+    }
+
+    // Validate employee ID format if provided
+    if (data.employeeId && !/^[A-Z]{2,4}\d{6}$/.test(data.employeeId)) {
+      errors.push("Employee ID must follow format: [PREFIX][YEAR][NUMBER] (e.g., HR240001)");
+    }
+
+    // Validate phone number format
+    if (
+      data.emergencyContactPhone &&
+      !/^(\+62|62|0)[0-9]{9,13}$/.test(data.emergencyContactPhone)
+    ) {
+      errors.push("Invalid emergency contact phone number format");
+    }
+
+    return errors;
+  }
+
   // Validate form data before submission
   static validateFormData(data: CreateRecruitmentFormData): string[] {
     const errors: string[] = [];
@@ -311,5 +413,48 @@ export class RecruitmentFormService {
     }
 
     return errors;
+  }
+
+  // NEW: Helper method to format employee data for display
+  static formatEmployeeData(employee: HiredEmployee) {
+    return {
+      ...employee,
+      formattedStartDate: new Date(employee.startDate).toLocaleDateString('id-ID'),
+      formattedProbationEndDate: employee.probationEndDate 
+        ? new Date(employee.probationEndDate).toLocaleDateString('id-ID')
+        : null,
+      formattedSalary: employee.basicSalary 
+        ? new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR'
+          }).format(employee.basicSalary)
+        : null,
+    };
+  }
+
+  // NEW: Helper method to get department display name
+  static getDepartmentDisplayName(department: string): string {
+    const departmentNames: Record<string, string> = {
+      PRODUCTION_ENGINEERING: "Production Engineering",
+      OPERATIONAL: "Operational",
+      PLANT: "Plant",
+      LOGISTIC: "Logistic",
+      HUMAN_RESOURCES_GA: "Human Resources & GA",
+      HEALTH_SAFETY_ENVIRONMENT: "Health Safety & Environment",
+      PURCHASING: "Purchasing",
+      INFORMATION_TECHNOLOGY: "Information Technology",
+      MEDICAL: "Medical",
+      TRAINING_DEVELOPMENT: "Training & Development",
+    };
+    
+    return departmentNames[department] || department;
+  }
+
+  // NEW: Helper method to get position display name
+  static getPositionDisplayName(position: string): string {
+    return position
+      .split('_')
+      .map(word => word.charAt(0) + word.slice(1).toLowerCase())
+      .join(' ');
   }
 }

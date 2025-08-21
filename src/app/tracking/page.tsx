@@ -167,7 +167,7 @@ const goToHomepage = () => {
         iconColor: "text-teal-600",
         borderColor: "border-teal-200",
       },
-      COMPLETED: {
+      HIRED: {
         icon: <CheckCircle className="h-6 w-6" />,
         bgColor: "bg-green-100",
         textColor: "text-green-800",
@@ -198,7 +198,7 @@ const goToHomepage = () => {
       USER_INTERVIEW: "Interview User",
       MEDICAL_CHECKUP: "Medical Check-up",
       MEDICAL_FOLLOWUP: "Follow-up Medical",
-      COMPLETED: "Selesai",
+      HIRED: "Diterima",
       REJECTED: "Ditolak",
     };
 
@@ -222,7 +222,7 @@ const goToHomepage = () => {
         "Anda diwajibkan untuk menjalani pemeriksaan kesehatan (medical check-up) sebagai bagian dari proses seleksi.",
       MEDICAL_FOLLOWUP:
         "Terdapat tindak lanjut dari hasil medical check-up Anda. Tim HR akan menghubungi Anda dengan informasi lebih lanjut.",
-      COMPLETED:
+      HIRED:
         "Proses rekrutmen telah selesai. Tim HR akan menghubungi Anda dengan keputusan final dalam waktu dekat.",
       REJECTED:
         "Mohon maaf, aplikasi Anda belum berhasil pada kesempatan ini. Terima kasih atas minat Anda bergabung dengan perusahaan kami.",

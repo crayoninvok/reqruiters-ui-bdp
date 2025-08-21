@@ -489,9 +489,9 @@ export class PublicRecruitmentService {
         label: "In Progress",
         description: "Your application is currently being processed"
       },
-      COMPLETED: {
+      HIRED: {
         color: "green",
-        label: "Completed",
+        label: "Hired",
         description: "Your application process has been completed"
       }
     };

@@ -4,7 +4,7 @@ export interface DashboardStats {
   totalApplications: number;
   pendingApplications: number;
   onProgressApplications: number;
-  completedApplications: number;
+  hiredApplications: number;
   totalRecruiters: number;
   recentApplications: number;
 }

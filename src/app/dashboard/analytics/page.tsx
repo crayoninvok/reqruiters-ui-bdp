@@ -185,8 +185,8 @@ function AnalyticsPage() {
           gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
         />
         <StatCard
-          title="Completed"
-          value={dashboardStats?.completedApplications || 0}
+          title="Hired"
+          value={dashboardStats?.hiredApplications || 0}
           icon={CheckCircle}
           description="Finalized applications"
           gradient="bg-gradient-to-br from-green-500 to-green-600"
@@ -245,7 +245,7 @@ function AnalyticsPage() {
               <span className="text-sm text-gray-700 dark:text-gray-300">Success Rate</span>
               <span className="font-medium text-purple-600 dark:text-purple-400">
                 {dashboardStats?.totalApplications 
-                  ? Math.round((dashboardStats.completedApplications / dashboardStats.totalApplications) * 100)
+                  ? Math.round((dashboardStats.hiredApplications / dashboardStats.totalApplications) * 100)
                   : 0}%
               </span>
             </div>
@@ -259,7 +259,7 @@ function AnalyticsPage() {
               <div className="flex justify-between mb-2">
                 <span className="text-sm text-gray-700 dark:text-gray-300">Applications Processed</span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {((dashboardStats?.onProgressApplications || 0) + (dashboardStats?.completedApplications || 0))} / {dashboardStats?.totalApplications || 0}
+                  {((dashboardStats?.onProgressApplications || 0) + (dashboardStats?.hiredApplications || 0))} / {dashboardStats?.totalApplications || 0}
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -267,7 +267,7 @@ function AnalyticsPage() {
                   className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
                   style={{ 
                     width: `${dashboardStats?.totalApplications 
-                      ? Math.round((((dashboardStats?.onProgressApplications || 0) + (dashboardStats?.completedApplications || 0)) / dashboardStats.totalApplications) * 100)
+                      ? Math.round((((dashboardStats?.onProgressApplications || 0) + (dashboardStats?.hiredApplications || 0)) / dashboardStats.totalApplications) * 100)
                       : 0}%`
                   }}
                 />
@@ -278,7 +278,7 @@ function AnalyticsPage() {
                 <span className="text-sm text-gray-700 dark:text-gray-300">Completion Rate</span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {dashboardStats?.totalApplications 
-                    ? Math.round((dashboardStats.completedApplications / dashboardStats.totalApplications) * 100)
+                    ? Math.round((dashboardStats.hiredApplications / dashboardStats.totalApplications) * 100)
                     : 0}%
                 </span>
               </div>
@@ -287,7 +287,7 @@ function AnalyticsPage() {
                   className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-300"
                   style={{ 
                     width: `${dashboardStats?.totalApplications 
-                      ? Math.round((dashboardStats.completedApplications / dashboardStats.totalApplications) * 100)
+                      ? Math.round((dashboardStats.hiredApplications / dashboardStats.totalApplications) * 100)
                       : 0}%`
                   }}
                 />

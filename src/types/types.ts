@@ -418,10 +418,18 @@ export enum EducationLevel {
 }
 
 export enum MaritalStatus {
-  SINGLE = "SINGLE",
-  MARRIED = "MARRIED",
-  DIVORCED = "DIVORCED",
-  WIDOWED = "WIDOWED",
+  TK0 = "TK0",
+  TK1 = "TK1",
+  TK2 = "TK2",
+  TK3 = "TK3",
+  K0 = "K0",
+  K1 = "K1",
+  K2 = "K2",
+  K3 = "K3",
+  K_I_0 = "K_I_0",
+  K_I_1 = "K_I_1",
+  K_I_2 = "K_I_2",
+  K_I_3 = "K_I_3",
 }
 
 // UPDATED: Added missing COMPLETED status

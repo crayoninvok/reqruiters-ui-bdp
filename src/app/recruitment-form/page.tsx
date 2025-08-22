@@ -16,14 +16,210 @@ import {
   AlertCircle,
   Loader,
   Home,
+  Info, // Add this
+  ChevronDown, // Add this
+  ChevronUp, // Add this
 } from "lucide-react";
 import Swal from "sweetalert2";
 import SubmittedApp from "@/components/SubmittedApp";
+
+const formatMaritalStatus = (value: string) => {
+  // Handle K_I_ pattern for marital status
+  if (value.startsWith("K_I_")) {
+    const number = value.replace("K_I_", "");
+    return `K/I/${number}`;
+  }
+
+  // Original logic for other values but always return uppercase
+  const formatted = value
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (l) => l.toUpperCase());
+
+  return formatted.toUpperCase();
+};
+const MaritalStatusField: React.FC<MaritalStatusFieldProps> = ({
+  formData,
+  handleInputChange,
+  options,
+  formatMaritalStatus,
+}) => {
+  const [showInfo, setShowInfo] = useState<boolean>(false);
+
+  const maritalStatusInfo: Record<string, string> = {
+    TK_0: "Tidak Kawin, Tidak ada tanggungan",
+    TK_1: "Tidak Kawin, 1 tanggungan",
+    TK_2: "Tidak Kawin, 2 tanggungan",
+    TK_3: "Tidak Kawin, 3 tanggungan",
+    K_0: "Kawin, Tidak ada tanggungan",
+    K_1: "Kawin, 1 tanggungan",
+    K_2: "Kawin, 2 tanggungan",
+    K_3: "Kawin, 3 tanggungan",
+    K_I_0: "Kawin dengan Istri, Tidak ada tanggungan",
+    K_I_1: "Kawin dengan Istri, 1 tanggungan",
+    K_I_2: "Kawin dengan Istri, 2 tanggungan",
+    K_I_3: "Kawin dengan Istri, 3 tanggungan",
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2  items-center">
+        Status Pernikahan *
+        <button
+          type="button"
+          onClick={() => setShowInfo(!showInfo)}
+          className="ml-2 p-1 text-blue-600 hover:text-blue-800 transition-colors rounded-full hover:bg-blue-50"
+          title="Lihat penjelasan kode status pernikahan"
+        >
+          <Info className="h-4 w-4" />
+        </button>
+      </label>
+
+      {showInfo && (
+        <div className="mb-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-semibold text-blue-800 flex items-center">
+              <Info className="h-4 w-4 mr-2" />
+              Penjelasan Kode Status Pernikahan (PTKP):
+            </h4>
+            <button
+              type="button"
+              onClick={() => setShowInfo(false)}
+              className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-100 rounded"
+            >
+              <ChevronUp className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div className="bg-white p-3 rounded border border-blue-100">
+              <h5 className="font-semibold text-blue-800 mb-2">
+                Tidak Kawin (TK):
+              </h5>
+              <div className="space-y-1 text-blue-700">
+                <div>
+                  <span className="font-semibold">TK/0:</span> Tidak ada
+                  tanggungan
+                </div>
+                <div>
+                  <span className="font-semibold">TK/1:</span> 1 tanggungan
+                </div>
+                <div>
+                  <span className="font-semibold">TK/2:</span> 2 tanggungan
+                </div>
+                <div>
+                  <span className="font-semibold">TK/3:</span> 3 tanggungan
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-3 rounded border border-blue-100">
+              <h5 className="font-semibold text-blue-800 mb-2">Kawin (K):</h5>
+              <div className="space-y-1 text-blue-700">
+                <div>
+                  <span className="font-semibold">K/0:</span> Tidak ada
+                  tanggungan
+                </div>
+                <div>
+                  <span className="font-semibold">K/1:</span> 1 tanggungan
+                </div>
+                <div>
+                  <span className="font-semibold">K/2:</span> 2 tanggungan
+                </div>
+                <div>
+                  <span className="font-semibold">K/3:</span> 3 tanggungan
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-3 rounded border border-blue-100 md:col-span-2">
+              <h5 className="font-semibold text-blue-800 mb-2">
+                Kawin dengan Istri (K/I):
+              </h5>
+              <div className="grid grid-cols-2 gap-4 text-blue-700">
+                <div>
+                  <span className="font-semibold">K/I/0:</span> Tidak ada
+                  tanggungan
+                </div>
+                <div>
+                  <span className="font-semibold">K/I/1:</span> 1 tanggungan
+                </div>
+                <div>
+                  <span className="font-semibold">K/I/2:</span> 2 tanggungan
+                </div>
+                <div>
+                  <span className="font-semibold">K/I/3:</span> 3 tanggungan
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-blue-200">
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+              <p className="text-xs text-yellow-800">
+                <strong>Catatan:</strong> Status ini digunakan untuk perhitungan
+                pajak penghasilan (PPh 21). Tanggungan adalah anggota keluarga
+                yang ditanggung secara finansial seperti anak atau keluarga lain
+                yang sah.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <select
+        value={formData.maritalStatus}
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+          handleInputChange("maritalStatus", e.target.value)
+        }
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      >
+        <option value="">Pilih Status Pernikahan</option>
+        {options.maritalStatuses.map((status: string) => {
+          const displayText = formatMaritalStatus(status);
+          const explanation = maritalStatusInfo[status];
+          return (
+            <option key={status} value={status}>
+              {displayText} {explanation && `- ${explanation}`}
+            </option>
+          );
+        })}
+      </select>
+
+      {formData.maritalStatus && maritalStatusInfo[formData.maritalStatus] && (
+        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-start">
+            <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+            <div>
+              <p className="text-sm text-green-800">
+                <strong>Status yang dipilih:</strong>{" "}
+                {formatMaritalStatus(formData.maritalStatus)}
+              </p>
+              <p className="text-sm text-green-700 mt-1">
+                {maritalStatusInfo[formData.maritalStatus]}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
 
+interface MaritalStatusFieldProps {
+  formData: {
+    maritalStatus: string;
+  };
+  handleInputChange: (field: keyof PublicRecruitmentFormData, value: any) => void;
+  options: {
+    maritalStatuses: string[];
+  };
+  formatMaritalStatus: (value: string) => string;
+}
 interface FormOptions {
   province: string[];
   gender: string[];
@@ -862,25 +1058,12 @@ const PublicRecruitmentPage: React.FC = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status Pernikahan *
-                  </label>
-                  <select
-                    value={formData.maritalStatus}
-                    onChange={(e) =>
-                      handleInputChange("maritalStatus", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Pilih Status</option>
-                    {options.maritalStatuses.map((status) => (
-                      <option key={status} value={status}>
-                        {formatEnumValue(status)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <MaritalStatusField
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  options={options}
+                  formatMaritalStatus={formatMaritalStatus}
+                />
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

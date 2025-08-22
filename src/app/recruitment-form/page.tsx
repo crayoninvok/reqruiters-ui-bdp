@@ -778,11 +778,8 @@ const PublicRecruitmentPage: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Pilih Jenis Kelamin</option>
-                    {options.gender.map((gender) => (
-                      <option key={gender} value={gender}>
-                        {formatEnumValue(gender, true)}
-                      </option>
-                    ))}
+                    <option value="MALE">LAKI-LAKI</option>
+                    <option value="FEMALE">PEREMPUAN</option>
                   </select>
                 </div>
                 <div>
@@ -796,7 +793,7 @@ const PublicRecruitmentPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Pilih Jenis Agama</option>
+                    <option value="">Pilih Agama</option>
                     {options.religion.map((religion) => (
                       <option key={religion} value={religion}>
                         {formatEnumValue(religion, true)}

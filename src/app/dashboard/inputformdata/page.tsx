@@ -273,11 +273,8 @@ function RecruitmentFormPage() {
                     className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   >
                     <option value="">Pilih Jenis Kelamin</option>
-                    {Object.values(Gender).map((gender) => (
-                      <option key={gender} value={gender}>
-                        {gender.replace(/_/g, " ")}
-                      </option>
-                    ))}
+                    <option value="MALE">LAKI-LAKI</option>
+                    <option value="FEMALE">PEREMPUAN</option>
                   </select>
                 </div>
 

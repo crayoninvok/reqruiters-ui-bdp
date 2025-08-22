@@ -135,9 +135,6 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
             <p className="text-gray-900 dark:text-white print-value">
               {formatMaritalStatus(recruitmentForm.maritalStatus)}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {getMaritalStatusExplanation(recruitmentForm.maritalStatus)}
-            </p>
           </div>
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 print-label">

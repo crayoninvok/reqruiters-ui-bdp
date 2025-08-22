@@ -24,6 +24,7 @@ import {
   Position,
   ContractType,
 } from "@/types/types";
+import { withAuthGuard } from "@/components/withGuard";
 
 const HiredEmployeesListPage: React.FC = () => {
   const [employees, setEmployees] = useState<TransformedHiredEmployee[]>([]);
@@ -589,4 +590,4 @@ const HiredEmployeesListPage: React.FC = () => {
   );
 };
 
-export default HiredEmployeesListPage;
+export default withAuthGuard(HiredEmployeesListPage)

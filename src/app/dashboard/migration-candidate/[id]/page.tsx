@@ -18,6 +18,7 @@ import { EditEmployeeModal } from "@/components/migration-candidate-id/EditEmplo
 import { TerminateEmployeeModal } from "@/components/migration-candidate-id/TerminateEmployeeModal";
 import { LoadingState } from "@/components/migration-candidate-id/LoadingState";
 import { ErrorState } from "@/components/migration-candidate-id/ErrorState";
+import { withAuthGuard } from "@/components/withGuard";
 
 // Define the subordinate type
 interface SubordinateEmployee {
@@ -246,4 +247,4 @@ const EmployeeDetailPage: React.FC = () => {
   );
 };
 
-export default EmployeeDetailPage;
+export default withAuthGuard(EmployeeDetailPage);

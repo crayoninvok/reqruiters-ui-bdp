@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/context/useAuth";
 import AuthService from "@/services/auth.service";
 import Swal from "sweetalert2";
+import { withAuthGuard } from "@/components/withGuard";
 
 interface CreateUserFormData {
   name: string;
@@ -19,7 +20,7 @@ interface FormErrors {
   general?: string;
 }
 
-export default function CreateUser() {
+ function CreateUser() {
   const { user } = useAuth();
   const [formData, setFormData] = useState<CreateUserFormData>({
     name: "",
@@ -442,3 +443,4 @@ export default function CreateUser() {
       </div>
   );
 }
+export default withAuthGuard(CreateUser);

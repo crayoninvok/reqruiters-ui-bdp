@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/useAuth";
 import AuthService from "@/services/auth.service";
 import Swal from "sweetalert2";
+import { withAuthGuard } from "@/components/withGuard";
 
 interface HRUser {
   id: string;
@@ -31,7 +32,7 @@ interface FormErrors {
   general?: string;
 }
 
-export default function UserList() {
+ function UserList() {
   const { user } = useAuth();
   const [hrUsers, setHrUsers] = useState<HRUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -697,3 +698,5 @@ export default function UserList() {
     </div>
   );
 }
+
+export default withAuthGuard(UserList);

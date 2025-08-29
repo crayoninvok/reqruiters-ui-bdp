@@ -1,4 +1,4 @@
-// Updated AnalyticsPage.tsx with filter support
+// Updated AnalyticsPage.tsx with dashboard-compatible dark theme
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -101,8 +101,8 @@ function AnalyticsPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-          <div className="mt-4 text-center text-gray-600 dark:text-gray-300">Loading analytics...</div>
+          <div className="w-16 h-16 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
+          <div className="mt-4 text-center text-gray-300">Loading analytics...</div>
         </div>
       </div>
     );
@@ -153,10 +153,10 @@ function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="text-center sm:text-left">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
             Analytics Dashboard
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Comprehensive recruitment insights and performance metrics</p>
+          <p className="mt-2 text-gray-400">Comprehensive recruitment insights and performance metrics</p>
         </div>
         <ExportControls data={exportData} />
       </div>
@@ -208,9 +208,9 @@ function AnalyticsPage() {
       </div>
 
       {/* Charts Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-700/50 p-6">
         {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2 mb-8 p-1 bg-gray-50 dark:bg-gray-700 rounded-xl">
+        <div className="flex flex-wrap gap-2 mb-8 p-1 bg-gray-700/50 rounded-xl">
           <TabButton id="status" label="Status Overview" isActive={activeTab === 'status'} onClick={setActiveTab} />
           <TabButton id="positions" label="Top Positions" isActive={activeTab === 'positions'} onClick={setActiveTab} />
           <TabButton id="province" label="Geographic" isActive={activeTab === 'province'} onClick={setActiveTab} />
@@ -226,24 +226,24 @@ function AnalyticsPage() {
 
       {/* Additional Insights */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Insights</h3>
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-700/50 p-6">
+          <h3 className="text-xl font-semibold text-white mb-4">Quick Insights</h3>
           <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <span className="text-sm text-gray-700 dark:text-gray-300">Most Popular Position</span>
-              <span className="font-medium text-blue-600 dark:text-blue-400">
+            <div className="flex justify-between items-center p-3 bg-blue-900/30 border border-blue-700/50 rounded-lg backdrop-blur-sm">
+              <span className="text-sm text-gray-300">Most Popular Position</span>
+              <span className="font-medium text-blue-400">
                 {positionData[0]?.position || 'N/A'}
               </span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <span className="text-sm text-gray-700 dark:text-gray-300">Top Province</span>
-              <span className="font-medium text-green-600 dark:text-green-400">
+            <div className="flex justify-between items-center p-3 bg-green-900/30 border border-green-700/50 rounded-lg backdrop-blur-sm">
+              <span className="text-sm text-gray-300">Top Province</span>
+              <span className="font-medium text-green-400">
                 {provinceData[0]?.province || 'N/A'}
               </span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <span className="text-sm text-gray-700 dark:text-gray-300">Success Rate</span>
-              <span className="font-medium text-purple-600 dark:text-purple-400">
+            <div className="flex justify-between items-center p-3 bg-purple-900/30 border border-purple-700/50 rounded-lg backdrop-blur-sm">
+              <span className="text-sm text-gray-300">Success Rate</span>
+              <span className="font-medium text-purple-400">
                 {dashboardStats?.totalApplications 
                   ? Math.round((dashboardStats.hiredApplications / dashboardStats.totalApplications) * 100)
                   : 0}%
@@ -252,17 +252,17 @@ function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Performance Metrics</h3>
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-700/50 p-6">
+          <h3 className="text-xl font-semibold text-white mb-4">Performance Metrics</h3>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm text-gray-700 dark:text-gray-300">Applications Processed</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                <span className="text-sm text-gray-300">Applications Processed</span>
+                <span className="text-sm font-medium text-white">
                   {((dashboardStats?.onProgressApplications || 0) + (dashboardStats?.hiredApplications || 0))} / {dashboardStats?.totalApplications || 0}
                 </span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-gray-700/50 rounded-full h-2">
                 <div 
                   className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
                   style={{ 
@@ -275,14 +275,14 @@ function AnalyticsPage() {
             </div>
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm text-gray-700 dark:text-gray-300">Completion Rate</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                <span className="text-sm text-gray-300">Completion Rate</span>
+                <span className="text-sm font-medium text-white">
                   {dashboardStats?.totalApplications 
                     ? Math.round((dashboardStats.hiredApplications / dashboardStats.totalApplications) * 100)
                     : 0}%
                 </span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-gray-700/50 rounded-full h-2">
                 <div 
                   className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-300"
                   style={{ 

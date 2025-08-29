@@ -6,8 +6,6 @@ interface SidebarSectionProps {
   onPhotoClick: () => void;
   onViewDocument: (url: string, name: string, type: "image" | "pdf") => void;
   onDownloadDocument: (url: string, filename: string) => void;
-  onPrint: () => void;
-  onDownloadPDF: () => void;
   getFileType: (url: string) => "image" | "pdf";
 }
 
@@ -16,20 +14,18 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
   onPhotoClick,
   onViewDocument,
   onDownloadDocument,
-  onPrint,
-  onDownloadPDF,
   getFileType,
 }) => {
   const getStatusColor = (status: RecruitmentStatus) => {
     switch (status) {
       case RecruitmentStatus.PENDING:
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-900/30 text-yellow-300 border-yellow-400/20";
       case RecruitmentStatus.ON_PROGRESS:
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-900/30 text-blue-300 border-blue-400/20";
       case RecruitmentStatus.HIRED:
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-900/30 text-green-300 border-green-400/20";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-700/50 text-gray-300 border-gray-600/30";
     }
   };
 
@@ -41,17 +37,292 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
     });
   };
 
+  // Print function integrated directly
+  const handlePrint = () => {
+    // Use the existing print-container content
+    const element = document.querySelector('.print-container') as HTMLElement;
+    
+    if (!element) {
+      console.error('Print container not found');
+      return;
+    }
+
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      console.error('Failed to open print window');
+      return;
+    }
+
+    // Get all stylesheets from the current page
+    const stylesheets = Array.from(document.styleSheets)
+      .map(stylesheet => {
+        try {
+          return Array.from(stylesheet.cssRules)
+            .map(rule => rule.cssText)
+            .join('\n');
+        } catch (e) {
+          // Handle CORS errors for external stylesheets
+          return '';
+        }
+      })
+      .join('\n');
+
+    // Create the HTML content for printing
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${recruitmentForm.fullName} - Recruitment Form</title>
+          <meta charset="utf-8">
+          <style>
+            ${stylesheets}
+            
+            /* Additional print styles */
+            body {
+              margin: 0;
+              padding: 20px;
+              background: white !important;
+              color: black !important;
+              font-family: system-ui, -apple-system, sans-serif;
+            }
+            
+            * {
+              background: transparent !important;
+              color: black !important;
+              box-shadow: none !important;
+              text-shadow: none !important;
+            }
+            
+            .bg-gray-800, .bg-gray-900, .bg-slate-800 {
+              background: white !important;
+              border: 1px solid #e5e7eb !important;
+            }
+            
+            .text-white, .text-gray-100, .text-gray-200, .text-gray-300 {
+              color: #374151 !important;
+            }
+            
+            .border-gray-700, .border-gray-600 {
+              border-color: #d1d5db !important;
+            }
+            
+            /* Hide elements that shouldn't print */
+            .no-print,
+            button,
+            .btn,
+            .print-hide {
+              display: none !important;
+            }
+            
+            @page {
+              margin: 1cm;
+              size: A4;
+            }
+            
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div style="max-width: 100%; margin: 0 auto;">
+            ${element.innerHTML}
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+
+    // Wait for content to load, then trigger print
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+    };
+
+    // Fallback in case onload doesn't fire
+    setTimeout(() => {
+      if (!printWindow.closed) {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      }
+    }, 1000);
+  };
+
+  // PDF download function integrated directly
+  const handleDownloadPDF = async () => {
+    // Use the existing print-container content
+    const element = document.querySelector('.print-container') as HTMLElement;
+    
+    if (!element) {
+      console.error('Print container not found');
+      return;
+    }
+
+    try {
+      // Show loading notification
+      const loadingToast = document.createElement('div');
+      loadingToast.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: #1f2937; color: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 9999; display: flex; align-items: center; gap: 12px;">
+          <div style="width: 20px; height: 20px; border: 2px solid #3b82f6; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <span>Generating PDF...</span>
+          <style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </div>
+      `;
+      document.body.appendChild(loadingToast);
+
+      // Create a temporary container for PDF generation
+      const tempContainer = document.createElement('div');
+      tempContainer.innerHTML = element.innerHTML;
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '794px'; // A4 width in pixels at 96 DPI
+      tempContainer.style.background = 'white';
+      tempContainer.style.color = 'black';
+      tempContainer.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      document.body.appendChild(tempContainer);
+
+      // Apply print styles to temp container
+      const style = document.createElement('style');
+      style.textContent = `
+        .temp-print-container * {
+          background: white !important;
+          color: black !important;
+          box-shadow: none !important;
+          text-shadow: none !important;
+        }
+        .temp-print-container .bg-gray-800,
+        .temp-print-container .bg-gray-900,
+        .temp-print-container .bg-slate-800 {
+          background: white !important;
+          border: 1px solid #e5e7eb !important;
+        }
+        .temp-print-container .text-white,
+        .temp-print-container .text-gray-100,
+        .temp-print-container .text-gray-200,
+        .temp-print-container .text-gray-300 {
+          color: #374151 !important;
+        }
+        .temp-print-container .border-gray-700,
+        .temp-print-container .border-gray-600 {
+          border-color: #d1d5db !important;
+        }
+        .temp-print-container .no-print,
+        .temp-print-container button,
+        .temp-print-container .btn {
+          display: none !important;
+        }
+      `;
+      tempContainer.className = 'temp-print-container';
+      document.head.appendChild(style);
+
+      // Import html2canvas and jsPDF dynamically
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf')
+      ]);
+
+      // Generate canvas
+      const canvas = await html2canvas(tempContainer, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: tempContainer.scrollWidth,
+        height: tempContainer.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      
+      // Calculate dimensions to fit the page
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const finalWidth = imgWidth * ratio;
+      const finalHeight = imgHeight * ratio;
+
+      // Center the image on the page
+      const x = (pdfWidth - finalWidth) / 2;
+      const y = (pdfHeight - finalHeight) / 2;
+
+      pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+      
+      // Save the PDF
+      pdf.save(`${recruitmentForm.fullName}_recruitment_form.pdf`);
+      
+      // Clean up
+      document.body.removeChild(tempContainer);
+      document.head.removeChild(style);
+      document.body.removeChild(loadingToast);
+
+      // Show success notification
+      const successToast = document.createElement('div');
+      successToast.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 9999;">
+          PDF downloaded successfully!
+        </div>
+      `;
+      document.body.appendChild(successToast);
+      setTimeout(() => document.body.removeChild(successToast), 3000);
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      
+      // Clean up on error
+      const tempContainer = document.querySelector('.temp-print-container');
+      const loadingToast = document.querySelector('[style*="Generating PDF"]')?.parentElement;
+      if (tempContainer) document.body.removeChild(tempContainer);
+      if (loadingToast) document.body.removeChild(loadingToast);
+
+      // Show error notification
+      const errorToast = document.createElement('div');
+      errorToast.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: #dc2626; color: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 9999;">
+          Error generating PDF. Please try again.
+        </div>
+      `;
+      document.body.appendChild(errorToast);
+      setTimeout(() => document.body.removeChild(errorToast), 3000);
+    }
+  };
+
   return (
     <div className="space-y-6 no-print">
       {/* Candidate Photo */}
       {recruitmentForm.documentPhotoUrl && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg shadow-xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">
             Candidate Photo
           </h3>
           <div className="flex justify-center">
             <div
-              className="w-48 h-48 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-600 cursor-pointer hover:opacity-90 transition-opacity"
+              className="w-48 h-48 rounded-lg overflow-hidden border-2 border-gray-600/50 cursor-pointer hover:opacity-90 hover:border-gray-500/70 transition-all duration-200"
               onClick={onPhotoClick}
             >
               <img
@@ -68,7 +339,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
           <div className="mt-4 text-center space-y-2">
             <button
               onClick={onPhotoClick}
-              className="block w-full text-blue-600 hover:text-blue-800 text-sm underline"
+              className="block w-full text-blue-400 hover:text-blue-300 text-sm underline transition-colors"
             >
               View Full Size
             </button>
@@ -79,7 +350,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                   `${recruitmentForm.fullName}-photo.jpg`
                 )
               }
-              className="block w-full text-blue-600 hover:text-blue-800 text-sm underline"
+              className="block w-full text-blue-400 hover:text-blue-300 text-sm underline transition-colors"
             >
               Download Photo
             </button>
@@ -88,38 +359,38 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
       )}
 
       {/* Quick Info */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg shadow-xl p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">
           Quick Info
         </h3>
         <div className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-gray-500 dark:text-gray-400">Status:</span>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-400">Status:</span>
             <span
-              className={`px-2 py-1 rounded text-xs ${getStatusColor(
+              className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${getStatusColor(
                 recruitmentForm.status
               )}`}
             >
-              {recruitmentForm.status}
+              {recruitmentForm.status.replace("_", " ")}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500 dark:text-gray-400">
+            <span className="text-gray-400">
               Marital Status:
             </span>
-            <span className="text-gray-900 dark:text-white">
+            <span className="text-white">
               {recruitmentForm.maritalStatus}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500 dark:text-gray-400">Applied:</span>
-            <span className="text-gray-900 dark:text-white">
+            <span className="text-gray-400">Applied:</span>
+            <span className="text-white">
               {formatDate(recruitmentForm.createdAt)}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500 dark:text-gray-400">Updated:</span>
-            <span className="text-gray-900 dark:text-white">
+            <span className="text-gray-400">Updated:</span>
+            <span className="text-white">
               {formatDate(recruitmentForm.updatedAt)}
             </span>
           </div>
@@ -127,17 +398,17 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
       </div>
 
       {/* Documents */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg shadow-xl p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">
           Documents
         </h3>
         <div className="space-y-3">
           {recruitmentForm.documentCvUrl && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-300">
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-gray-300">
                 CV
               </span>
-              <div className="flex space-x-2">
+              <div className="flex space-x-3">
                 <button
                   onClick={() =>
                     onViewDocument(
@@ -146,7 +417,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                       getFileType(recruitmentForm.documentCvUrl!)
                     )
                   }
-                  className="text-green-600 hover:text-green-800 text-sm"
+                  className="text-green-400 hover:text-green-300 text-sm transition-colors"
                 >
                   View
                 </button>
@@ -154,7 +425,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                   onClick={() =>
                     onDownloadDocument(recruitmentForm.documentCvUrl!, "cv.pdf")
                   }
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
                 >
                   Download
                 </button>
@@ -162,11 +433,11 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
             </div>
           )}
           {recruitmentForm.documentKtpUrl && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-300">
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-gray-300">
                 KTP
               </span>
-              <div className="flex space-x-2">
+              <div className="flex space-x-3">
                 <button
                   onClick={() =>
                     onViewDocument(
@@ -175,7 +446,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                       getFileType(recruitmentForm.documentKtpUrl!)
                     )
                   }
-                  className="text-green-600 hover:text-green-800 text-sm"
+                  className="text-green-400 hover:text-green-300 text-sm transition-colors"
                 >
                   View
                 </button>
@@ -183,7 +454,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                   onClick={() =>
                     onDownloadDocument(recruitmentForm.documentKtpUrl!, "ktp.jpg")
                   }
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
                 >
                   Download
                 </button>
@@ -191,11 +462,11 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
             </div>
           )}
           {recruitmentForm.documentSkckUrl && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-300">
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-gray-300">
                 SKCK
               </span>
-              <div className="flex space-x-2">
+              <div className="flex space-x-3">
                 <button
                   onClick={() =>
                     onViewDocument(
@@ -204,7 +475,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                       getFileType(recruitmentForm.documentSkckUrl!)
                     )
                   }
-                  className="text-green-600 hover:text-green-800 text-sm"
+                  className="text-green-400 hover:text-green-300 text-sm transition-colors"
                 >
                   View
                 </button>
@@ -215,7 +486,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                       "skck.pdf"
                     )
                   }
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
                 >
                   Download
                 </button>
@@ -223,11 +494,11 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
             </div>
           )}
           {recruitmentForm.documentVaccineUrl && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-300">
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-gray-300">
                 Vaccine Certificate
               </span>
-              <div className="flex space-x-2">
+              <div className="flex space-x-3">
                 <button
                   onClick={() =>
                     onViewDocument(
@@ -236,7 +507,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                       getFileType(recruitmentForm.documentVaccineUrl!)
                     )
                   }
-                  className="text-green-600 hover:text-green-800 text-sm"
+                  className="text-green-400 hover:text-green-300 text-sm transition-colors"
                 >
                   View
                 </button>
@@ -247,7 +518,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                       "vaccine.pdf"
                     )
                   }
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
                 >
                   Download
                 </button>
@@ -255,11 +526,11 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
             </div>
           )}
           {recruitmentForm.supportingDocsUrl && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-300">
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-gray-300">
                 Supporting Docs
               </span>
-              <div className="flex space-x-2">
+              <div className="flex space-x-3">
                 <button
                   onClick={() =>
                     onViewDocument(
@@ -268,7 +539,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                       getFileType(recruitmentForm.supportingDocsUrl!)
                     )
                   }
-                  className="text-green-600 hover:text-green-800 text-sm"
+                  className="text-green-400 hover:text-green-300 text-sm transition-colors"
                 >
                   View
                 </button>
@@ -279,7 +550,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
                       "supporting.pdf"
                     )
                   }
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
                 >
                   Download
                 </button>
@@ -290,14 +561,14 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
       </div>
 
       {/* Actions */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg shadow-xl p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">
           Actions
         </h3>
         <div className="space-y-3">
           <button
-            onClick={onPrint}
-            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center"
+            onClick={handlePrint}
+            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center backdrop-blur-sm"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -315,8 +586,8 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
             Print Details
           </button>
           <button
-            onClick={onDownloadPDF}
-            className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center"
+            onClick={handleDownloadPDF}
+            className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center backdrop-blur-sm"
           >
             <svg
               className="w-4 h-4 mr-2"

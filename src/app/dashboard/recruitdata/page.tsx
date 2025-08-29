@@ -13,7 +13,6 @@ import * as XLSX from "xlsx";
 import { exportRecruitmentToPDF } from "@/utils/export-pdf-recruitdata";
 import { useAuth } from "@/context/useAuth";
 import { withAuthGuard } from "@/components/withGuard";
-
 import { MigrationModal } from "@/components/recruitdata/MigrationModal";
 import { RecruitmentFilters } from "@/components/recruitdata/RecruitmentFilter";
 import { StatsCards } from "@/components/recruitdata/StatsCard";
@@ -347,7 +346,7 @@ function RecruitmentDataPage() {
   if (loading && recruitmentForms.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
       </div>
     );
   }
@@ -367,10 +366,10 @@ function RecruitmentDataPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-white">
             Recruitment Data
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-300">
             Manage candidate applications and track recruitment progress
           </p>
         </div>
@@ -380,7 +379,7 @@ function RecruitmentDataPage() {
           <button
             onClick={exportToExcel}
             disabled={exporting || allRecruitmentForms.length === 0}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors"
+            className="px-4 py-2 bg-green-600/80 hover:bg-green-600 disabled:bg-gray-600/50 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors backdrop-blur-sm border border-green-500/30"
           >
             {exporting ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -405,7 +404,7 @@ function RecruitmentDataPage() {
           <button
             onClick={exportToPDF}
             disabled={exporting || allRecruitmentForms.length === 0}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors"
+            className="px-4 py-2 bg-red-600/80 hover:bg-red-600 disabled:bg-gray-600/50 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors backdrop-blur-sm border border-red-500/30"
           >
             {exporting ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -432,21 +431,25 @@ function RecruitmentDataPage() {
       {/* Stats Cards */}
       <StatsCards stats={stats} />
 
-      {/* Filters */}
-      <RecruitmentFilters
-        filters={filters}
-        onFilterChange={handleFilterChange}
-      />
+      {/* Filters - Higher z-index to ensure dropdowns appear above table */}
+      <div className="relative z-20">
+        <RecruitmentFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+        />
+      </div>
 
-      {/* Table */}
-      <RecruitmentTable
-        recruitmentForms={recruitmentForms}
-        loading={loading}
-        onStatusUpdate={handleStatusUpdate}
-        onMigrate={openMigrationModal}
-        onDelete={handleDelete}
-        onDeleteMigrated={handleDeleteMigratedCandidate}
-      />
+      {/* Table - Lower z-index */}
+      <div className="relative z-10">
+        <RecruitmentTable
+          recruitmentForms={recruitmentForms}
+          loading={loading}
+          onStatusUpdate={handleStatusUpdate}
+          onMigrate={openMigrationModal}
+          onDelete={handleDelete}
+          onDeleteMigrated={handleDeleteMigratedCandidate}
+        />
+      </div>
 
       {/* Pagination */}
       <Pagination

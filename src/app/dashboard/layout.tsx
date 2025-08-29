@@ -2,9 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/useAuth";
 import Sidebar from "@/components/layout-dashboard/Sidebar";
-import MobileHeader from "@/components/layout-dashboard/MobileHeader"; 
+import MobileHeader from "@/components/layout-dashboard/MobileHeader";
 import { useLogoutHandler } from "@/components/layout-dashboard/useLogoutHandler";
-
 
 export default function DashboardLayout({
   children,
@@ -20,14 +19,14 @@ export default function DashboardLayout({
   }, [user]);
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {" "}
       <Sidebar
         user={user}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
       />
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 lg:ml-72">
         <MobileHeader onMenuClick={() => setSidebarOpen(true)} />

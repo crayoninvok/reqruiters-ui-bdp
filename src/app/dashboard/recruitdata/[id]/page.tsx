@@ -18,14 +18,14 @@ import { SidebarSection } from "@/components/recruitdata-id/SidebarSection";
 import { PhotoModal } from "@/components/recruitdata-id/PhotoModal";
 import { DocumentModal } from "@/components/recruitdata-id/DocumentModal";
 import { PrintFooter } from "@/components/recruitdata-id/PrintFooter";
-import { PrintStyles } from "@/components/recruitdata-id/PrintStyles";
+import { RecruitmentPrintComponent } from '@/components/recruitdata-id/RecruitmentPrint';
 
 function RecruitmentViewPage() {
   const { user } = useAuth();
   const params = useParams();
   const router = useRouter();
-  const [recruitmentForm, setRecruitmentForm] =
-    useState<RecruitmentForm | null>(null);
+  
+  const [recruitmentForm, setRecruitmentForm] = useState<RecruitmentForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
@@ -55,6 +55,8 @@ function RecruitmentViewPage() {
         text: "Failed to fetch recruitment data",
         icon: "error",
         confirmButtonColor: "#dc2626",
+        background: "#1f2937",
+        color: "#f9fafb",
       });
       router.push("/dashboard/recruitdata");
     } finally {
@@ -76,6 +78,8 @@ function RecruitmentViewPage() {
         icon: "success",
         timer: 1500,
         showConfirmButton: false,
+        background: "#1f2937",
+        color: "#f9fafb",
       });
     } catch (error) {
       Swal.fire({
@@ -83,6 +87,8 @@ function RecruitmentViewPage() {
         text: "Failed to update status",
         icon: "error",
         confirmButtonColor: "#dc2626",
+        background: "#1f2937",
+        color: "#f9fafb",
       });
     }
   };
@@ -124,9 +130,9 @@ function RecruitmentViewPage() {
       Swal.fire({
         title: "Download Document",
         html: `
-          <p>Click the button below to download the document:</p>
+          <p class="text-gray-300 mb-4">Click the button below to download the document:</p>
           <a href="${convertToPublicUrl(url)}" target="_blank" 
-             style="display: inline-block; padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 5px; margin: 10px;">
+             class="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-decoration-none rounded-md transition-colors">
             Download ${filename}
           </a>
         `,
@@ -134,40 +140,10 @@ function RecruitmentViewPage() {
         showConfirmButton: true,
         confirmButtonText: "Close",
         confirmButtonColor: "#3b82f6",
+        background: "#1f2937",
+        color: "#f9fafb",
       });
     }
-  };
-
-  const downloadAsPDF = () => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    const printContent =
-      document.querySelector(".print-container")?.innerHTML || "";
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${recruitmentForm?.fullName} - Recruitment Form</title>
-          <style>
-            ${document.getElementById("print-styles")?.innerHTML || ""}
-            body { margin: 0; padding: 20px; }
-          </style>
-        </head>
-        <body>
-          ${printContent}
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    printWindow.focus();
-
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
   };
 
   const viewDocument = (url: string, name: string, type: "image" | "pdf") => {
@@ -186,7 +162,10 @@ function RecruitmentViewPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-600/30 border-t-blue-400"></div>
+          <p className="text-gray-300 text-sm">Loading recruitment data...</p>
+        </div>
       </div>
     );
   }
@@ -194,23 +173,48 @@ function RecruitmentViewPage() {
   if (!recruitmentForm) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Recruitment form not found
-        </h2>
+        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg shadow-xl p-8 max-w-md mx-auto">
+          <div className="mb-4">
+            <svg
+              className="w-16 h-16 text-gray-400 mx-auto"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">
+            Recruitment Form Not Found
+          </h2>
+          <p className="text-gray-400 mb-4">
+            The requested recruitment form could not be found.
+          </p>
+          <button
+            onClick={() => router.push("/dashboard/recruitdata")}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+          >
+            Back to Recruitment Data
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      <PrintStyles />
       <div className="max-w-6xl mx-auto space-y-6 print-container">
         <RecruitmentHeader
           recruitmentForm={recruitmentForm}
           onStatusUpdate={handleStatusUpdate}
           router={router}
         />
-
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Info */}
           <div className="lg:col-span-2 space-y-6">
@@ -219,19 +223,210 @@ function RecruitmentViewPage() {
             <BMISection recruitmentForm={recruitmentForm} />
             <EducationSection recruitmentForm={recruitmentForm} />
             <CertificatesSection recruitmentForm={recruitmentForm} />
-            
           </div>
 
           {/* Sidebar */}
-          <SidebarSection
-            recruitmentForm={recruitmentForm}
-            onPhotoClick={() => setShowPhotoModal(true)}
-            onViewDocument={viewDocument}
-            onDownloadDocument={downloadDocument}
-            onPrint={() => window.print()}
-            onDownloadPDF={downloadAsPDF}
-            getFileType={getFileType}
-          />
+          <div className="space-y-6">
+            {/* Candidate Photo */}
+            {recruitmentForm.documentPhotoUrl && (
+              <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg shadow-xl p-6 no-print">
+                <h3 className="text-lg font-semibold text-white mb-4">
+                  Candidate Photo
+                </h3>
+                <div className="flex justify-center">
+                  <div
+                    className="w-48 h-48 rounded-lg overflow-hidden border-2 border-gray-600/50 cursor-pointer hover:opacity-90 hover:border-gray-500/70 transition-all duration-200"
+                    onClick={() => setShowPhotoModal(true)}
+                  >
+                    <img
+                      src={recruitmentForm.documentPhotoUrl}
+                      alt={`${recruitmentForm.fullName}'s photo`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/placeholder-avatar.jpg";
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 text-center space-y-2">
+                  <button
+                    onClick={() => setShowPhotoModal(true)}
+                    className="block w-full text-blue-400 hover:text-blue-300 text-sm underline transition-colors"
+                  >
+                    View Full Size
+                  </button>
+                  <button
+                    onClick={() =>
+                      downloadDocument(
+                        recruitmentForm.documentPhotoUrl!,
+                        `${recruitmentForm.fullName}-photo.jpg`
+                      )
+                    }
+                    className="block w-full text-blue-400 hover:text-blue-300 text-sm underline transition-colors"
+                  >
+                    Download Photo
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Documents Section */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg shadow-xl p-6 no-print">
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Documents
+              </h3>
+              <div className="space-y-3">
+                {recruitmentForm.documentCvUrl && (
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-gray-300">CV</span>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() =>
+                          viewDocument(
+                            recruitmentForm.documentCvUrl!,
+                            "CV",
+                            getFileType(recruitmentForm.documentCvUrl!)
+                          )
+                        }
+                        className="text-green-400 hover:text-green-300 text-sm transition-colors"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() =>
+                          downloadDocument(recruitmentForm.documentCvUrl!, "cv.pdf")
+                        }
+                        className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {recruitmentForm.documentKtpUrl && (
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-gray-300">KTP</span>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() =>
+                          viewDocument(
+                            recruitmentForm.documentKtpUrl!,
+                            "KTP",
+                            getFileType(recruitmentForm.documentKtpUrl!)
+                          )
+                        }
+                        className="text-green-400 hover:text-green-300 text-sm transition-colors"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() =>
+                          downloadDocument(recruitmentForm.documentKtpUrl!, "ktp.jpg")
+                        }
+                        className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {recruitmentForm.documentSkckUrl && (
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-gray-300">SKCK</span>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() =>
+                          viewDocument(
+                            recruitmentForm.documentSkckUrl!,
+                            "SKCK",
+                            getFileType(recruitmentForm.documentSkckUrl!)
+                          )
+                        }
+                        className="text-green-400 hover:text-green-300 text-sm transition-colors"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() =>
+                          downloadDocument(
+                            recruitmentForm.documentSkckUrl!,
+                            "skck.pdf"
+                          )
+                        }
+                        className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {recruitmentForm.documentVaccineUrl && (
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-gray-300">Vaccine Certificate</span>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() =>
+                          viewDocument(
+                            recruitmentForm.documentVaccineUrl!,
+                            "Vaccine Certificate",
+                            getFileType(recruitmentForm.documentVaccineUrl!)
+                          )
+                        }
+                        className="text-green-400 hover:text-green-300 text-sm transition-colors"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() =>
+                          downloadDocument(
+                            recruitmentForm.documentVaccineUrl!,
+                            "vaccine.pdf"
+                          )
+                        }
+                        className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {recruitmentForm.supportingDocsUrl && (
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-gray-300">Supporting Docs</span>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() =>
+                          viewDocument(
+                            recruitmentForm.supportingDocsUrl!,
+                            "Supporting Documents",
+                            getFileType(recruitmentForm.supportingDocsUrl!)
+                          )
+                        }
+                        className="text-green-400 hover:text-green-300 text-sm transition-colors"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() =>
+                          downloadDocument(
+                            recruitmentForm.supportingDocsUrl!,
+                            "supporting.pdf"
+                          )
+                        }
+                        className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Print Component - Replace the old print section */}
+            <RecruitmentPrintComponent recruitmentForm={recruitmentForm} />
+          </div>
         </div>
 
         <PrintFooter />

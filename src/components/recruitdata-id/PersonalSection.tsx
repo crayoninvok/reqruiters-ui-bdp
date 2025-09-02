@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { RecruitmentForm } from "@/types/types";
 import { formatDate, calculateAge, getGeneration } from "@/utils/utils";
-import { Info, X } from "lucide-react";
+import { Info, X, MessageCircle } from "lucide-react";
 
 interface PersonalInfoSectionProps {
   recruitmentForm: RecruitmentForm;
@@ -46,6 +46,57 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
 
   const getMaritalStatusExplanation = (status: string) => {
     return maritalStatusInfo[status] || status;
+  };
+
+  // WhatsApp chat functionality
+  const handleWhatsAppChat = () => {
+    const phoneNumber = recruitmentForm.whatsappNumber.replace(/[^\d]/g, ''); // Remove non-digits
+    const formattedPhone = phoneNumber.startsWith('0') ? '62' + phoneNumber.slice(1) : phoneNumber;
+    
+    const message = `Hallo ${recruitmentForm.fullName},
+
+Perkenalkan saya Team HR dari PT. Batara Dharma Persada.
+
+Terima kasih telah mendaftar melalui sistem rekrutmen kami. Kami telah menerima data aplikasi Anda dan akan segera melakukan review.
+
+Jika ada pertanyaan atau informasi tambahan yang diperlukan, kami akan menghubungi Anda melalui WhatsApp ini.
+
+Salam hormat,
+Tim HR PT. Batara Dharma Persada`;
+
+    const encodedMessage = encodeURIComponent(message);
+    // Force WhatsApp Web instead of desktop app
+    const whatsappUrl = `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
+  };
+
+  // Alternative method with user choice
+  const handleWhatsAppChatWithChoice = () => {
+    const phoneNumber = recruitmentForm.whatsappNumber.replace(/[^\d]/g, '');
+    const formattedPhone = phoneNumber.startsWith('0') ? '62' + phoneNumber.slice(1) : phoneNumber;
+    
+    const message = `Hallo ${recruitmentForm.fullName},
+
+Perkenalkan saya Team HR dari PT. Batara Dharma Persada.
+
+Terima kasih telah mendaftar melalui sistem rekrutmen kami. Kami telah menerima data aplikasi Anda dan akan segera melakukan review.
+
+Jika ada pertanyaan atau informasi tambahan yang diperlukan, kami akan menghubungi Anda melalui WhatsApp ini.
+
+Salam hormat,
+Tim HR PT. Batara Dharma Persada`;
+
+    const encodedMessage = encodeURIComponent(message);
+    
+    // Show user choice
+    const choice = confirm("Pilih cara membuka WhatsApp:\n\nOK = WhatsApp Web (Browser)\nCancel = WhatsApp Desktop/Mobile App");
+    
+    const whatsappUrl = choice 
+      ? `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`
+      : `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
@@ -116,9 +167,29 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
             <label className="block text-sm font-medium text-gray-400 print-label mb-1">
               WhatsApp Number
             </label>
-            <p className="text-white print-value">
-              {recruitmentForm.whatsappNumber}
-            </p>
+            <div className="flex items-center gap-3">
+              <p className="text-white print-value">
+                {recruitmentForm.whatsappNumber}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleWhatsAppChat}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm print:hidden"
+                  title="Chat via WhatsApp Web"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Web
+                </button>
+                <button
+                  onClick={handleWhatsAppChatWithChoice}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm print:hidden"
+                  title="Choose WhatsApp method"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Choose
+                </button>
+              </div>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 print-label items-center mb-1">

@@ -45,7 +45,7 @@ export interface HiredEmployee {
     birthDate: string;
     province: Province;
     whatsappNumber: string;
-    education: EducationLevel
+    education: EducationLevel;
     workExperience: string;
     maritalStatus: MaritalStatus;
     heightCm: number;
@@ -140,7 +140,7 @@ export interface RecruitmentForm {
   documentVaccineUrl?: string;
   supportingDocsUrl?: string;
   experienceLevel?: ExperienceLevel;
-  
+
   // NEW: Status tracking fields
   statusUpdatedById?: string;
   statusUpdatedBy?: {
@@ -150,10 +150,10 @@ export interface RecruitmentForm {
     role: Role;
   };
   statusUpdatedAt?: string;
-  
+
   createdAt: string;
   updatedAt: string;
-  
+
   // Relation to hired employee
   hiredEmployee?: {
     employeeId: string;
@@ -253,7 +253,7 @@ export enum Position {
   ENVIRONMENT_OFFICER = "ENVIRONMENT_OFFICER",
   PARAMEDIC = "PARAMEDIC",
   HSE_ADMIN = "HSE_ADMIN",
-  HRGA_GROUP_LEADER = "HRGA_GROUP_LEADER",
+  HR_GROUP_LEADER = "HR_GROUP_LEADER", // cchanged from HRGA_GROUP_LEADER
   GA_GROUP_LEADER = "GA_GROUP_LEADER",
   PDCA_OFFICER = "PDCA_OFFICER",
   PURCHASING_SPV = "PURCHASING_SPV",
@@ -273,6 +273,10 @@ export enum Position {
   TRAINER_DOUBLE_TRAILER = "TRAINER_DOUBLE_TRAILER",
   GA_INFRASTRUCTURE = "GA_INFRASTRUCTURE",
   TOOLKEEPER = "TOOLKEEPER",
+  MECHANIC_MAGANG = "MECHANIC_MAGANG", //add in 09/02/2025
+  HRGA_OFFICER = "HRGA_OFFICER", //add in 09/02/2025
+  DRIVER_SARANA = "DRIVER_SARANA", //add in 09/02/2025
+  DRIVER_LV = "DRIVER_LV", //add in 09/02/2025
 }
 
 // NEW: Department enum (was missing entirely)
@@ -424,8 +428,8 @@ export enum Certificate {
   AHLI_K3_LISTRIK = "AHLI_K3_LISTRIK",
   SURAT_TANDA_REGISTRASI = "SURAT_TANDA_REGISTRASI",
   K3_LINGKUNGAN = "K3_LINGKUNGAN",
-  WELDER_KEMENKER="WELDER_KEMENKER",
-  WELDER_BNSP="WELDER_BNSP",
+  WELDER_KEMENKER = "WELDER_KEMENKER",
+  WELDER_BNSP = "WELDER_BNSP",
   NONE = "NONE",
 }
 

@@ -4,6 +4,7 @@ export interface DashboardStats {
   totalApplications: number;
   pendingApplications: number;
   onProgressApplications: number;
+  psikotestApplications: number;
   interviewApplications: number;
   userinterviewApplications: number;
   medicalcheckupApplications: number;

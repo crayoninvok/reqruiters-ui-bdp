@@ -1,34 +1,43 @@
 // Updated AnalyticsPage.tsx with dashboard-compatible dark theme
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { Users, UserCheck, Clock, CheckCircle, TrendingUp, Building } from 'lucide-react';
-import analyticsService, { 
-  DashboardStats, 
-  StatusBreakdown, 
-  PositionData, 
-  ProvinceData, 
+import { useState, useEffect, useCallback } from "react";
+import {
+  Users,
+  UserCheck,
+  Clock,
+  CheckCircle,
+  TrendingUp,
+  Building,
+} from "lucide-react";
+import analyticsService, {
+  DashboardStats,
+  StatusBreakdown,
+  PositionData,
+  ProvinceData,
   TrendData,
   AgeDistribution,
   EducationData,
-  FilterOptions
-} from '@/services/analytics.service';
+  FilterOptions,
+} from "@/services/analytics.service";
 
 // Import components
-import StatCard from '@/components/analytics/StatCard';
-import TabButton from '@/components/analytics/TabButton';
-import ExportControls from '@/components/analytics/ExportControlls';
-import { 
-  StatusChart, 
-  PositionChart, 
-  ProvinceChart, 
-  TrendChart, 
-  DemographicsChart 
-} from '@/components/analytics/ChartComponent';
-import { withAuthGuard } from '@/components/withGuard';
+import StatCard from "@/components/analytics/StatCard";
+import TabButton from "@/components/analytics/TabButton";
+import ExportControls from "@/components/analytics/ExportControlls";
+import {
+  StatusChart,
+  PositionChart,
+  ProvinceChart,
+  TrendChart,
+  DemographicsChart,
+} from "@/components/analytics/ChartComponent";
+import { withAuthGuard } from "@/components/withGuard";
 
 function AnalyticsPage() {
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
+    null
+  );
   const [statusData, setStatusData] = useState<StatusBreakdown[]>([]);
   const [positionData, setPositionData] = useState<PositionData[]>([]);
   const [provinceData, setProvinceData] = useState<ProvinceData[]>([]);
@@ -36,7 +45,7 @@ function AnalyticsPage() {
   const [ageData, setAgeData] = useState<AgeDistribution[]>([]);
   const [educationData, setEducationData] = useState<EducationData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('status');
+  const [activeTab, setActiveTab] = useState("status");
   const [statusFilters, setStatusFilters] = useState<FilterOptions>({});
 
   useEffect(() => {
@@ -51,22 +60,22 @@ function AnalyticsPage() {
         provinceResponse,
         trendResponse,
         ageResponse,
-        educationResponse
+        educationResponse,
       ] = await Promise.all([
         analyticsService.getDashboardStats(),
         analyticsService.getApplicationsByPosition(),
         analyticsService.getApplicationsByProvince(),
         analyticsService.getApplicationsTrend(),
         analyticsService.getAgeDistribution(),
-        analyticsService.getApplicationsByEducation()
+        analyticsService.getApplicationsByEducation(),
       ]);
 
       setDashboardStats(dashboardResponse);
-      
+
       // Format position names for better display
-      const formattedPositions = positionResponse.map(item => ({
+      const formattedPositions = positionResponse.map((item) => ({
         ...item,
-        position: item.position?.replace(/_/g, ' ') || 'Unknown'
+        position: item.position?.replace(/_/g, " ") || "Unknown",
       }));
       setPositionData(formattedPositions);
       setProvinceData(provinceResponse.slice(0, 10));
@@ -77,7 +86,7 @@ function AnalyticsPage() {
       // Fetch status data separately to allow for filtering
       await fetchStatusData();
     } catch (error) {
-      console.error('Error fetching analytics data:', error);
+      console.error("Error fetching analytics data:", error);
     } finally {
       setLoading(false);
     }
@@ -85,24 +94,31 @@ function AnalyticsPage() {
 
   const fetchStatusData = useCallback(async (filters?: FilterOptions) => {
     try {
-      const statusResponse = await analyticsService.getApplicationsByStatus(filters);
+      const statusResponse = await analyticsService.getApplicationsByStatus(
+        filters
+      );
       setStatusData(statusResponse);
     } catch (error) {
-      console.error('Error fetching status data:', error);
+      console.error("Error fetching status data:", error);
     }
   }, []);
 
-  const handleStatusFiltersChange = useCallback((newFilters: FilterOptions) => {
-    setStatusFilters(newFilters);
-    fetchStatusData(newFilters);
-  }, [fetchStatusData]);
+  const handleStatusFiltersChange = useCallback(
+    (newFilters: FilterOptions) => {
+      setStatusFilters(newFilters);
+      fetchStatusData(newFilters);
+    },
+    [fetchStatusData]
+  );
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="relative">
           <div className="w-16 h-16 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
-          <div className="mt-4 text-center text-gray-300">Loading analytics...</div>
+          <div className="mt-4 text-center text-gray-300">
+            Loading analytics...
+          </div>
         </div>
       </div>
     );
@@ -116,31 +132,33 @@ function AnalyticsPage() {
     provinceData,
     trendData,
     ageData,
-    educationData
+    educationData,
   };
 
   const renderActiveTab = () => {
     switch (activeTab) {
-      case 'status':
+      case "status":
         return (
-          <StatusChart 
-            data={statusData} 
+          <StatusChart
+            data={statusData}
             positions={positionData}
             onFiltersChange={handleStatusFiltersChange}
           />
         );
-      case 'positions':
+      case "positions":
         return <PositionChart data={positionData} />;
-      case 'province':
+      case "province":
         return <ProvinceChart data={provinceData} />;
-      case 'trends':
+      case "trends":
         return <TrendChart data={trendData} />;
-      case 'demographics':
-        return <DemographicsChart ageData={ageData} educationData={educationData} />;
+      case "demographics":
+        return (
+          <DemographicsChart ageData={ageData} educationData={educationData} />
+        );
       default:
         return (
-          <StatusChart 
-            data={statusData} 
+          <StatusChart
+            data={statusData}
             positions={positionData}
             onFiltersChange={handleStatusFiltersChange}
           />
@@ -156,7 +174,9 @@ function AnalyticsPage() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
             Analytics Dashboard
           </h1>
-          <p className="mt-2 text-gray-400">Comprehensive recruitment insights and performance metrics</p>
+          <p className="mt-2 text-gray-400">
+            Comprehensive recruitment insights and performance metrics
+          </p>
         </div>
         <ExportControls data={exportData} />
       </div>
@@ -211,64 +231,113 @@ function AnalyticsPage() {
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-700/50 p-6">
         {/* Tab Navigation */}
         <div className="flex flex-wrap gap-2 mb-8 p-1 bg-gray-700/50 rounded-xl">
-          <TabButton id="status" label="Status Overview" isActive={activeTab === 'status'} onClick={setActiveTab} />
-          <TabButton id="positions" label="Top Positions" isActive={activeTab === 'positions'} onClick={setActiveTab} />
-          <TabButton id="province" label="Geographic" isActive={activeTab === 'province'} onClick={setActiveTab} />
-          <TabButton id="trends" label="Trends" isActive={activeTab === 'trends'} onClick={setActiveTab} />
-          <TabButton id="demographics" label="Demographics" isActive={activeTab === 'demographics'} onClick={setActiveTab} />
+          <TabButton
+            id="status"
+            label="Status Overview"
+            isActive={activeTab === "status"}
+            onClick={setActiveTab}
+          />
+          <TabButton
+            id="positions"
+            label="Top Positions"
+            isActive={activeTab === "positions"}
+            onClick={setActiveTab}
+          />
+          <TabButton
+            id="province"
+            label="Geographic"
+            isActive={activeTab === "province"}
+            onClick={setActiveTab}
+          />
+          <TabButton
+            id="trends"
+            label="Trends"
+            isActive={activeTab === "trends"}
+            onClick={setActiveTab}
+          />
+          <TabButton
+            id="demographics"
+            label="Demographics"
+            isActive={activeTab === "demographics"}
+            onClick={setActiveTab}
+          />
         </div>
 
         {/* Chart Content */}
-        <div className="min-h-[400px]">
-          {renderActiveTab()}
-        </div>
+        <div className="min-h-[400px]">{renderActiveTab()}</div>
       </div>
 
       {/* Additional Insights */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-700/50 p-6">
-          <h3 className="text-xl font-semibold text-white mb-4">Quick Insights</h3>
+          <h3 className="text-xl font-semibold text-white mb-4">
+            Quick Insights
+          </h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center p-3 bg-blue-900/30 border border-blue-700/50 rounded-lg backdrop-blur-sm">
-              <span className="text-sm text-gray-300">Most Popular Position</span>
+              <span className="text-sm text-gray-300">
+                Most Popular Position
+              </span>
               <span className="font-medium text-blue-400">
-                {positionData[0]?.position || 'N/A'}
+                {positionData[0]?.position || "N/A"}
               </span>
             </div>
             <div className="flex justify-between items-center p-3 bg-green-900/30 border border-green-700/50 rounded-lg backdrop-blur-sm">
               <span className="text-sm text-gray-300">Top Province</span>
               <span className="font-medium text-green-400">
-                {provinceData[0]?.province || 'N/A'}
+                {provinceData[0]?.province || "N/A"}
               </span>
             </div>
             <div className="flex justify-between items-center p-3 bg-purple-900/30 border border-purple-700/50 rounded-lg backdrop-blur-sm">
               <span className="text-sm text-gray-300">Success Rate</span>
               <span className="font-medium text-purple-400">
-                {dashboardStats?.totalApplications 
-                  ? Math.round((dashboardStats.hiredApplications / dashboardStats.totalApplications) * 100)
-                  : 0}%
+                {dashboardStats?.totalApplications
+                  ? Math.round(
+                      (dashboardStats.hiredApplications /
+                        dashboardStats.totalApplications) *
+                        100
+                    )
+                  : 0}
+                %
               </span>
             </div>
           </div>
         </div>
 
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-700/50 p-6">
-          <h3 className="text-xl font-semibold text-white mb-4">Performance Metrics</h3>
+          <h3 className="text-xl font-semibold text-white mb-4">
+            Performance Metrics
+          </h3>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm text-gray-300">Applications Processed</span>
+                <span className="text-sm text-gray-300">
+                  Applications Processed
+                </span>
                 <span className="text-sm font-medium text-white">
-                  {((dashboardStats?.onProgressApplications || 0) + (dashboardStats?.hiredApplications || 0))} / {dashboardStats?.totalApplications || 0}
+                  {(dashboardStats?.onProgressApplications || 0) +
+                    (dashboardStats?.psikotestApplications || 0) +
+                    (dashboardStats?.interviewApplications || 0) +
+                    (dashboardStats?.userinterviewApplications || 0) +
+                    (dashboardStats?.medicalcheckupApplications || 0) +
+                    (dashboardStats?.medicalfollowupApplications || 0)}{" "}
+                  / {dashboardStats?.totalApplications || 0}
                 </span>
               </div>
               <div className="w-full bg-gray-700/50 rounded-full h-2">
-                <div 
+                <div
                   className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
-                  style={{ 
-                    width: `${dashboardStats?.totalApplications 
-                      ? Math.round((((dashboardStats?.onProgressApplications || 0) + (dashboardStats?.hiredApplications || 0)) / dashboardStats.totalApplications) * 100)
-                      : 0}%`
+                  style={{
+                    width: `${
+                      dashboardStats?.totalApplications
+                        ? Math.round(
+                            (((dashboardStats?.onProgressApplications || 0) +
+                              (dashboardStats?.hiredApplications || 0)) /
+                              dashboardStats.totalApplications) *
+                              100
+                          )
+                        : 0
+                    }%`,
                   }}
                 />
               </div>
@@ -277,18 +346,29 @@ function AnalyticsPage() {
               <div className="flex justify-between mb-2">
                 <span className="text-sm text-gray-300">Completion Rate</span>
                 <span className="text-sm font-medium text-white">
-                  {dashboardStats?.totalApplications 
-                    ? Math.round((dashboardStats.hiredApplications / dashboardStats.totalApplications) * 100)
-                    : 0}%
+                  {dashboardStats?.totalApplications
+                    ? Math.round(
+                        (dashboardStats.hiredApplications /
+                          dashboardStats.totalApplications) *
+                          100
+                      )
+                    : 0}
+                  %
                 </span>
               </div>
               <div className="w-full bg-gray-700/50 rounded-full h-2">
-                <div 
+                <div
                   className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-300"
-                  style={{ 
-                    width: `${dashboardStats?.totalApplications 
-                      ? Math.round((dashboardStats.hiredApplications / dashboardStats.totalApplications) * 100)
-                      : 0}%`
+                  style={{
+                    width: `${
+                      dashboardStats?.totalApplications
+                        ? Math.round(
+                            (dashboardStats.hiredApplications /
+                              dashboardStats.totalApplications) *
+                              100
+                          )
+                        : 0
+                    }%`,
                   }}
                 />
               </div>

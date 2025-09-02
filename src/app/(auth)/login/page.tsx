@@ -234,7 +234,7 @@ export default function LoginPage() {
                       value={formData.email}
                       onChange={handleChange}
                       className="w-full px-4 py-3 bg-white/5 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 backdrop-blur-sm"
-                      placeholder="your@email.com"
+                      placeholder="employee@bataramining.com"
                       required
                       disabled={isSubmitting}
                     />

@@ -63,6 +63,9 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                 Position
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
+                Gender
+              </th>
+               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
                 Education
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
@@ -137,6 +140,9 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white min-w-[120px]">
                     {form.education}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white min-w-[120px]">
+                    {form.gender}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white min-w-[120px]">
                     {form.province.replace(/_/g, " ")}

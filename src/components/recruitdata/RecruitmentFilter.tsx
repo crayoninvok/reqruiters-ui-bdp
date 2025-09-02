@@ -2,6 +2,7 @@ import React from "react";
 import {
   Position,
   EducationLevel,
+  Gender,
   Province,
   RecruitmentStatus,
   Certificate,
@@ -74,27 +75,32 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
           </button>
         </div>
 
-        <div className="flex items-end">
-          <div className="text-sm text-gray-400">
-            {filters.startDate || filters.endDate ? (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-900/30 text-blue-300 rounded backdrop-blur-sm border border-blue-400/20">
-                <svg
-                  className="w-3 h-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+        <div>
+          <label className="block text-xs font-medium text-gray-300 mb-1">
+            Gender
+          </label>
+          <select
+            value={filters.gender || ""}
+            onChange={(e) => onFilterChange("gender", e.target.value)}
+            className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm"
+          >
+            <option value="" className="bg-gray-800 text-white">
+              All Genders
+            </option>
+            {Object.values(Gender)
+              .sort((a, b) =>
+                a.replace(/_/g, " ").localeCompare(b.replace(/_/g, " "))
+              )
+              .map((gender) => (
+                <option
+                  key={gender}
+                  value={gender}
+                  className="bg-gray-800 text-white"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2z"
-                  />
-                </svg>
-                Date filter active
-              </span>
-            ) : null}
-          </div>
+                  {gender.replace(/_/g, " ")}
+                </option>
+              ))}
+          </select>
         </div>
       </div>
 
@@ -255,6 +261,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
               {(filters.search ||
                 filters.appliedPosition ||
                 filters.education ||
+                filters.gender ||
                 filters.province ||
                 filters.status ||
                 (filters.certificate && filters.certificate.length > 0) ||
@@ -277,6 +284,11 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
                   {filters.education && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
                       Education: {filters.education}
+                    </span>
+                  )}
+                  {filters.gender && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
+                      Gender: {filters.gender.replace(/_/g, " ")}
                     </span>
                   )}
                   {filters.province && (
@@ -333,7 +345,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
             </div>
           </div>
         </div>
-      </div>
+      </div>    
     </div>
   );
 };

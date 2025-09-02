@@ -17,6 +17,7 @@ export interface RecruitmentFormFilters {
   limit?: number;
   search?: string;
   status?: string;
+  gender?: string;
   certificate?: string[];
   province?: string;
   education?: string;
@@ -122,13 +123,14 @@ export class RecruitmentFormService {
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
       if (filters.status) params.append("status", filters.status);
-      
+
       // Handle multiple certificates
       if (filters.certificate && filters.certificate.length > 0) {
-        params.append("certificate", filters.certificate.join(','));
+        params.append("certificate", filters.certificate.join(","));
       }
-      
+
       if (filters.province) params.append("province", filters.province);
+      if (filters.gender) params.append("gender", filters.gender);
       if (filters.education) params.append("education", filters.education);
       if (filters.appliedPosition)
         params.append("appliedPosition", filters.appliedPosition);
@@ -345,7 +347,7 @@ export class RecruitmentFormService {
     if (data.startDate) {
       const startDate = new Date(data.startDate);
       const today = new Date();
-      
+
       if (isNaN(startDate.getTime())) {
         errors.push("Invalid start date format");
       }
@@ -354,7 +356,7 @@ export class RecruitmentFormService {
     if (data.probationEndDate && data.startDate) {
       const startDate = new Date(data.startDate);
       const probationEndDate = new Date(data.probationEndDate);
-      
+
       if (isNaN(probationEndDate.getTime())) {
         errors.push("Invalid probation end date format");
       } else if (probationEndDate <= startDate) {
@@ -363,13 +365,18 @@ export class RecruitmentFormService {
     }
 
     // Validate salary
-    if (data.basicSalary && (data.basicSalary < 0 || data.basicSalary > 1000000000)) {
+    if (
+      data.basicSalary &&
+      (data.basicSalary < 0 || data.basicSalary > 1000000000)
+    ) {
       errors.push("Basic salary must be between 0 and 1,000,000,000");
     }
 
     // Validate employee ID format if provided
     if (data.employeeId && !/^[A-Z]{2,4}\d{6}$/.test(data.employeeId)) {
-      errors.push("Employee ID must follow format: [PREFIX][YEAR][NUMBER] (e.g., HR240001)");
+      errors.push(
+        "Employee ID must follow format: [PREFIX][YEAR][NUMBER] (e.g., HR240001)"
+      );
     }
 
     // Validate phone number format
@@ -419,14 +426,16 @@ export class RecruitmentFormService {
   static formatEmployeeData(employee: HiredEmployee) {
     return {
       ...employee,
-      formattedStartDate: new Date(employee.startDate).toLocaleDateString('id-ID'),
-      formattedProbationEndDate: employee.probationEndDate 
-        ? new Date(employee.probationEndDate).toLocaleDateString('id-ID')
+      formattedStartDate: new Date(employee.startDate).toLocaleDateString(
+        "id-ID"
+      ),
+      formattedProbationEndDate: employee.probationEndDate
+        ? new Date(employee.probationEndDate).toLocaleDateString("id-ID")
         : null,
-      formattedSalary: employee.basicSalary 
-        ? new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR'
+      formattedSalary: employee.basicSalary
+        ? new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
           }).format(employee.basicSalary)
         : null,
     };
@@ -446,15 +455,15 @@ export class RecruitmentFormService {
       MEDICAL: "Medical",
       TRAINING_DEVELOPMENT: "Training & Development",
     };
-    
+
     return departmentNames[department] || department;
   }
 
   // NEW: Helper method to get position display name
   static getPositionDisplayName(position: string): string {
     return position
-      .split('_')
-      .map(word => word.charAt(0) + word.slice(1).toLowerCase())
-      .join(' ');
+      .split("_")
+      .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+      .join(" ");
   }
 }

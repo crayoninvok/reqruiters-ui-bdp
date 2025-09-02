@@ -72,15 +72,103 @@ function RecruitmentDataPage() {
     }
   };
 
-  // Fetch all recruitment forms for export
+  // Fetch all recruitment forms for export - FIXED VERSION
   const fetchAllRecruitmentForms = async () => {
     try {
-      const response = await RecruitmentFormService.getRecruitmentForms({
-        ...filters,
-        limit: 1000,
-        page: 1,
+      let allForms: RecruitmentForm[] = [];
+      let currentPage = 1;
+      let hasMore = true;
+      const maxLimit = 50; // Adjust this to your API's actual maximum limit
+
+      console.log("Starting to fetch all recruitment forms for export...");
+
+      while (hasMore) {
+        console.log(`Fetching page ${currentPage}...`);
+        
+        const response = await RecruitmentFormService.getRecruitmentForms({
+          ...filters,
+          search: "", // Reset search for export to get all data
+          status: "", // Reset status filter for export
+          certificate: [], // Reset certificate filter for export
+          province: "", // Reset province filter for export
+          education: "", // Reset education filter for export
+          appliedPosition: "", // Reset applied position filter for export
+          startDate: "", // Reset date filters for export
+          endDate: "",
+          limit: maxLimit,
+          page: currentPage,
+        });
+
+        console.log(`Page ${currentPage} fetched: ${response.recruitmentForms.length} records`);
+        
+        allForms = [...allForms, ...response.recruitmentForms];
+        
+        // Check if there are more pages
+        hasMore = response.pagination.hasNextPage && response.recruitmentForms.length === maxLimit;
+        currentPage++;
+
+        // Safety check to prevent infinite loop
+        if (currentPage > 100) {
+          console.warn("Reached maximum page limit (100), stopping fetch");
+          break;
+        }
+      }
+
+      console.log(`Total forms fetched for export: ${allForms.length}`);
+      setAllRecruitmentForms(allForms);
+    } catch (error) {
+      console.error("Error fetching all recruitment forms:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Failed to fetch all data for export",
+        icon: "error",
+        confirmButtonColor: "#dc2626",
       });
-      setAllRecruitmentForms(response.recruitmentForms);
+    }
+  };
+
+  // Alternative method: Fetch all without any filters
+  const fetchAllRecruitmentFormsNoFilters = async () => {
+    try {
+      let allForms: RecruitmentForm[] = [];
+      let currentPage = 1;
+      let hasMore = true;
+      const maxLimit = 50;
+
+      console.log("Fetching ALL recruitment forms without any filters...");
+
+      while (hasMore) {
+        console.log(`Fetching page ${currentPage}...`);
+        
+        const response = await RecruitmentFormService.getRecruitmentForms({
+          page: currentPage,
+          limit: maxLimit,
+          search: "",
+          status: "",
+          certificate: [],
+          province: "",
+          education: "",
+          appliedPosition: "",
+          startDate: "",
+          endDate: "",
+        });
+
+        console.log(`Page ${currentPage} fetched: ${response.recruitmentForms.length} records`);
+        
+        allForms = [...allForms, ...response.recruitmentForms];
+        
+        hasMore = response.pagination.hasNextPage && response.recruitmentForms.length > 0;
+        currentPage++;
+
+        // Safety check
+        if (currentPage > 100) {
+          console.warn("Reached maximum page limit, stopping fetch");
+          break;
+        }
+      }
+
+      console.log(`Total forms fetched: ${allForms.length}`);
+      setAllRecruitmentForms(allForms);
     } catch (error) {
       console.error("Error fetching all recruitment forms:", error);
     }
@@ -98,11 +186,12 @@ function RecruitmentDataPage() {
 
   useEffect(() => {
     fetchRecruitmentForms();
-    fetchAllRecruitmentForms();
   }, [filters]);
 
   useEffect(() => {
     fetchStats();
+    // Fetch all data when component mounts, not when filters change
+    fetchAllRecruitmentFormsNoFilters();
   }, []);
 
   // Handle filter changes
@@ -128,7 +217,7 @@ function RecruitmentDataPage() {
 
   const handleMigrationSuccess = () => {
     fetchRecruitmentForms();
-    fetchAllRecruitmentForms();
+    fetchAllRecruitmentFormsNoFilters(); // Refresh all data
     fetchStats();
   };
 
@@ -160,7 +249,10 @@ function RecruitmentDataPage() {
           showConfirmButton: false,
         });
 
-        window.location.reload();
+        // Refresh both filtered and all data
+        fetchRecruitmentForms();
+        fetchAllRecruitmentFormsNoFilters();
+        fetchStats();
       } catch (error) {
         Swal.fire({
           title: "Error",
@@ -172,13 +264,38 @@ function RecruitmentDataPage() {
     }
   };
 
-  // Export to Excel
-  const exportToExcel = () => {
+  // Export to Excel - IMPROVED VERSION
+  const exportToExcel = async () => {
     setExporting(true);
     try {
+      // Fetch fresh data for export to ensure we have the latest
+      await fetchAllRecruitmentFormsNoFilters();
+      
+      // Wait a bit for state to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log(`Exporting ${allRecruitmentForms.length} records to Excel`);
+
+      if (allRecruitmentForms.length === 0) {
+        Swal.fire({
+          title: "No Data",
+          text: "No recruitment data available for export",
+          icon: "warning",
+          confirmButtonColor: "#f59e0b",
+        });
+        return;
+      }
+
       const exportData = allRecruitmentForms.map((form) => ({
         "Full Name": form.fullName,
         "WhatsApp Number": form.whatsappNumber,
+        "Address": form.address,
+        "Age": form.birthDate
+          ? Math.floor(
+              (new Date().getTime() - new Date(form.birthDate).getTime()) /
+                (1000 * 60 * 60 * 24 * 365)
+            )
+          : "N/A",
         "Applied Position":
           form.appliedPosition?.replace(/_/g, " ") || "Not specified",
         Education: form.education,
@@ -190,12 +307,15 @@ function RecruitmentDataPage() {
         "Application Date": form.createdAt
           ? new Date(form.createdAt).toLocaleDateString()
           : "N/A",
+        "Last Updated": form.updatedAt,
+        "Processed By": form.statusUpdatedBy?.name || "Still Pending",
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Recruitment Data");
 
+      // Set column widths
       const colWidths = exportData.reduce((acc, row) => {
         Object.keys(row).forEach((key, index) => {
           const value = String(row[key as keyof typeof row]);
@@ -206,6 +326,9 @@ function RecruitmentDataPage() {
 
       worksheet["!cols"] = Object.values(colWidths).map((width) => ({ width }));
 
+      // Freeze first 3 columns (A, B, C) - this will freeze Full Name, WhatsApp Number, and Address
+      worksheet["!freeze"] = { xSplit: 3, ySplit: 1 };
+
       const fileName = `recruitment_data_${
         new Date().toISOString().split("T")[0]
       }.xlsx`;
@@ -213,9 +336,9 @@ function RecruitmentDataPage() {
 
       Swal.fire({
         title: "Success",
-        text: "Data exported to Excel successfully",
+        text: `Successfully exported ${exportData.length} records to Excel`,
         icon: "success",
-        timer: 2000,
+        timer: 3000,
         showConfirmButton: false,
       });
     } catch (error) {
@@ -231,10 +354,28 @@ function RecruitmentDataPage() {
     }
   };
 
-  // Export to PDF using utility
-  const exportToPDF = () => {
+  // Export to PDF using utility - IMPROVED VERSION
+  const exportToPDF = async () => {
     setExporting(true);
     try {
+      // Fetch fresh data for export
+      await fetchAllRecruitmentFormsNoFilters();
+      
+      // Wait a bit for state to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log(`Exporting ${allRecruitmentForms.length} records to PDF`);
+
+      if (allRecruitmentForms.length === 0) {
+        Swal.fire({
+          title: "No Data",
+          text: "No recruitment data available for export",
+          icon: "warning",
+          confirmButtonColor: "#f59e0b",
+        });
+        return;
+      }
+
       exportRecruitmentToPDF(allRecruitmentForms, {
         title: "Recruitment Data Report",
         includeCharts: true,
@@ -244,9 +385,9 @@ function RecruitmentDataPage() {
 
       Swal.fire({
         title: "Success",
-        text: "Recruitment report with charts exported successfully",
+        text: `Successfully exported ${allRecruitmentForms.length} records to PDF`,
         icon: "success",
-        timer: 2000,
+        timer: 3000,
         showConfirmButton: false,
       });
     } catch (error) {
@@ -294,7 +435,10 @@ function RecruitmentDataPage() {
           showConfirmButton: false,
         });
 
-        window.location.reload();
+        // Refresh both filtered and all data
+        fetchRecruitmentForms();
+        fetchAllRecruitmentFormsNoFilters();
+        fetchStats();
       } catch (error) {
         Swal.fire({
           title: "Error",
@@ -331,7 +475,10 @@ function RecruitmentDataPage() {
           showConfirmButton: false,
         });
 
-        window.location.reload();
+        // Refresh both filtered and all data
+        fetchRecruitmentForms();
+        fetchAllRecruitmentFormsNoFilters();
+        fetchStats();
       } catch (error) {
         Swal.fire({
           title: "Error",
@@ -340,6 +487,25 @@ function RecruitmentDataPage() {
           confirmButtonColor: "#dc2626",
         });
       }
+    }
+  };
+
+  // Manual refresh function for export data
+  const refreshExportData = async () => {
+    setExporting(true);
+    try {
+      await fetchAllRecruitmentFormsNoFilters();
+      Swal.fire({
+        title: "Data Refreshed",
+        text: `Found ${allRecruitmentForms.length} total records`,
+        icon: "info",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Error refreshing export data:", error);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -372,10 +538,40 @@ function RecruitmentDataPage() {
           <p className="text-gray-300">
             Manage candidate applications and track recruitment progress
           </p>
+          <p className="text-sm text-gray-400">
+            Export data: {allRecruitmentForms.length} total records available
+          </p>
         </div>
 
         {/* Export Buttons */}
         <div className="flex gap-2">
+          {/* Refresh Export Data Button */}
+          <button
+            onClick={refreshExportData}
+            disabled={exporting}
+            className="px-3 py-2 bg-blue-600/80 hover:bg-blue-600 disabled:bg-gray-600/50 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors backdrop-blur-sm border border-blue-500/30"
+            title="Refresh export data to get latest records"
+          >
+            {exporting ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            ) : (
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+            )}
+            Refresh
+          </button>
+
           <button
             onClick={exportToExcel}
             disabled={exporting || allRecruitmentForms.length === 0}
@@ -398,7 +594,7 @@ function RecruitmentDataPage() {
                 />
               </svg>
             )}
-            Export Excel
+            Export Excel ({allRecruitmentForms.length})
           </button>
 
           <button
@@ -423,7 +619,7 @@ function RecruitmentDataPage() {
                 />
               </svg>
             )}
-            Export PDF
+            Export PDF ({allRecruitmentForms.length})
           </button>
         </div>
       </div>

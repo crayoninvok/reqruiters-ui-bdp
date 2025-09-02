@@ -6,6 +6,9 @@ export interface PublicRecruitmentFormData {
   birthPlace: string;
   birthDate: string;
   gender: string;
+  ktp: string;
+  kk: string;
+  npwp?: string;
   religion: string;
   province: string;
   heightCm: number;
@@ -58,7 +61,7 @@ interface FormOptionsResponse {
   options: {
     province: string[];
     gender: string[];
-    religion:string[]
+    religion: string[];
     shirtSizes: string[];
     safetyShoeSizes: string[];
     pantsSizes: string[];
@@ -90,50 +93,56 @@ interface ApiErrorResponse {
 
 export class PublicRecruitmentService {
   private static getBaseUrl(): string {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
   }
 
   // Keep existing retry logic
   private static async makeRequest<T>(
-    requestFn: () => Promise<T>, 
+    requestFn: () => Promise<T>,
     retries = 3,
     delay = 1000
   ): Promise<T> {
     let lastError: any;
-    
+
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         return await requestFn();
       } catch (error: any) {
         lastError = error;
-        
+
         if (error.response?.status >= 400 && error.response?.status < 500) {
           if (error.response.status !== 408 && error.response.status !== 429) {
             throw error;
           }
         }
-        
+
         if (attempt === retries) {
           throw lastError;
         }
-        
+
         const jitter = Math.random() * 0.3;
         const waitTime = delay * Math.pow(2, attempt - 1) * (1 + jitter);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
       }
     }
-    
+
     throw lastError;
   }
 
   // NEW METHOD: Get upload signature for direct Cloudinary upload
-  static async getUploadSignature(fieldName: string): Promise<UploadSignatureResponse> {
+  static async getUploadSignature(
+    fieldName: string
+  ): Promise<UploadSignatureResponse> {
     return this.makeRequest(async () => {
-      const response = await api.post("/public-recruitment/upload-signature", {
-        fieldName
-      }, {
-        timeout: 10000,
-      });
+      const response = await api.post(
+        "/public-recruitment/upload-signature",
+        {
+          fieldName,
+        },
+        {
+          timeout: 10000,
+        }
+      );
 
       return response.data;
     });
@@ -141,7 +150,7 @@ export class PublicRecruitmentService {
 
   // NEW METHOD: Upload file directly to Cloudinary
   static async uploadFileToCloudinary(
-    file: File, 
+    file: File,
     fieldName: string,
     onProgress?: (progress: number) => void
   ): Promise<string> {
@@ -151,28 +160,27 @@ export class PublicRecruitmentService {
 
       // Step 2: Upload to Cloudinary
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('signature', signatureData.signature);
-      formData.append('timestamp', signatureData.timestamp.toString());
-      formData.append('api_key', signatureData.api_key);
-      formData.append('folder', signatureData.folder);
-      formData.append('public_id', signatureData.public_id);
+      formData.append("file", file);
+      formData.append("signature", signatureData.signature);
+      formData.append("timestamp", signatureData.timestamp.toString());
+      formData.append("api_key", signatureData.api_key);
+      formData.append("folder", signatureData.folder);
+      formData.append("public_id", signatureData.public_id);
 
       const uploadResponse = await fetch(
         `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/upload`,
         {
-          method: 'POST',
-          body: formData
+          method: "POST",
+          body: formData,
         }
       );
 
       if (!uploadResponse.ok) {
-        throw new Error('Failed to upload to Cloudinary');
+        throw new Error("Failed to upload to Cloudinary");
       }
 
       const result = await uploadResponse.json();
       return result.secure_url;
-
     } catch (error) {
       console.error(`Error uploading ${fieldName}:`, error);
       throw error;
@@ -198,7 +206,7 @@ export class PublicRecruitmentService {
         .filter(([_, file]) => file !== null && file !== undefined)
         .map(async ([fieldName, file]) => {
           const url = await this.uploadFileToCloudinary(
-            file!, 
+            file!,
             fieldName,
             (progress) => onUploadProgress?.(fieldName, progress)
           );
@@ -215,21 +223,24 @@ export class PublicRecruitmentService {
 
       // Step 3: Submit form data with URLs
       return this.makeRequest(async () => {
-        const response = await api.post("/public-recruitment/submit-with-urls", {
-          ...formData,
-          ...documentUrls
-        }, {
-          headers: {
-            "Content-Type": "application/json",
+        const response = await api.post(
+          "/public-recruitment/submit-with-urls",
+          {
+            ...formData,
+            ...documentUrls,
           },
-          timeout: 30000,
-        });
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            timeout: 30000,
+          }
+        );
 
         return response.data;
       }, 1);
-
     } catch (error) {
-      console.error('Form submission with direct upload error:', error);
+      console.error("Form submission with direct upload error:", error);
       throw error;
     }
   }
@@ -263,15 +274,20 @@ export class PublicRecruitmentService {
     });
   }
 
-  static async checkApplicationStatus(applicationId: string): Promise<ApplicationStatusResponse> {
+  static async checkApplicationStatus(
+    applicationId: string
+  ): Promise<ApplicationStatusResponse> {
     if (!applicationId?.trim()) {
       throw new Error("Application ID is required");
     }
 
     return this.makeRequest(async () => {
-      const response = await api.get(`/public-recruitment/status/${applicationId}`, {
-        timeout: 10000,
-      });
+      const response = await api.get(
+        `/public-recruitment/status/${applicationId}`,
+        {
+          timeout: 10000,
+        }
+      );
 
       return response.data;
     });
@@ -297,7 +313,7 @@ export class PublicRecruitmentService {
       const birthDate = new Date(data.birthDate);
       const now = new Date();
       const age = now.getFullYear() - birthDate.getFullYear();
-      
+
       if (age < 17 || age > 65) {
         errors.push("Age must be between 17-65 years");
       }
@@ -306,10 +322,10 @@ export class PublicRecruitmentService {
     if (!data.province) {
       errors.push("Province is required");
     }
-     if (!data.gender) {
+    if (!data.gender) {
       errors.push("Gender is required");
     }
-     if (!data.religion) {
+    if (!data.religion) {
       errors.push("Gender is required");
     }
 
@@ -346,11 +362,13 @@ export class PublicRecruitmentService {
     if (!data.whatsappNumber?.trim()) {
       errors.push("WhatsApp number is required");
     } else {
-      const cleanNumber = data.whatsappNumber.replace(/[\s-]/g, '');
+      const cleanNumber = data.whatsappNumber.replace(/[\s-]/g, "");
       const whatsappRegex = /^(\+62|62|0)[0-9]{8,13}$/;
-      
+
       if (!whatsappRegex.test(cleanNumber)) {
-        errors.push("Invalid WhatsApp number format (use Indonesian format: +62xxx, 62xxx, or 08xxx)");
+        errors.push(
+          "Invalid WhatsApp number format (use Indonesian format: +62xxx, 62xxx, or 08xxx)"
+        );
       }
     }
 
@@ -387,7 +405,7 @@ export class PublicRecruitmentService {
     supportingDocs?: File;
   }): string[] {
     const errors: string[] = [];
-    
+
     // Define size limits per field (in MB)
     const sizeLimits = {
       documentPhoto: 3,
@@ -398,8 +416,13 @@ export class PublicRecruitmentService {
       supportingDocs: 3,
     };
 
-    const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    const allowedDocTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png"];
+    const allowedDocTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+    ];
 
     // Photo validation
     if (files.documentPhoto) {
@@ -407,7 +430,9 @@ export class PublicRecruitmentService {
         errors.push("Photo must be in JPEG, JPG, or PNG format");
       }
       if (files.documentPhoto.size > sizeLimits.documentPhoto * 1024 * 1024) {
-        errors.push(`Photo file size must be less than ${sizeLimits.documentPhoto}MB`);
+        errors.push(
+          `Photo file size must be less than ${sizeLimits.documentPhoto}MB`
+        );
       }
     }
 
@@ -416,8 +441,16 @@ export class PublicRecruitmentService {
       { file: files.documentCv, name: "CV", field: "documentCv" },
       { file: files.documentKtp, name: "KTP", field: "documentKtp" },
       { file: files.documentSkck, name: "SKCK", field: "documentSkck" },
-      { file: files.documentVaccine, name: "Vaccine Certificate", field: "documentVaccine" },
-      { file: files.supportingDocs, name: "Supporting Documents", field: "supportingDocs" },
+      {
+        file: files.documentVaccine,
+        name: "Vaccine Certificate",
+        field: "documentVaccine",
+      },
+      {
+        file: files.supportingDocs,
+        name: "Supporting Documents",
+        field: "supportingDocs",
+      },
     ];
 
     docFields.forEach(({ file, name, field }) => {
@@ -476,11 +509,11 @@ export class PublicRecruitmentService {
     if (error.response?.data?.message) {
       return error.response.data.message;
     }
-    
+
     if (error.message) {
       return error.message;
     }
-    
+
     return "An unexpected error occurred. Please try again.";
   }
 
@@ -489,44 +522,49 @@ export class PublicRecruitmentService {
     label: string;
     description: string;
   } {
-    const statusMap: Record<string, { color: string; label: string; description: string }> = {
+    const statusMap: Record<
+      string,
+      { color: string; label: string; description: string }
+    > = {
       PENDING: {
         color: "yellow",
         label: "Pending Review",
-        description: "Your application is being reviewed by our HR team"
+        description: "Your application is being reviewed by our HR team",
       },
       ON_PROGRESS: {
-        color: "blue", 
+        color: "blue",
         label: "In Progress",
-        description: "Your application is currently being processed"
+        description: "Your application is currently being processed",
       },
       HIRED: {
         color: "green",
         label: "Hired",
-        description: "Your application process has been completed"
-      }
+        description: "Your application process has been completed",
+      },
     };
 
-    return statusMap[status] || {
-      color: "gray",
-      label: "Unknown",
-      description: "Status information not available"
-    };
+    return (
+      statusMap[status] || {
+        color: "gray",
+        label: "Unknown",
+        description: "Status information not available",
+      }
+    );
   }
 
   static formatPhoneNumber(phoneNumber: string): string {
-    const cleaned = phoneNumber.replace(/\D/g, '');
-    
-    if (cleaned.startsWith('62')) {
-      return '+' + cleaned;
-    } else if (cleaned.startsWith('0')) {
-      return '+62' + cleaned.substring(1);
+    const cleaned = phoneNumber.replace(/\D/g, "");
+
+    if (cleaned.startsWith("62")) {
+      return "+" + cleaned;
+    } else if (cleaned.startsWith("0")) {
+      return "+62" + cleaned.substring(1);
     }
-    
+
     return phoneNumber;
   }
 
   static cleanPhoneNumber(phoneNumber: string): string {
-    return phoneNumber.replace(/[\s-]/g, '');
+    return phoneNumber.replace(/[\s-]/g, "");
   }
 }

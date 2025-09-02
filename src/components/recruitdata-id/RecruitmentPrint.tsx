@@ -340,6 +340,25 @@ export const RecruitmentPrintComponent: React.FC<
                   <div class="info-label">Marital Status</div>
                   <div class="info-value">${recruitmentForm.maritalStatus}</div>
                 </div>
+                 <div class="info-item">
+                  <div class="info-label"> No KTP</div>
+                  <div class="info-value">${
+                    recruitmentForm.ktp || "Belum mengisi saat app diupdate"
+                  }</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">No KK</div>
+                  <div class="info-value">${
+                    recruitmentForm.kk || "Belum mengisi saat app diupdate"
+                  }</div>
+                </div>
+ <div class="info-item">
+                  <div class="info-label">No NPWP</div>
+                  <div class="info-value">${
+                    recruitmentForm.npwp || "Belum mengisi saat app diupdate"
+                  }</div>
+
+                </div>
               </div>
             </div>
             

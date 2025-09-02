@@ -36,6 +36,9 @@ export interface HiredEmployee {
     fullName: string;
     documentPhotoUrl?: string;
     gender: Gender;
+    ktp?: string;
+    kk?: string;
+    npwp?: string;
     religion: Religion;
     appliedPosition?: Position;
     birthPlace: string;
@@ -103,7 +106,7 @@ export interface MigrateToHiredRequest {
   emergencyContactPhone?: string;
 }
 
-// Recruitment Form Types (Updated with hiredEmployee relation)
+// Recruitment Form Types (Updated with hiredEmployee relation and status tracking)
 export interface RecruitmentForm {
   id: string;
   fullName: string;
@@ -118,6 +121,9 @@ export interface RecruitmentForm {
   safetyShoesSize: SafetyShoesSize;
   pantsSize: PantsSize;
   address: string;
+  ktp?: string;
+  kk?: string;
+  npwp?: string;
   whatsappNumber: string;
   certificate: Certificate[];
   education: EducationLevel;
@@ -134,9 +140,21 @@ export interface RecruitmentForm {
   documentVaccineUrl?: string;
   supportingDocsUrl?: string;
   experienceLevel?: ExperienceLevel;
+  
+  // NEW: Status tracking fields
+  statusUpdatedById?: string;
+  statusUpdatedBy?: {
+    id: string;
+    name: string;
+    email: string;
+    role: Role;
+  };
+  statusUpdatedAt?: string;
+  
   createdAt: string;
   updatedAt: string;
-  // NEW: Relation to hired employee
+  
+  // Relation to hired employee
   hiredEmployee?: {
     employeeId: string;
     department: Department;
@@ -166,6 +184,9 @@ export interface RecruiterData {
   fullName: string;
   email: string;
   phoneNumber: string;
+  ktp?: string;
+  npwp?: string;
+  kk?: string;
   address?: string;
   department?: string;
   position?: string;
@@ -511,6 +532,9 @@ export interface CreateRecruitmentFormData {
   safetyShoesSize: SafetyShoesSize;
   pantsSize: PantsSize;
   address: string;
+  ktp?: string;
+  kk?: string;
+  npwp?: string;
   whatsappNumber: string;
   certificate: Certificate[];
   education: EducationLevel;
@@ -526,6 +550,9 @@ export interface CreateRecruiterData {
   fullName: string;
   email: string;
   phoneNumber: string;
+  ktp?: string;
+  npwp?: string;
+  kk?: string;
   address?: string;
   department?: string;
   position?: string;

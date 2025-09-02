@@ -15,13 +15,25 @@ export const RecruitmentHeader: React.FC<RecruitmentHeaderProps> = ({
   const getStatusColor = (status: RecruitmentStatus) => {
     switch (status) {
       case RecruitmentStatus.PENDING:
-        return "bg-yellow-900/30 text-yellow-300 border-yellow-400/20";
+        return "bg-amber-900/20 text-amber-300 ring-1 ring-amber-400/30";
       case RecruitmentStatus.ON_PROGRESS:
-        return "bg-blue-900/30 text-blue-300 border-blue-400/20";
+        return "bg-sky-900/20 text-sky-300 ring-1 ring-sky-400/30";
+      case RecruitmentStatus.INTERVIEW:
+        return "bg-violet-900/20 text-violet-300 ring-1 ring-violet-400/30";
+      case RecruitmentStatus.PSIKOTEST:
+        return "bg-fuchsia-900/20 text-fuchsia-300 ring-1 ring-fuchsia-400/30";
+      case RecruitmentStatus.USER_INTERVIEW:
+        return "bg-indigo-900/20 text-indigo-300 ring-1 ring-indigo-400/30";
+      case RecruitmentStatus.MEDICAL_CHECKUP:
+        return "bg-teal-900/20 text-teal-300 ring-1 ring-teal-400/30";
+      case RecruitmentStatus.MEDICAL_FOLLOWUP:
+        return "bg-orange-900/20 text-orange-300 ring-1 ring-orange-400/30";
+      case RecruitmentStatus.REJECTED:
+        return "bg-red-900/20 text-red-300 ring-1 ring-red-400/30";
       case RecruitmentStatus.HIRED:
-        return "bg-green-900/30 text-green-300 border-green-400/20";
+        return "bg-green-900/20 text-green-300 ring-1 ring-green-400/30";
       default:
-        return "bg-gray-700/50 text-gray-300 border-gray-600/30";
+        return "bg-gray-700/20 text-gray-300 ring-1 ring-gray-400/30";
     }
   };
 
@@ -32,6 +44,23 @@ export const RecruitmentHeader: React.FC<RecruitmentHeaderProps> = ({
       day: "numeric",
     });
   };
+
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Debug: Log the data to see what we're getting
+  console.log("RecruitmentForm data:", {
+    statusUpdatedBy: recruitmentForm.statusUpdatedBy?.name,
+    statusUpdatedAt: recruitmentForm.statusUpdatedAt,
+    statusUpdatedById: recruitmentForm.statusUpdatedById,
+  });
 
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg shadow-xl p-6 print-header">
@@ -66,12 +95,42 @@ export const RecruitmentHeader: React.FC<RecruitmentHeaderProps> = ({
           <h1 className="text-2xl font-bold text-white mb-2">
             {recruitmentForm.fullName}
           </h1>
+          <p className="text-gray-100 mb-1">
+            <span className="italic">Recruitment ID's</span> :{" "}
+            {recruitmentForm.id}
+          </p>
           <p className="text-gray-300 mb-1">
             Application submitted on {formatDate(recruitmentForm.createdAt)}
           </p>
+          {/* Status update tracking - Screen only */}
+          {recruitmentForm.statusUpdatedBy &&
+          recruitmentForm.statusUpdatedAt ? (
+            <p className="text-gray-400 text-sm mb-1 no-print">
+              Status last updated by{" "}
+              <span className="font-medium text-gray-300">
+                {recruitmentForm.statusUpdatedBy.name}
+              </span>{" "}
+              on {formatDateTime(recruitmentForm.statusUpdatedAt)}
+            </p>
+          ) : (
+            <p className="text-gray-500 text-xs mb-1 no-print italic">
+              No status update history available
+            </p>
+          )}
+
           {/* Status for print */}
           <div className="hidden print:block print-status">
             Status: {recruitmentForm.status.replace("_", " ")}
+            {recruitmentForm.statusUpdatedBy && (
+              <span className="block text-sm mt-1">
+                Updated by: {recruitmentForm.statusUpdatedBy.name}
+                {recruitmentForm.statusUpdatedAt && (
+                  <span className="ml-2">
+                    on {formatDate(recruitmentForm.statusUpdatedAt)}
+                  </span>
+                )}
+              </span>
+            )}
           </div>
         </div>
 

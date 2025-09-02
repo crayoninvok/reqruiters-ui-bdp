@@ -214,7 +214,10 @@ interface MaritalStatusFieldProps {
   formData: {
     maritalStatus: string;
   };
-  handleInputChange: (field: keyof PublicRecruitmentFormData, value: any) => void;
+  handleInputChange: (
+    field: keyof PublicRecruitmentFormData,
+    value: any
+  ) => void;
   options: {
     maritalStatuses: string[];
   };
@@ -254,6 +257,9 @@ const PublicRecruitmentPage: React.FC = () => {
     birthDate: "",
     province: "",
     gender: "",
+    ktp: "",
+    kk: "",
+    npwp: "",
     religion: "",
     heightCm: 0,
     weightKg: 0,
@@ -668,6 +674,9 @@ const PublicRecruitmentPage: React.FC = () => {
           birthDate: "",
           province: "",
           gender: "",
+          ktp: "",
+          kk: "",
+          npwp: "",
           religion: "",
           heightCm: 0,
           weightKg: 0,
@@ -734,6 +743,8 @@ const PublicRecruitmentPage: React.FC = () => {
         "birthDate",
         "province",
         "gender",
+        "ktp",
+        "kk",
         "heightCm",
         "weightKg",
         "address",
@@ -948,7 +959,30 @@ const PublicRecruitmentPage: React.FC = () => {
                     placeholder="Masukkan tempat lahir Anda"
                   />
                 </div>
-
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    No KTP *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.ktp}
+                    onChange={(e) => handleInputChange("ktp", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Masukkan nomor KTP Anda"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    No Kartu Keluarga *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.kk}
+                    onChange={(e) => handleInputChange("kk", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Masukkan nomor KK Anda"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Tanggal Lahir *
@@ -1080,7 +1114,6 @@ const PublicRecruitmentPage: React.FC = () => {
                   />
                 </div>
               </div>
-
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Alamat *
@@ -1091,6 +1124,18 @@ const PublicRecruitmentPage: React.FC = () => {
                   onChange={(e) => handleInputChange("address", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Masukkan alamat lengkap Anda"
+                />
+              </div>
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  No NPWP (Opsional)
+                </label>
+                <input
+                  type="text"
+                  value={formData.npwp}
+                  onChange={(e) => handleInputChange("npwp", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Masukkan nomor NPWP Anda jika ada"
                 />
               </div>
             </div>

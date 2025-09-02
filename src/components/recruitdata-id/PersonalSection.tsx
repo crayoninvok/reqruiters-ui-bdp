@@ -136,13 +136,32 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               {formatMaritalStatus(recruitmentForm.maritalStatus)}
             </p>
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400 print-label mb-1">
+              No Kartu Tanda Penduduk (KTP)
+            </label>
+            <p className="text-white print-value">{recruitmentForm.ktp || "Belum mengisi saat app diupdate"}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400 print-label mb-1">
+              No Kartu Keluarga (KK)
+            </label>
+            <p className="text-white print-value">{recruitmentForm.kk || "Belum mengisi saat app diupdate"}</p>
+
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400 print-label mb-1">
+              No NPWP
+            </label>
+            <p className="text-white print-value">
+              {recruitmentForm.npwp || "Belum Mengisisi atau Tidak Memiliki"}
+            </p>
+          </div>
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-400 print-label mb-1">
               Address
             </label>
-            <p className="text-white print-value">
-              {recruitmentForm.address}
-            </p>
+            <p className="text-white print-value">{recruitmentForm.address}</p>
           </div>
         </div>
       </div>
@@ -173,36 +192,22 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="font-medium text-blue-400">
-                        TK/0:
-                      </span>
+                      <span className="font-medium text-blue-400">TK/0:</span>
                       <span className="text-blue-300">
                         Tidak ada tanggungan
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-blue-400">
-                        TK/1:
-                      </span>
-                      <span className="text-blue-300">
-                        1 tanggungan
-                      </span>
+                      <span className="font-medium text-blue-400">TK/1:</span>
+                      <span className="text-blue-300">1 tanggungan</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-blue-400">
-                        TK/2:
-                      </span>
-                      <span className="text-blue-300">
-                        2 tanggungan
-                      </span>
+                      <span className="font-medium text-blue-400">TK/2:</span>
+                      <span className="text-blue-300">2 tanggungan</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-blue-400">
-                        TK/3:
-                      </span>
-                      <span className="text-blue-300">
-                        3 tanggungan
-                      </span>
+                      <span className="font-medium text-blue-400">TK/3:</span>
+                      <span className="text-blue-300">3 tanggungan</span>
                     </div>
                   </div>
                 </div>
@@ -214,36 +219,22 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="font-medium text-green-400">
-                        K/0:
-                      </span>
+                      <span className="font-medium text-green-400">K/0:</span>
                       <span className="text-green-300">
                         Tidak ada tanggungan
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-green-400">
-                        K/1:
-                      </span>
-                      <span className="text-green-300">
-                        1 tanggungan
-                      </span>
+                      <span className="font-medium text-green-400">K/1:</span>
+                      <span className="text-green-300">1 tanggungan</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-green-400">
-                        K/2:
-                      </span>
-                      <span className="text-green-300">
-                        2 tanggungan
-                      </span>
+                      <span className="font-medium text-green-400">K/2:</span>
+                      <span className="text-green-300">2 tanggungan</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-green-400">
-                        K/3:
-                      </span>
-                      <span className="text-green-300">
-                        3 tanggungan
-                      </span>
+                      <span className="font-medium text-green-400">K/3:</span>
+                      <span className="text-green-300">3 tanggungan</span>
                     </div>
                   </div>
                 </div>
@@ -266,25 +257,19 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                       <span className="font-medium text-purple-400">
                         K/I/1:
                       </span>
-                      <span className="text-purple-300">
-                        1 tanggungan
-                      </span>
+                      <span className="text-purple-300">1 tanggungan</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-purple-400">
                         K/I/2:
                       </span>
-                      <span className="text-purple-300">
-                        2 tanggungan
-                      </span>
+                      <span className="text-purple-300">2 tanggungan</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-purple-400">
                         K/I/3:
                       </span>
-                      <span className="text-purple-300">
-                        3 tanggungan
-                      </span>
+                      <span className="text-purple-300">3 tanggungan</span>
                     </div>
                   </div>
                 </div>
@@ -313,10 +298,11 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               {/* Additional Information */}
               <div className="mt-6 p-4 bg-gray-700/50 backdrop-blur-sm border border-gray-600/30 rounded-lg">
                 <p className="text-sm text-gray-300">
-                  <strong className="text-white">Catatan:</strong> Status ini digunakan untuk
-                  perhitungan pajak penghasilan (PPh 21). Tanggungan adalah
-                  anggota keluarga yang ditanggung secara finansial seperti anak
-                  atau keluarga lain yang sah menurut hukum.
+                  <strong className="text-white">Catatan:</strong> Status ini
+                  digunakan untuk perhitungan pajak penghasilan (PPh 21).
+                  Tanggungan adalah anggota keluarga yang ditanggung secara
+                  finansial seperti anak atau keluarga lain yang sah menurut
+                  hukum.
                 </p>
               </div>
             </div>

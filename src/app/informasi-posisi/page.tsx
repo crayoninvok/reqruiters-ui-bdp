@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   ChevronRight,
   Users,
@@ -23,13 +23,8 @@ interface PositionInfo {
   id: string;
   title: string;
   department: string;
-  category:
-    | "production"
-    | "technical"
-    | "administration"
-    | "safety"
-    | "logistics"
-    | "hse";
+  category: "production" | "technical" | "administration" | "logistics" | "hse";
+  needed: number;
 }
 
 interface RecruitmentStep {
@@ -40,244 +35,219 @@ interface RecruitmentStep {
   icon: React.ReactNode;
 }
 
-// All positions from your Prisma enum
+// All positions from your staffing plan
 const allPositions: PositionInfo[] = [
+  // Management Department
+  {
+    id: "PROJECT_MANAGER",
+    title: "Project Manager",
+    department: "Management",
+    category: "administration",
+    needed: 1,
+  },
+  {
+    id: "DEPUTY_PM",
+    title: "Deputy PM",
+    department: "Management",
+    category: "administration",
+    needed: 1,
+  },
+
   // Production Department
   {
-    id: "PROD_ENG_SPV",
-    title: "Production Engineering Supervisor",
+    id: "DH_PROD",
+    title: "D.H Prod",
     department: "Production",
     category: "production",
+    needed: 1,
   },
   {
-    id: "PRODUCTION_GROUP_LEADER",
-    title: "Production Group Leader",
+    id: "SPV_PROD",
+    title: "SPV Prod",
     department: "Production",
     category: "production",
+    needed: 3,
   },
   {
-    id: "PRODUCTION_DEPARTMENT_HEAD",
-    title: "Production Department Head",
+    id: "GL_COALPAD",
+    title: "GL Coalpad",
     department: "Production",
     category: "production",
+    needed: 6,
   },
   {
-    id: "MOCO_LEADER",
-    title: "MOCO Leader",
+    id: "GL_HAULING",
+    title: "GL Hauling",
     department: "Production",
     category: "production",
+    needed: 3,
   },
   {
-    id: "DRIVER_DT",
-    title: "Driver DT",
+    id: "GL_JETTY",
+    title: "GL Jetty",
     department: "Production",
     category: "production",
+    needed: 4,
   },
   {
-    id: "SIDE_DUMP_SPOTTER",
-    title: "Side Dump Spotter",
+    id: "INSTRUCTOR_PROD",
+    title: "Instructor",
     department: "Production",
     category: "production",
+    needed: 3,
+  },
+  {
+    id: "MOCO",
+    title: "Moco",
+    department: "Production",
+    category: "production",
+    needed: 2,
   },
 
-  // Technical/Maintenance
+  // Plant Department
   {
-    id: "MECHANIC_JR",
-    title: "Junior Mechanic",
-    department: "Maintenance",
-    category: "technical",
-  },
-  {
-    id: "MECHANIC_SR",
-    title: "Senior Mechanic",
-    department: "Maintenance",
-    category: "technical",
-  },
-  {
-    id: "MECHANIC_INSTRUCTOR",
-    title: "Mechanic Instructor",
-    department: "Maintenance",
-    category: "technical",
-  },
-  {
-    id: "WELDER",
-    title: "Welder",
-    department: "Maintenance",
-    category: "technical",
-  },
-  {
-    id: "ELECTRICIAN",
-    title: "Electrician",
-    department: "Maintenance",
-    category: "technical",
-  },
-  {
-    id: "TYREMAN",
-    title: "Tyreman",
-    department: "Maintenance",
-    category: "technical",
-  },
-  {
-    id: "FABRICATION",
-    title: "Fabrication",
-    department: "Maintenance",
-    category: "technical",
-  },
-  {
-    id: "TYRE_GROUP_LEADER",
-    title: "Tyre Group Leader",
-    department: "Maintenance",
-    category: "technical",
-  },
-
-  // Plant Operations
-  {
-    id: "PLANT_GROUP_LEADER",
-    title: "Plant Group Leader",
-    department: "Plant Operations",
-    category: "production",
-  },
-  {
-    id: "PLANT_ADMIN",
-    title: "Plant Administrator",
-    department: "Plant Operations",
-    category: "administration",
-  },
-  {
-    id: "OPERATOR_FUEL_TRUCK",
-    title: "Fuel Truck Operator",
-    department: "Plant Operations",
-    category: "technical",
-  },
-
-  // Logistics
-  {
-    id: "LOGISTIC_SPV",
-    title: "Logistics Supervisor",
-    department: "Logistics",
+    id: "DH_PLANTLOG",
+    title: "DH PlantLog",
+    department: "Plant",
     category: "logistics",
+    needed: 1,
   },
   {
-    id: "LOGISTIC_GROUP_LEADER",
-    title: "Logistics Group Leader",
-    department: "Logistics",
-    category: "logistics",
-  },
-  {
-    id: "LOGISTIC_ADMIN",
-    title: "Logistics Administrator",
-    department: "Logistics",
-    category: "administration",
-  },
-
-  // Planning
-  {
-    id: "PLAN_SPV",
-    title: "Planning Supervisor",
-    department: "Planning",
-    category: "administration",
+    id: "SPV_PLANT",
+    title: "SPV Plant",
+    department: "Plant",
+    category: "production",
+    needed: 3,
   },
   {
     id: "PLANNER",
     title: "Planner",
-    department: "Planning",
+    department: "Plant",
     category: "administration",
+    needed: 3,
+  },
+  {
+    id: "ENGINEER",
+    title: "Engineer",
+    department: "Plant",
+    category: "technical",
+    needed: 1,
+  },
+  {
+    id: "GL_PLANT",
+    title: "GL Plant",
+    department: "Plant",
+    category: "production",
+    needed: 5,
+  },
+  {
+    id: "GL_FIELD",
+    title: "GL Field",
+    department: "Plant",
+    category: "production",
+    needed: 3,
+  },
+  {
+    id: "GL_TIRE",
+    title: "GL Tire",
+    department: "Plant",
+    category: "technical",
+    needed: 3,
+  },
+  {
+    id: "INSTRUCTOR_PLANT",
+    title: "Instructor",
+    department: "Plant",
+    category: "technical",
+    needed: 1,
+  },
+  {
+    id: "GL_LOGISTIC",
+    title: "GL Logistic",
+    department: "Plant",
+    category: "logistics",
+    needed: 2,
   },
 
-  // Administration
+  // HSE Department
   {
-    id: "CCR_ADMIN",
-    title: "CCR Administrator",
-    department: "Administration",
-    category: "administration",
-  },
-  {
-    id: "WEIGHT_BRIDGE_ADMIN",
-    title: "Weight Bridge Administrator",
-    department: "Administration",
-    category: "administration",
-  },
-  {
-    id: "TYRE_ADMIN",
-    title: "Tyre Administrator",
-    department: "Administration",
-    category: "administration",
-  },
-  {
-    id: "PURCHASING_SPV",
-    title: "Purchasing Supervisor",
-    department: "Administration",
-    category: "administration",
-  },
-  {
-    id: "IT_SUPPORT",
-    title: "IT Support",
-    department: "Administration",
-    category: "administration",
-  },
-
-  // HSE (Health, Safety, Environment)
-  {
-    id: "HSE_SPV",
-    title: "HSE Supervisor",
+    id: "DH_HSE",
+    title: "DH HSE",
     department: "HSE",
     category: "hse",
+    needed: 1,
   },
   {
-    id: "SAFETY_OFFICER",
-    title: "Safety Officer",
-    department: "HSE",
-    category: "safety",
-  },
-  {
-    id: "ENVIRONMENT_OFFICER",
-    title: "Environment Officer",
+    id: "SPV_HSE",
+    title: "SPV HSE",
     department: "HSE",
     category: "hse",
+    needed: 1,
+  },
+  {
+    id: "OFFICER_HSE",
+    title: "Officer HSE",
+    department: "HSE",
+    category: "hse",
+    needed: 5,
+  },
+  {
+    id: "OFFICER_ERT",
+    title: "Officer ERT",
+    department: "HSE",
+    category: "hse",
+    needed: 3,
   },
   {
     id: "PARAMEDIC",
     title: "Paramedic",
     department: "HSE",
     category: "hse",
-  },
-  {
-    id: "HSE_ADMIN",
-    title: "HSE Administrator",
-    department: "HSE",
-    category: "administration",
-  },
-  {
-    id: "DOCTOR",
-    title: "Doctor",
-    department: "HSE",
-    category: "hse",
+    needed: 2,
   },
 
-  // HRGA
+  // HRGA Department
   {
-    id: "HRGA_GROUP_LEADER",
-    title: "HRGA Group Leader",
+    id: "DH_HRGA",
+    title: "DH HRGA",
     department: "HRGA",
     category: "administration",
+    needed: 1,
   },
   {
-    id: "GA_GROUP_LEADER",
-    title: "GA Group Leader",
+    id: "SPV_HRGA",
+    title: "SPV HRGA",
     department: "HRGA",
     category: "administration",
+    needed: 1,
+  },
+  {
+    id: "GL_HRGA",
+    title: "GL HRGA",
+    department: "HRGA",
+    category: "administration",
+    needed: 3,
+  },
+  {
+    id: "GL_INFRASTRUCTURE",
+    title: "GL INFRASTRUCTURE",
+    department: "HRGA",
+    category: "administration",
+    needed: 2,
+  },
+  {
+    id: "CSR",
+    title: "CSR",
+    department: "HRGA",
+    category: "administration",
+    needed: 1,
   },
   {
     id: "PDCA_OFFICER",
     title: "PDCA Officer",
     department: "HRGA",
     category: "administration",
-  },
-  {
-    id: "HRGA_SPV",
-    title: "HRGA Supervisor",
-    department: "HRGA",
-    category: "administration",
+    needed: 1,
   },
 ];
 
@@ -341,17 +311,16 @@ const categoryColors = {
   production: "bg-blue-100 text-blue-800",
   technical: "bg-green-100 text-green-800",
   administration: "bg-purple-100 text-purple-800",
-  safety: "bg-red-100 text-red-800",
   logistics: "bg-orange-100 text-orange-800",
   hse: "bg-yellow-100 text-yellow-800",
 };
+
 const categoryIcons = {
   production: <Factory className="w-5 h-5" />,
   technical: <Wrench className="w-5 h-5" />,
   administration: <Briefcase className="w-5 h-5" />,
-  safety: <Shield className="w-5 h-5" />,
   logistics: <Truck className="w-5 h-5" />,
-  hse: "bg-pink-100 text-pink-800",
+  hse: <Heart className="w-5 h-5" />,
 };
 
 export default function InformasiPosisi() {
@@ -361,6 +330,18 @@ export default function InformasiPosisi() {
     selectedCategory === "all"
       ? allPositions
       : allPositions.filter((pos) => pos.category === selectedCategory);
+
+  // Calculate totals by department
+  const departmentTotals = allPositions.reduce((acc, position) => {
+    acc[position.department] =
+      (acc[position.department] || 0) + position.needed;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const totalCandidatesNeeded = allPositions.reduce(
+    (sum, pos) => sum + pos.needed,
+    0
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -420,6 +401,46 @@ export default function InformasiPosisi() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Summary Section */}
+      <section className="py-12 px-6 bg-blue-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Total Kebutuhan Kandidat
+            </h2>
+            <div className="text-4xl font-bold text-blue-600 mb-4">
+              {totalCandidatesNeeded} Kandidat
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Object.entries(departmentTotals).map(([department, total]) => (
+              <div
+                key={department}
+                className="bg-white rounded-lg p-4 text-center shadow-sm"
+              >
+                <div className="text-lg font-semibold text-gray-900 mb-1">
+                  {department}
+                </div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {total} kandidat
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Apply Button */}
+          <div className="text-center mt-8">
+            <a
+              href="/recruitment-form"
+              className="bg-blue-600 text-white py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            >
+              Klik disini untuk melamar
+            </a>
           </div>
         </div>
       </section>
@@ -503,10 +524,7 @@ export default function InformasiPosisi() {
                   ? "bg-blue-600 text-white"
                   : "bg-white text-gray-600 hover:bg-gray-100"
               }`}
-            >
-              Safety (
-              {allPositions.filter((p) => p.category === "safety").length})
-            </button>
+            ></button>
             <button
               onClick={() => setSelectedCategory("hse")}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -524,7 +542,7 @@ export default function InformasiPosisi() {
             {filteredPositions.map((position) => (
               <div
                 key={position.id}
-                className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm"
+                className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div
@@ -534,6 +552,9 @@ export default function InformasiPosisi() {
                   >
                     {categoryIcons[position.category]}
                     <span className="ml-1 capitalize">{position.category}</span>
+                  </div>
+                  <div className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    {position.needed}
                   </div>
                 </div>
 
@@ -545,6 +566,10 @@ export default function InformasiPosisi() {
                   <div className="flex items-center text-xs text-gray-600">
                     <Briefcase className="w-3 h-3 mr-1 flex-shrink-0" />
                     <span className="truncate">{position.department}</span>
+                  </div>
+                  <div className="flex items-center text-xs text-blue-600 font-medium">
+                    <Users className="w-3 h-3 mr-1 flex-shrink-0" />
+                    <span>Dibutuhkan: {position.needed} kandidat</span>
                   </div>
                 </div>
               </div>

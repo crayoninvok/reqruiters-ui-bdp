@@ -199,13 +199,20 @@ function AnalyticsPage() {
         />
         <StatCard
           title="In Progress"
-          value={dashboardStats?.onProgressApplications || 0}
+          value={
+            (dashboardStats?.onProgressApplications || 0) +
+            (dashboardStats?.interviewApplications || 0) +
+            (dashboardStats?.psikotestApplications || 0) +
+            (dashboardStats?.userinterviewApplications || 0) +
+            (dashboardStats?.medicalcheckupApplications || 0) +
+            (dashboardStats?.medicalfollowupApplications || 0)
+          }
           icon={UserCheck}
           description="Currently processing"
           gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
         />
         <StatCard
-          title="Hired"
+          title=" Hired Applications"
           value={dashboardStats?.hiredApplications || 0}
           icon={CheckCircle}
           description="Finalized applications"

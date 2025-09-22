@@ -3,7 +3,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "HR";
+  role: "ADMIN" | "HR" | "MANAGEMENT" | "VIEWS_ONLY"
   avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
@@ -277,6 +277,8 @@ export enum Position {
   HRGA_OFFICER = "HRGA_OFFICER", //add in 09/02/2025
   DRIVER_SARANA = "DRIVER_SARANA", //add in 09/02/2025
   DRIVER_LV = "DRIVER_LV", //add in 09/02/2025
+  DEPT_HEAD_HSE = "DEPT_HEAD_HSE", //add in 09/22/2025
+  PROCUREMENT_OFFICER = "PROCUREMENT_OFFICER", //add in 09/22/2025
 }
 
 // NEW: Department enum (was missing entirely)

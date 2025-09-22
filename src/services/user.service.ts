@@ -5,7 +5,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'HR';
+  role: 'ADMIN' | 'HR' | 'MANAGEMENT' | 'VIEWS_ONLY';
   avatarUrl?: string;
   createdAt: string;
   updatedAt: string;

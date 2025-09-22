@@ -459,6 +459,6 @@ function ActualVsPlanPage() {
 }
 
 export default withGuard(ActualVsPlanPage, {
-  allowedRoles: ["HR", "ADMIN"],
+  allowedRoles: ["HR", "ADMIN", "MANAGEMENT", "VIEWS_ONLY"],
   unauthorizedRedirect: "/custom-401",
 });

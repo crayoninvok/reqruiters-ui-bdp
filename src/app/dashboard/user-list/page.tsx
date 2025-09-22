@@ -487,6 +487,8 @@ interface FormErrors {
                         >
                           <option value="HR">HR</option>
                           <option value="ADMIN">ADMIN</option>
+                          <option value="MANAGEMENT">MANAGEMENT</option>
+                          <option value="VIEWS_ONLY">VIEWS_ONLY</option>
                         </select>
 
                         {/* Edit Button */}

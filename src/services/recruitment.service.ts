@@ -133,6 +133,7 @@ export class RecruitmentFormService {
       if (filters.province) params.append("province", filters.province);
       if (filters.gender) params.append("gender", filters.gender);
       if (filters.education) params.append("education", filters.education);
+      if(filters.pernahKerjaDiTambang) params.append("pernahKerjaDiTambang", filters.pernahKerjaDiTambang);
       if (filters.appliedPosition)
         params.append("appliedPosition", filters.appliedPosition);
 

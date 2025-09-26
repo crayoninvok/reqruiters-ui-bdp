@@ -46,6 +46,7 @@ function RecruitmentDataPage() {
     certificate: [],
     province: "",
     education: "",
+    pernahKerjaDiTambang: "",
     appliedPosition: "",
     startDate: "",
     endDate: "",
@@ -93,6 +94,7 @@ function RecruitmentDataPage() {
           province: "", // Reset province filter for export
           education: "", // Reset education filter for export
           appliedPosition: "", // Reset applied position filter for export
+          pernahKerjaDiTambang: "", // Reset mining experience filter for export
           startDate: "", // Reset date filters for export
           endDate: "",
           limit: maxLimit,
@@ -147,6 +149,7 @@ function RecruitmentDataPage() {
           status: "",
           certificate: [],
           province: "",
+          pernahKerjaDiTambang: "",
           education: "",
           appliedPosition: "",
           startDate: "",

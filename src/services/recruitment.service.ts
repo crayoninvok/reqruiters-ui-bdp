@@ -17,6 +17,7 @@ export interface RecruitmentFormFilters {
   limit?: number;
   search?: string;
   status?: string;
+  pernahKerjaDiTambang?: string;
   gender?: string;
   certificate?: string[];
   province?: string;

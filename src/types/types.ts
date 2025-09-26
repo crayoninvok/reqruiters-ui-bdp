@@ -124,11 +124,14 @@ export interface RecruitmentForm {
   ktp?: string;
   kk?: string;
   npwp?: string;
+  reffEmployeeName?:string; // New field for referral employee name 25/09/2025
+  reffConnection?:string; // New field for referral employee connection 25/09/2025
   whatsappNumber: string;
   certificate: Certificate[];
   education: EducationLevel;
   schoolName: string;
   jurusan?: string;
+  expectedSalary?: number;
   workExperience?: string;
   maritalStatus: MaritalStatus;
   appliedPosition?: Position;
@@ -140,6 +143,9 @@ export interface RecruitmentForm {
   documentVaccineUrl?: string;
   supportingDocsUrl?: string;
   experienceLevel?: ExperienceLevel;
+  pernahKerjaDiTambang?: PernahTidak; // New field for mining experience 09/10/2025
+  referalEmployeeName?:string // New field for referral employee name 25/09/2025
+  referalEmployeeConnection?:string // New field for referral employee name 25/09/2025
 
   // NEW: Status tracking fields
   statusUpdatedById?: string;
@@ -221,6 +227,11 @@ export interface RecruitmentStats {
 export enum Role {
   ADMIN = "ADMIN",
   HR = "HR",
+}
+
+export enum PernahTidak{
+  PERNAH="PERNAH",
+  TIDAK_PERNAH="TIDAK_PERNAH",
 }
 
 // FIXED: Position enum values to match Prisma schema exactly
@@ -435,6 +446,11 @@ export enum Certificate {
   NONE = "NONE",
 }
 
+export enum EmployeConnection{
+  TEMAN="TEMAN",
+  KELUARGA="KELUARGA", // Added Employee Connection option for no connection 24/09/2025
+}
+
 export enum EducationLevel {
   SD = "SD",
   SMP = "SMP",
@@ -544,6 +560,8 @@ export interface CreateRecruitmentFormData {
   ktp?: string;
   kk?: string;
   npwp?: string;
+  reffEmployeeName?:string; // New field for referral employee name 25/09/2025
+  reffConnection?:string; // New field for referral employee connection 25/09/2025
   whatsappNumber: string;
   certificate: Certificate[];
   education: EducationLevel;

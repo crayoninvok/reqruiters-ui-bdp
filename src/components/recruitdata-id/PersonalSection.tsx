@@ -50,9 +50,11 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
 
   // WhatsApp chat functionality
   const handleWhatsAppChat = () => {
-    const phoneNumber = recruitmentForm.whatsappNumber.replace(/[^\d]/g, ''); // Remove non-digits
-    const formattedPhone = phoneNumber.startsWith('0') ? '62' + phoneNumber.slice(1) : phoneNumber;
-    
+    const phoneNumber = recruitmentForm.whatsappNumber.replace(/[^\d]/g, ""); // Remove non-digits
+    const formattedPhone = phoneNumber.startsWith("0")
+      ? "62" + phoneNumber.slice(1)
+      : phoneNumber;
+
     const message = `Hallo ${recruitmentForm.fullName},
 
 Perkenalkan saya Team HR dari PT. Batara Dharma Persada.
@@ -67,15 +69,17 @@ Tim HR PT. Batara Dharma Persada`;
     const encodedMessage = encodeURIComponent(message);
     // Force WhatsApp Web instead of desktop app
     const whatsappUrl = `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
+
+    window.open(whatsappUrl, "_blank");
   };
 
   // Alternative method with user choice
   const handleWhatsAppChatWithChoice = () => {
-    const phoneNumber = recruitmentForm.whatsappNumber.replace(/[^\d]/g, '');
-    const formattedPhone = phoneNumber.startsWith('0') ? '62' + phoneNumber.slice(1) : phoneNumber;
-    
+    const phoneNumber = recruitmentForm.whatsappNumber.replace(/[^\d]/g, "");
+    const formattedPhone = phoneNumber.startsWith("0")
+      ? "62" + phoneNumber.slice(1)
+      : phoneNumber;
+
     const message = `Hallo ${recruitmentForm.fullName},
 
 Perkenalkan saya Team HR dari PT. Batara Dharma Persada.
@@ -88,15 +92,17 @@ Salam hormat,
 Tim HR PT. Batara Dharma Persada`;
 
     const encodedMessage = encodeURIComponent(message);
-    
+
     // Show user choice
-    const choice = confirm("Pilih cara membuka WhatsApp:\n\nOK = WhatsApp Web (Browser)\nCancel = WhatsApp Desktop/Mobile App");
-    
-    const whatsappUrl = choice 
+    const choice = confirm(
+      "Pilih cara membuka WhatsApp:\n\nOK = WhatsApp Web (Browser)\nCancel = WhatsApp Desktop/Mobile App"
+    );
+
+    const whatsappUrl = choice
       ? `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`
       : `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
+
+    window.open(whatsappUrl, "_blank");
   };
 
   return (
@@ -211,14 +217,17 @@ Tim HR PT. Batara Dharma Persada`;
             <label className="block text-sm font-medium text-gray-400 print-label mb-1">
               No Kartu Tanda Penduduk (KTP)
             </label>
-            <p className="text-white print-value">{recruitmentForm.ktp || "Belum mengisi saat app diupdate"}</p>
+            <p className="text-white print-value">
+              {recruitmentForm.ktp || "Belum mengisi saat app diupdate"}
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 print-label mb-1">
               No Kartu Keluarga (KK)
             </label>
-            <p className="text-white print-value">{recruitmentForm.kk || "Belum mengisi saat app diupdate"}</p>
-
+            <p className="text-white print-value">
+              {recruitmentForm.kk || "Belum mengisi saat app diupdate"}
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 print-label mb-1">
@@ -228,6 +237,20 @@ Tim HR PT. Batara Dharma Persada`;
               {recruitmentForm.npwp || "Belum Mengisisi atau Tidak Memiliki"}
             </p>
           </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-400 print-label mb-1">
+              Expected Salary
+            </label>
+            <p className="text-white print-value">
+              {recruitmentForm.expectedSalary
+                ? new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(recruitmentForm.expectedSalary)
+                : "Belum mengisi saat aplikasi di update"}
+            </p>
+          </div>
+
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-400 print-label mb-1">
               Address

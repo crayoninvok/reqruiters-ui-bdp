@@ -9,7 +9,11 @@ export interface PublicRecruitmentFormData {
   ktp: string;
   kk: string;
   npwp?: string;
+  expectedSalary?: number;
   religion: string;
+  pernahKerjaDiTambang?: string;
+  reffEmployeeName?: string; // New field for referral employee name 25/09/2025
+  reffConnection?: string; // New field for referral employee connection 25/09/2025
   province: string;
   heightCm: number;
   weightKg: number;
@@ -65,6 +69,7 @@ interface FormOptionsResponse {
     shirtSizes: string[];
     safetyShoeSizes: string[];
     pantsSizes: string[];
+    pernahKerjaDiTambang: string[];
     certificates: string[];
     educationLevels: string[];
     maritalStatuses: string[];
@@ -347,6 +352,9 @@ export class PublicRecruitmentService {
 
     if (!data.safetyShoesSize) {
       errors.push("Safety shoes size is required");
+    }
+    if (!data.pernahKerjaDiTambang) {
+      errors.push("Pernah kerja di perushaan tambang is required");
     }
 
     if (!data.pantsSize) {

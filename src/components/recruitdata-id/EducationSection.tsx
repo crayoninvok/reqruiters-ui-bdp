@@ -5,7 +5,9 @@ import dynamic from "next/dynamic";
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill"), {
   ssr: false,
-  loading: () => <div className="animate-pulse bg-gray-700/50 h-20 rounded"></div>,
+  loading: () => (
+    <div className="animate-pulse bg-gray-700/50 h-20 rounded"></div>
+  ),
 });
 
 // Import Quill styles
@@ -36,17 +38,13 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
           <label className="block text-sm font-medium text-gray-400 print-label">
             School Name
           </label>
-          <p className="text-white print-value">
-            {recruitmentForm.schoolName}
-          </p>
+          <p className="text-white print-value">{recruitmentForm.schoolName}</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-400 print-label">
             Major
           </label>
-          <p className="text-white print-value">
-            {recruitmentForm.jurusan}
-          </p>
+          <p className="text-white print-value">{recruitmentForm.jurusan}</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-400 print-label">
@@ -64,6 +62,22 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
           <p className="text-white print-value">
             {recruitmentForm.appliedPosition?.replace(/_/g, " ") ||
               "Not specified"}
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-400 print-label">
+            Nama Karyawan Referensi PT. Batara Dharma Persada
+          </label>
+          <p className="text-white print-value">
+            {recruitmentForm.reffEmployeeName || "Tidak ada referensi"}
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-400 print-label">
+            Hubungan dengan Karyawan Referensi
+          </label>
+          <p className="text-white print-value">
+            {recruitmentForm.reffConnection || "Tidak ada referensi"}
           </p>
         </div>
         {recruitmentForm.workExperience && (
@@ -107,29 +121,29 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
           font-size: 14px !important;
           padding: 12px !important;
         }
-        
+
         .work-experience-container .ql-container {
           border: none !important;
           background: transparent !important;
         }
-        
+
         .work-experience-container .ql-snow {
           background: transparent !important;
           border: none !important;
         }
-        
+
         .work-experience-container .ql-editor p {
           color: #f3f4f6 !important;
         }
-        
+
         .work-experience-container .ql-editor strong {
           color: #ffffff !important;
         }
-        
+
         .work-experience-container .ql-editor ul li {
           color: #f3f4f6 !important;
         }
-        
+
         .work-experience-container .ql-editor ol li {
           color: #f3f4f6 !important;
         }

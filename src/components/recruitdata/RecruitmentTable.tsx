@@ -86,6 +86,9 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
                 Updated By
               </th>
+               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
+                Pernah di Tambang
+              </th>
             </tr>
           </thead>
           <tbody className="bg-transparent divide-y divide-gray-600/20">
@@ -299,6 +302,9 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white min-w-[120px]">
                     {form.statusUpdatedBy?.name || "N/A"}
+                  </td>
+                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white min-w-[120px]">
+                    {form.pernahKerjaDiTambang || "N/A"}
                   </td>
                 </tr>
               ))

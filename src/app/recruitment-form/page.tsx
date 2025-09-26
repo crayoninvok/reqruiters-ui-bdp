@@ -18,7 +18,9 @@ import {
   Home,
   Info, // Add this
   ChevronDown, // Add this
-  ChevronUp, // Add this
+  ChevronUp,
+  Link,
+  Users, // Add this
 } from "lucide-react";
 import Swal from "sweetalert2";
 import SubmittedApp from "@/components/SubmittedApp";
@@ -235,6 +237,7 @@ interface FormOptions {
   maritalStatuses: string[];
   positions: string[];
   experienceLevels: string[];
+  pernahKerjaDiTambang: string[];
 }
 
 interface FormFiles {
@@ -258,8 +261,11 @@ const PublicRecruitmentPage: React.FC = () => {
     province: "",
     gender: "",
     ktp: "",
+    expectedSalary: 0,
     kk: "",
     npwp: "",
+    reffEmployeeName: "", // New field for referral employee name 25/09/2025
+    reffConnection: "", // New field for referral employee connection 25/09/2025
     religion: "",
     heightCm: 0,
     weightKg: 0,
@@ -276,6 +282,7 @@ const PublicRecruitmentPage: React.FC = () => {
     maritalStatus: "",
     appliedPosition: "",
     experienceLevel: "",
+    pernahKerjaDiTambang: "",
   });
 
   const [files, setFiles] = useState<FormFiles>({});
@@ -677,6 +684,8 @@ const PublicRecruitmentPage: React.FC = () => {
           ktp: "",
           kk: "",
           npwp: "",
+          reffConnection: "", // New field for referral employee connection 25/09/2025
+          reffEmployeeName: "", // New field for referral employee name 25/09/2025
           religion: "",
           heightCm: 0,
           weightKg: 0,
@@ -693,6 +702,7 @@ const PublicRecruitmentPage: React.FC = () => {
           maritalStatus: "",
           appliedPosition: "",
           experienceLevel: "",
+          pernahKerjaDiTambang: "",
         });
         setFiles({});
         setIsSubmitted(false);
@@ -771,6 +781,7 @@ const PublicRecruitmentPage: React.FC = () => {
         "schoolName",
         "appliedPosition",
         "experienceLevel",
+        "pernahKerjaDiTambang",
         "shirtSize",
         "safetyShoesSize",
         "pantsSize",
@@ -1168,7 +1179,6 @@ const PublicRecruitmentPage: React.FC = () => {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Nama Sekolah/Universitas *
@@ -1183,7 +1193,6 @@ const PublicRecruitmentPage: React.FC = () => {
                     placeholder="Masukkan nama institusi"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Jurusan Pendidikan (Opsional)
@@ -1198,7 +1207,6 @@ const PublicRecruitmentPage: React.FC = () => {
                     placeholder="Nama jurusan di sekolah anda jika ada"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Posisi yang Dilamar *
@@ -1224,7 +1232,6 @@ const PublicRecruitmentPage: React.FC = () => {
                       ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Level Pengalaman *
@@ -1244,7 +1251,6 @@ const PublicRecruitmentPage: React.FC = () => {
                     ))}
                   </select>
                 </div>
-
                 {/* Uniform Sizes */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1265,7 +1271,6 @@ const PublicRecruitmentPage: React.FC = () => {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Ukuran Sepatu Safety *
@@ -1285,7 +1290,6 @@ const PublicRecruitmentPage: React.FC = () => {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Ukuran Celana *
@@ -1305,8 +1309,125 @@ const PublicRecruitmentPage: React.FC = () => {
                     ))}
                   </select>
                 </div>
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ekspektasi Gaji (All In)*
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.expectedSalary}
+                    onChange={(e) =>
+                      handleInputChange("expectedSalary", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Masukkan ekspektasi gaji"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Apakah Anda Pernah Bekerja di Perusahaan Tambang? *
+                  </label>
+                  <select
+                    value={formData.pernahKerjaDiTambang}
+                    onChange={(e) =>
+                      handleInputChange("pernahKerjaDiTambang", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Pilih Disini</option>
+                    <option value="PERNAH">PERNAH</option>
+                    <option value="TIDAK_PERNAH">TIDAK_PERNAH</option>
+                  </select>
+                </div>
+                <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 w-full md:col-span-2">
+                  <div className="flex items-center mb-4">
+                    <div className="bg-blue-100 rounded-lg p-2 mr-3">
+                      <Users className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        Referensi Karyawan
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Informasi karyawan PT. Batara Dharma Persada yang
+                        merekomendasikan Anda
+                      </p>
+                    </div>
+                  </div>
 
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Nama Karyawan Referensi
+                        <span className="text-gray-400 font-normal ml-1">
+                          (Opsional)
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={formData.reffEmployeeName}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "reffEmployeeName",
+                              e.target.value
+                            )
+                          }
+                          className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white shadow-sm"
+                          placeholder="Masukkan nama lengkap karyawan"
+                        />
+                        <User className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Hubungan dengan Karyawan
+                        <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={formData.reffConnection}
+                          onChange={(e) =>
+                            handleInputChange("reffConnection", e.target.value)
+                          }
+                          className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white shadow-sm"
+                          placeholder="Contoh: Keluarga, Teman, Tetangga, dll"
+                        />
+                        <Link className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Jelaskan hubungan Anda dengan karyawan referensi
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 bg-white/60 backdrop-blur-sm border border-blue-100 rounded-lg p-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="bg-blue-500 rounded-full p-1 mt-0.5">
+                        <Info className="h-3 w-3 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-gray-800 mb-1">
+                          Tips Pengisian Referensi
+                        </h4>
+                        <ul className="text-xs text-gray-600 space-y-1">
+                          <li>
+                            • Referensi dari karyawan dapat mempercepat proses
+                            seleksi
+                          </li>
+                          <li>
+                            • Pastikan nama yang dimasukkan adalah karyawan
+                            aktif
+                          </li>
+                          <li>• Informasi akan diverifikasi oleh tim HR</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Pengalaman Kerja (Opsional)

@@ -6,6 +6,7 @@ import {
   Province,
   RecruitmentStatus,
   Certificate,
+  PernahTidak
 } from "@/types/types";
 import { CertificateMultiSelect } from "./CertificateMultiSelect";
 import { RecruitmentFormFilters } from "@/services/recruitment.service";
@@ -104,8 +105,8 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
         </div>
       </div>
 
-      {/* Main filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+      {/* Main filters - Updated to 7 columns to accommodate new filter */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
             Search
@@ -223,6 +224,35 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
           </select>
         </div>
 
+        {/* FIXED: Mining Experience Filter */}
+        <div>
+          <label className="block text-xs font-medium text-gray-300 mb-1">
+            Mining Experience
+          </label>
+          <select
+            value={filters.pernahKerjaDiTambang || ""}
+            onChange={(e) => onFilterChange("pernahKerjaDiTambang", e.target.value)}
+            className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm"
+          >
+            <option value="" className="bg-gray-800 text-white">
+              All Experience
+            </option>
+            {Object.values(PernahTidak).map((experience) => {
+              const displayText = experience === "PERNAH" ? "Pernah" : "Tidak Pernah";
+
+              return (
+                <option
+                  key={experience}
+                  value={experience}
+                  className="bg-gray-800 text-white"
+                >
+                  {displayText}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
             Items per page
@@ -255,7 +285,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
             placeholder="Select certificates to filter..."
           />
 
-          {/* Filter summary */}
+          {/* Filter summary - Updated to include mining experience */}
           <div className="lg:col-span-2 flex items-end">
             <div className="text-sm text-gray-400">
               {(filters.search ||
@@ -264,6 +294,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
                 filters.gender ||
                 filters.province ||
                 filters.status ||
+                filters.pernahKerjaDiTambang ||
                 (filters.certificate && filters.certificate.length > 0) ||
                 filters.startDate ||
                 filters.endDate) && (
@@ -299,6 +330,11 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
                   {filters.status && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
                       Status: {filters.status}
+                    </span>
+                  )}
+                  {filters.pernahKerjaDiTambang && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
+                      Mining: {String(filters.pernahKerjaDiTambang) === "PERNAH" ? "Has experience" : "No experience"}
                     </span>
                   )}
                   {filters.certificate && filters.certificate.length > 0 && (

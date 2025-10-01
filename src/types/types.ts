@@ -290,6 +290,7 @@ export enum Position {
   DRIVER_LV = "DRIVER_LV", //add in 09/02/2025
   DEPT_HEAD_HSE = "DEPT_HEAD_HSE", //add in 09/22/2025
   PROCUREMENT_OFFICER = "PROCUREMENT_OFFICER", //add in 09/22/2025
+  ERT_OFFICER = "ERT_OFFICER", //add in 10/09/2025
 }
 
 // NEW: Department enum (was missing entirely)

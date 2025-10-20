@@ -294,6 +294,7 @@ export enum Position {
   PETUGAS_B3 = "PETUGAS_B3", //add in 10/09/2025
   TRAINER_K3 = "TRAINER_K3", //add in 10/09/2025
   OPERATOR_GARBAGE_CAR = "OPERATOR_GARBAGE_CAR", //add in 10/09/2025
+  SAFETY_PATROL = "SAFETY_PATROL", //add in 10/09/2025
 }
 
 // NEW: Department enum (was missing entirely)
@@ -420,6 +421,7 @@ export enum PantsSize {
 // FIXED: Certificate enum values to match Prisma schema exactly
 export enum Certificate {
   AHLI_K3 = "AHLI_K3",
+    AUDITOR_SMKP = "AUDITOR_SMKP", // added in 20/10/2025
   SIM_A = "SIM_A", // FIXED: was "SIM A"
   SIM_B_I = "SIM_B_I",
   SIM_B_II = "SIM_B_II",

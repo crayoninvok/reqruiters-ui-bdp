@@ -37,10 +37,58 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Check authentication status on mount
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  // Enhanced logout function
+  const logout = async () => {
+    try {
+      setLoading(true);
+      
+      // Call AuthService logout (handles both client and server cleanup)
+      await AuthService.logout();
+      
+      // Clear user state
+      setUser(null);
+      
+      // Redirect to login
+      router.push("/login");
+      
+    } catch (error) {
+      console.error("Logout failed:", error);
+      
+      // Even if logout fails, clear user state and redirect
+      setUser(null);
+      
+      // Force clear all auth data as fallback
+      AuthService.clearAllAuthData();
+      
+      router.push("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Refresh authentication
+  const refreshAuth = useCallback(async () => {
+    try {
+      setLoading(true);
+      const result = await AuthService.refreshToken();
+      
+      if (result.token && result.user) {
+        AuthService.saveUserData(result.token, result.user);
+        setUser(result.user);
+        setLoading(false);
+      } else {
+        throw new Error("Invalid refresh response");
+      }
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      setLoading(false);
+      // Clear auth data and redirect to login
+      setUser(null);
+      AuthService.clearAllAuthData();
+      router.push("/login");
+      throw error;
+    }
+  }, [router]);
 
   // Memoized checkAuth to prevent unnecessary re-renders
   const checkAuth = useCallback(() => {
@@ -55,42 +103,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Check if token is expired
         if (AuthService.isTokenExpired(token)) {
           // Token expired, try to refresh
-          refreshAuth().catch(() => {
-            // If refresh fails, clear auth data
-            setUser(null);
-          });
+          refreshAuth()
+            .then(() => {
+              setLoading(false);
+            })
+            .catch(() => {
+              // If refresh fails, clear auth data
+              setUser(null);
+              setLoading(false);
+            });
+          return; // Don't set loading to false here, let refreshAuth handle it
         } else {
           setUser(savedUser);
+          setLoading(false);
         }
       } else {
         setUser(null);
+        setLoading(false);
       }
     } catch (error) {
       console.error("Auth check failed:", error);
       setUser(null);
-    } finally {
       setLoading(false);
     }
-  }, []);
+  }, [refreshAuth]);
 
-  // Refresh authentication
-  const refreshAuth = useCallback(async () => {
-    try {
-      const result = await AuthService.refreshToken();
-      
-      if (result.token && result.user) {
-        AuthService.saveUserData(result.token, result.user);
-        setUser(result.user);
-      } else {
-        throw new Error("Invalid refresh response");
-      }
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      // Clear auth data and redirect to login
-      await logout();
-      throw error;
-    }
-  }, []);
+  // Check authentication status on mount
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   // Login function
   const login = async (credentials: LoginCredentials) => {
@@ -127,35 +168,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.error("Registration failed:", error);
       throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Enhanced logout function
-  const logout = async () => {
-    try {
-      setLoading(true);
-      
-      // Call AuthService logout (handles both client and server cleanup)
-      await AuthService.logout();
-      
-      // Clear user state
-      setUser(null);
-      
-      // Redirect to login
-      router.push("/login");
-      
-    } catch (error) {
-      console.error("Logout failed:", error);
-      
-      // Even if logout fails, clear user state and redirect
-      setUser(null);
-      
-      // Force clear all auth data as fallback
-      AuthService.clearAllAuthData();
-      
-      router.push("/login");
     } finally {
       setLoading(false);
     }

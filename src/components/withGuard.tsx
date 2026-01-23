@@ -23,14 +23,23 @@ const defaultOptions: GuardOptions = {
   redirect401: true, // Default to redirecting to 401 page
 };
 
-// Loading component
+// Loading component - Improved with better styling
 const DefaultLoadingComponent = () => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex flex-col items-center justify-center">
-    <div className="relative">
-      <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500/30 border-t-purple-500"></div>
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 animate-pulse"></div>
+  <div className="fixed inset-0 bg-gradient-to-br from-slate-900/95 via-gray-900/95 to-slate-900/95 backdrop-blur-md z-50 flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center gap-6 p-8 bg-gradient-to-br from-slate-800/90 to-gray-800/90 rounded-2xl border border-slate-600/30 shadow-2xl">
+      <div className="relative">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500/30 border-t-blue-500"></div>
+        <div className="absolute inset-0 animate-ping rounded-full border-4 border-blue-500/20"></div>
+      </div>
+      <div className="text-center">
+        <p className="text-white text-lg sm:text-xl font-semibold mb-2">
+          Verifying Access...
+        </p>
+        <p className="text-gray-400 text-sm">
+          Please wait while we verify your credentials
+        </p>
+      </div>
     </div>
-    <p className="mt-6 text-slate-300 text-lg">Verifying access...</p>
   </div>
 );
 
@@ -77,6 +86,7 @@ export function withGuard<P extends object>(
 
         // Check if user is authenticated
         if (!isAuthenticated || !user) {
+          setIsChecking(false);
           router.push(config.redirectTo!);
           return;
         }
@@ -100,7 +110,12 @@ export function withGuard<P extends object>(
         setIsChecking(false);
       };
 
-      checkAccess();
+      // Small delay to ensure state is stable
+      const timeoutId = setTimeout(() => {
+        checkAccess();
+      }, 50);
+
+      return () => clearTimeout(timeoutId);
     }, [user, isAuthenticated, loading, router]);
 
     // Show loading while checking auth

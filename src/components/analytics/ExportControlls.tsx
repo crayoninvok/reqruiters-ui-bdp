@@ -19,7 +19,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({ data }) => {
         className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 shadow-lg"
       >
         <FileSpreadsheet className="w-4 h-4" />
-        Export Excel
+        Ekspor Excel
       </button>
     </div>
   );

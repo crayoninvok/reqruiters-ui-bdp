@@ -4,11 +4,16 @@ import {
   ActualVsPlanService,
   ActualVsPlanData,
   DepartmentSummary,
+  PlanData,
 } from "@/services/actualvsplan.service";
 import { withGuard } from "@/components/withGuard";
+import { useAuth } from "@/context/useAuth";
+import { Department, Position } from "@/types/types";
 import Swal from "sweetalert2";
+import { BarChart3, TrendingUp, TrendingDown, Target, RefreshCw, Download, Plus, X, Trash2, Save } from "lucide-react";
 
 function ActualVsPlanPage() {
+  const { user } = useAuth();
   const [actualVsPlanData, setActualVsPlanData] = useState<ActualVsPlanData[]>(
     []
   );
@@ -24,44 +29,17 @@ function ActualVsPlanPage() {
   });
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"detailed" | "department">("detailed");
-
-  // Demo version state - set to true for demo, false for production
-  const [isDemoVersion, setIsDemoVersion] = useState(true);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [planFormData, setPlanFormData] = useState<PlanData>({
+    department: "" as Department,
+    position: "" as Position,
+    plannedCount: 0,
+    targetDate: "",
+  });
+  const [planList, setPlanList] = useState<PlanData[]>([]);
+  const [savingPlan, setSavingPlan] = useState(false);
 
   useEffect(() => {
-    // Show demo notification on first load
-    const showDemoNotification = () => {
-      Swal.fire({
-        title: "Demo Version",
-        html: `
-          <div class="text-center mb-4">
-            <img src="/bdplogo01.png" alt="BDP Logo" class="mx-auto mb-4" style="height: 60px; width: auto;">
-          </div>
-          <div class="text-left">
-            <p class="mb-3">This page is currently in <strong>demo version</strong>.</p>
-            <p class="mb-2">Please note:</p>
-            <ul class="text-sm text-gray-600 list-disc list-inside space-y-1">
-              <li>Data shown is for demonstration purposes</li>
-              <li>Features may change during development</li>
-              <li>Full functionality coming soon</li>
-            </ul>
-          </div>
-        `,
-        iconHtml: "",
-        confirmButtonText: "Got it",
-        confirmButtonColor: "#3b82f6",
-        customClass: {
-          popup: "rounded-xl",
-          title: "text-gray-800",
-          htmlContainer: "text-gray-700",
-        },
-        backdrop: true,
-        allowOutsideClick: true,
-      });
-    };
-
-    // Show notification first, then load data
-    showDemoNotification();
     loadData();
   }, []);
 
@@ -76,51 +54,226 @@ function ActualVsPlanPage() {
       setActualVsPlanData(actualVsPlan.data);
       setSummary(actualVsPlan.summary);
       setDepartmentSummary(deptSummary.data);
+
+      // Extract plan list from actualVsPlan data
+      const plans: PlanData[] = actualVsPlan.data.map((item) => ({
+        department: item.department as Department,
+        position: item.position as Position,
+        plannedCount: item.planned,
+        targetDate: new Date().toISOString().split("T")[0], // Default to today
+      }));
+      setPlanList(plans);
     } catch (error) {
       console.error("Error loading data:", error);
       Swal.fire({
-        title: "Error",
-        text: "Failed to load actual vs plan data",
+        title: "Kesalahan",
+        text: "Gagal memuat data aktual vs rencana",
         icon: "error",
-        confirmButtonText: "OK",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
       });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleAddPlan = () => {
+    setPlanFormData({
+      department: "" as Department,
+      position: "" as Position,
+      plannedCount: 0,
+      targetDate: "",
+    });
+    setShowPlanModal(true);
+  };
+
+  const handleSavePlan = async () => {
+    // Validate form
+    const errors = ActualVsPlanService.validatePlanData([planFormData]);
+    if (errors.length > 0) {
+      Swal.fire({
+        title: "Validation Error",
+        html: errors.join("<br>"),
+        icon: "error",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
+      });
+      return;
+    }
+
+    // Check if plan with same department+position already exists
+    const existingIndex = planList.findIndex(
+      (p) =>
+        p.department === planFormData.department &&
+        p.position === planFormData.position
+    );
+
+    if (existingIndex >= 0) {
+      Swal.fire({
+        title: "Rencana Sudah Ada",
+        text: "Rencana untuk departemen dan posisi ini sudah ada. Silakan perbarui di daftar rencana di bawah.",
+        icon: "warning",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
+      });
+      return;
+    }
+
+    try {
+      setSavingPlan(true);
+
+      // Add new plan to list
+      const updatedPlans = [...planList, planFormData];
+
+      // Save to backend
+      await ActualVsPlanService.updatePlan(updatedPlans);
+
+      Swal.fire({
+        title: "Berhasil",
+        text: "Rencana rekrutmen berhasil disimpan",
+        icon: "success",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
+      });
+
+      setShowPlanModal(false);
+      loadData(); // Reload data to reflect changes
+    } catch (error: any) {
+      console.error("Error saving plan:", error);
+      Swal.fire({
+        title: "Kesalahan",
+        text:
+          error.response?.data?.message || "Gagal menyimpan rencana rekrutmen",
+        icon: "error",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
+      });
+    } finally {
+      setSavingPlan(false);
+    }
+  };
+
+  const handleUpdateAllPlans = async () => {
+    if (planList.length === 0) {
+      Swal.fire({
+        title: "Tidak Ada Rencana",
+        text: "Silakan tambahkan minimal satu rencana sebelum menyimpan",
+        icon: "warning",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
+      });
+      return;
+    }
+
+    // Validate all plans
+    const errors = ActualVsPlanService.validatePlanData(planList);
+    if (errors.length > 0) {
+      Swal.fire({
+        title: "Validation Error",
+        html: errors.join("<br>"),
+        icon: "error",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
+      });
+      return;
+    }
+
+    try {
+      setSavingPlan(true);
+      await ActualVsPlanService.updatePlan(planList);
+
+      Swal.fire({
+        title: "Berhasil",
+        text: "Semua rencana rekrutmen berhasil disimpan",
+        icon: "success",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
+      });
+
+      loadData(); // Reload data
+    } catch (error: any) {
+      console.error("Error updating plans:", error);
+      Swal.fire({
+        title: "Kesalahan",
+        text:
+          error.response?.data?.message || "Gagal memperbarui rencana rekrutmen",
+        icon: "error",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
+      });
+    } finally {
+      setSavingPlan(false);
+    }
+  };
+
+  const handleRemovePlan = (index: number) => {
+    Swal.fire({
+      title: "Hapus Rencana?",
+      text: "Apakah Anda yakin ingin menghapus rencana ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      background: "#1f2937",
+      color: "#f9fafb",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updatedPlans = planList.filter((_, i) => i !== index);
+        setPlanList(updatedPlans);
+      }
+    });
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "above":
-        return <span className="text-blue-500">↗</span>;
+        return <TrendingUp className="w-4 h-4 text-blue-400 inline" />;
       case "below":
-        return <span className="text-red-500">↘</span>;
+        return <TrendingDown className="w-4 h-4 text-red-400 inline" />;
       default:
-        return <span className="text-green-500">→</span>;
+        return <Target className="w-4 h-4 text-green-400 inline" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
+    const baseClasses = "px-2.5 py-1 rounded-full text-xs font-medium";
     switch (status) {
       case "above":
-        return `${baseClasses} bg-blue-100 text-blue-800`;
+        return `${baseClasses} bg-blue-900/30 text-blue-300 border border-blue-700/50`;
       case "below":
-        return `${baseClasses} bg-red-100 text-red-800`;
+        return `${baseClasses} bg-red-900/30 text-red-300 border border-red-700/50`;
       default:
-        return `${baseClasses} bg-green-100 text-green-800`;
+        return `${baseClasses} bg-green-900/30 text-green-300 border border-green-700/50`;
     }
   };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded mb-4"></div>
-            <div className="space-y-3">
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      <div className="space-y-6 sm:space-y-8">
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-900/95 via-gray-900/95 to-slate-900/95 backdrop-blur-md z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-6 p-8 bg-gradient-to-br from-slate-800/90 to-gray-800/90 rounded-2xl border border-slate-600/30 shadow-2xl">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500/30 border-t-blue-500"></div>
+              <div className="absolute inset-0 animate-ping rounded-full border-4 border-blue-500/20"></div>
+            </div>
+            <div className="text-center">
+              <p className="text-white text-lg sm:text-xl font-semibold mb-2">
+                Memuat Analisis...
+              </p>
+              <p className="text-gray-400 text-sm">
+                Mengambil data aktual vs rencana
+              </p>
             </div>
           </div>
         </div>
@@ -129,208 +282,200 @@ function ActualVsPlanPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-bold">Actual vs Plan Analysis</h1>
-              {isDemoVersion && (
-                <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full">
-                  DEMO
+      <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-slate-600/30 p-5 sm:p-6">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 sm:p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg sm:rounded-xl">
+                <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white flex items-center gap-2">
+                <span className="bg-gradient-to-r from-white via-gray-200 to-gray-300 bg-clip-text text-transparent">
+                  Analisis Aktual vs Rencana
                 </span>
-              )}
+              </h1>
             </div>
-            <p className="text-blue-100 mt-2">
-              Compare planned recruitment targets with actual hiring data
+            <p className="text-sm sm:text-base text-gray-400">
+              Bandingkan target rekrutmen yang direncanakan dengan data perekrutan aktual
             </p>
           </div>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="text-sm text-gray-600">Total Planned</div>
-          <div className="text-2xl font-bold text-gray-900">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-xl shadow-lg border border-slate-600/30 p-4 sm:p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <div className="text-xs sm:text-sm text-gray-400 mb-2">Total Rencana</div>
+          <div className="text-2xl sm:text-3xl font-bold text-white">
             {summary.totalPlanned}
           </div>
-          {isDemoVersion && (
-            <div className="text-xs text-amber-600 mt-1">Demo data</div>
-          )}
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="text-sm text-gray-600">Total Actual</div>
-          <div className="text-2xl font-bold text-gray-900">
+        <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-xl shadow-lg border border-slate-600/30 p-4 sm:p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <div className="text-xs sm:text-sm text-gray-400 mb-2">Total Aktual</div>
+          <div className="text-2xl sm:text-3xl font-bold text-white">
             {summary.totalActual}
           </div>
-          {isDemoVersion && (
-            <div className="text-xs text-amber-600 mt-1">Demo data</div>
-          )}
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="text-sm text-gray-600">Variance</div>
+        <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-xl shadow-lg border border-slate-600/30 p-4 sm:p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <div className="text-xs sm:text-sm text-gray-400 mb-2">Selisih</div>
           <div
-            className={`text-2xl font-bold ${
-              summary.totalVariance >= 0 ? "text-blue-600" : "text-red-600"
+            className={`text-2xl sm:text-3xl font-bold ${
+              summary.totalVariance >= 0 ? "text-blue-400" : "text-red-400"
             }`}
           >
             {summary.totalVariance >= 0 ? "+" : ""}
             {summary.totalVariance}
           </div>
-          {isDemoVersion && (
-            <div className="text-xs text-amber-600 mt-1">Demo data</div>
-          )}
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="text-sm text-gray-600">Variance %</div>
+        <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-xl shadow-lg border border-slate-600/30 p-4 sm:p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <div className="text-xs sm:text-sm text-gray-400 mb-2">Selisih %</div>
           <div
-            className={`text-2xl font-bold ${
+            className={`text-2xl sm:text-3xl font-bold ${
               summary.totalVariancePercentage >= 0
-                ? "text-blue-600"
-                : "text-red-600"
+                ? "text-blue-400"
+                : "text-red-400"
             }`}
           >
             {summary.totalVariancePercentage >= 0 ? "+" : ""}
             {summary.totalVariancePercentage}%
           </div>
-          {isDemoVersion && (
-            <div className="text-xs text-amber-600 mt-1">Demo data</div>
-          )}
         </div>
       </div>
 
       {/* View Toggle */}
-      <div className="bg-white rounded-lg shadow-sm p-4">
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+      <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-xl shadow-lg border border-slate-600/30 p-4 sm:p-5">
+        <div className="flex space-x-1 bg-slate-700/50 rounded-lg p-1">
           <button
             onClick={() => setView("detailed")}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
               view === "detailed"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-900"
+                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                : "text-gray-400 hover:text-gray-200"
             }`}
           >
-            Detailed View
+            Tampilan Detail
           </button>
           <button
             onClick={() => setView("department")}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
               view === "department"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-900"
+                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                : "text-gray-400 hover:text-gray-200"
             }`}
           >
-            Department Summary
+            Ringkasan Departemen
           </button>
         </div>
       </div>
 
       {/* Data Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-slate-600/30 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-600/30">
+            <thead className="bg-slate-700/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {view === "detailed" ? "Department / Position" : "Department"}
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  {view === "detailed" ? "Departemen / Posisi" : "Departemen"}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Planned
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Rencana
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actual
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Aktual
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Variance
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Selisih
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-slate-800/50 divide-y divide-slate-600/30">
               {view === "detailed"
                 ? actualVsPlanData.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={index} className="hover:bg-slate-700/30 transition-colors">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-white">
                             {item.department}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-400">
                             {item.position}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-white">
                         {item.planned}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-white">
                         {item.actual}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div
-                          className={
-                            item.variance >= 0
-                              ? "text-blue-600"
-                              : "text-red-600"
-                          }
-                        >
-                          {getStatusIcon(item.status)}{" "}
-                          {item.variance >= 0 ? "+" : ""}
-                          {item.variance} (
-                          {item.variancePercentage >= 0 ? "+" : ""}
-                          {item.variancePercentage}%)
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex items-center gap-1.5">
+                          {getStatusIcon(item.status)}
+                          <span
+                            className={
+                              item.variance >= 0
+                                ? "text-blue-400"
+                                : "text-red-400"
+                            }
+                          >
+                            {item.variance >= 0 ? "+" : ""}
+                            {item.variance} ({item.variancePercentage >= 0 ? "+" : ""}
+                            {item.variancePercentage}%)
+                          </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <span className={getStatusBadge(item.status)}>
                           {item.status === "above"
-                            ? "Above Target"
+                            ? "Di Atas Target"
                             : item.status === "below"
-                            ? "Below Target"
-                            : "On Target"}
+                            ? "Di Bawah Target"
+                            : "Sesuai Target"}
                         </span>
                       </td>
                     </tr>
                   ))
                 : departmentSummary.map((dept, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
+                    <tr key={index} className="hover:bg-slate-700/30 transition-colors">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-white">
                           {dept.department}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-white">
                         {dept.planned}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-white">
                         {dept.actual}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div
-                          className={
-                            dept.variance >= 0
-                              ? "text-blue-600"
-                              : "text-red-600"
-                          }
-                        >
-                          {getStatusIcon(dept.status)}{" "}
-                          {dept.variance >= 0 ? "+" : ""}
-                          {dept.variance} (
-                          {dept.variancePercentage >= 0 ? "+" : ""}
-                          {dept.variancePercentage}%)
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex items-center gap-1.5">
+                          {getStatusIcon(dept.status)}
+                          <span
+                            className={
+                              dept.variance >= 0
+                                ? "text-blue-400"
+                                : "text-red-400"
+                            }
+                          >
+                            {dept.variance >= 0 ? "+" : ""}
+                            {dept.variance} ({dept.variancePercentage >= 0 ? "+" : ""}
+                            {dept.variancePercentage}%)
+                          </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <span className={getStatusBadge(dept.status)}>
                           {dept.status === "above"
-                            ? "Above Target"
+                            ? "Di Atas Target"
                             : dept.status === "below"
-                            ? "Below Target"
-                            : "On Target"}
+                            ? "Di Bawah Target"
+                            : "Sesuai Target"}
                         </span>
                       </td>
                     </tr>
@@ -338,119 +483,275 @@ function ActualVsPlanPage() {
             </tbody>
           </table>
         </div>
-
-        {/* Demo Table Footer */}
-        {isDemoVersion && (
-          <div className="bg-amber-50 border-t border-amber-200 px-6 py-3">
-            <div className="flex items-center justify-center space-x-2">
-              <svg
-                className="w-4 h-4 text-amber-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="text-xs text-amber-700 font-medium">
-                Demo data - Not actual recruitment metrics
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-3">
-          {/* Demo Controls (only visible in development) */}
-          {process.env.NODE_ENV === "development" && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <span>Demo Mode:</span>
-              <button
-                onClick={() => setIsDemoVersion(!isDemoVersion)}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  isDemoVersion
-                    ? "bg-amber-100 text-amber-800 border border-amber-300"
-                    : "bg-gray-100 text-gray-700 border border-gray-300"
-                }`}
-              >
-                {isDemoVersion ? "ON" : "OFF"}
-              </button>
-            </div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          {user?.role === "ADMIN" && (
+            <button
+              onClick={handleAddPlan}
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg sm:rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Rencana</span>
+            </button>
           )}
         </div>
 
-        <div className="flex space-x-3">
+        <div className="flex flex-wrap gap-3">
           <button
             onClick={loadData}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            disabled={isDemoVersion}
+            className="px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 text-gray-200 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center space-x-2 border border-slate-600/30"
           >
-            Refresh Data
+            <RefreshCw className="w-4 h-4" />
+            <span>Muat Ulang Data</span>
           </button>
           <button
             onClick={() => {
-              if (isDemoVersion) {
-                Swal.fire({
-                  title: "Demo Version",
-                  text: "Export functionality is not available in demo mode",
-                  icon: "info",
-                  confirmButtonText: "OK",
-                });
-              } else {
-                // Export functionality could be implemented here
-                Swal.fire("Info", "Export functionality coming soon!", "info");
-              }
+              Swal.fire({
+                title: "Info",
+                text: "Fitur ekspor akan segera hadir!",
+                icon: "info",
+                confirmButtonText: "Baik",
+                background: "#1f2937",
+                color: "#f9fafb",
+              });
             }}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              isDemoVersion
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
-            disabled={isDemoVersion}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg sm:rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
           >
-            Export Report
+            <Download className="w-4 h-4" />
+            <span>Ekspor Laporan</span>
           </button>
         </div>
       </div>
 
-      {/* Demo Information Card */}
-      {isDemoVersion && (
-        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-400">
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">
-              <svg
-                className="w-6 h-6 text-amber-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+      {/* Plan Management Modal */}
+      {showPlanModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-gray-900 rounded-xl sm:rounded-2xl shadow-2xl border border-slate-600/30 p-5 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">
+                Tambah Rencana Rekrutmen
+              </h2>
+              <button
+                onClick={() => setShowPlanModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4 sm:space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-2">
+                  Departemen *
+                </label>
+                <select
+                  value={planFormData.department}
+                  onChange={(e) =>
+                    setPlanFormData({
+                      ...planFormData,
+                      department: e.target.value as Department,
+                    })
+                  }
+                  className="w-full px-3 sm:px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="" className="bg-slate-700">Pilih Departemen</option>
+                  {Object.values(Department).map((dept) => (
+                    <option key={dept} value={dept} className="bg-slate-700">
+                      {dept.replace(/_/g, " ")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-2">
+                  Posisi *
+                </label>
+                <select
+                  value={planFormData.position}
+                  onChange={(e) =>
+                    setPlanFormData({
+                      ...planFormData,
+                      position: e.target.value as Position,
+                    })
+                  }
+                  className="w-full px-3 sm:px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="" className="bg-slate-700">Pilih Posisi</option>
+                  {Object.values(Position).map((pos) => (
+                    <option key={pos} value={pos} className="bg-slate-700">
+                      {pos.replace(/_/g, " ")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-2">
+                  Jumlah Rencana *
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={planFormData.plannedCount}
+                  onChange={(e) =>
+                    setPlanFormData({
+                      ...planFormData,
+                      plannedCount: parseInt(e.target.value) || 0,
+                    })
+                  }
+                  className="w-full px-3 sm:px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
                 />
-              </svg>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-2">
+                  Tanggal Target *
+                </label>
+                <input
+                  type="date"
+                  value={planFormData.targetDate}
+                  onChange={(e) =>
+                    setPlanFormData({
+                      ...planFormData,
+                      targetDate: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 sm:px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">
-                Demo Features
-              </h3>
-              <ul className="mt-2 text-sm text-gray-600 space-y-1">
-                <li>• Sample recruitment data for demonstration</li>
-                <li>• Real-time data integration coming soon</li>
-                <li>
-                  • Advanced filtering and reporting features in development
-                </li>
-                <li>• Export functionality will be available in production</li>
-              </ul>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowPlanModal(false)}
+                className="px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 text-gray-200 rounded-lg transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSavePlan}
+                disabled={savingPlan}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {savingPlan ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Menyimpan...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Simpan Rencana</span>
+                  </>
+                )}
+              </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Plan List Management (for ADMIN) */}
+      {user?.role === "ADMIN" && planList.length > 0 && (
+        <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-slate-600/30 p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6">
+            <h3 className="text-lg sm:text-xl font-semibold text-white">
+              Rencana Saat Ini
+            </h3>
+            <button
+              onClick={handleUpdateAllPlans}
+              disabled={savingPlan}
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center space-x-2"
+            >
+              {savingPlan ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Simpan Semua Rencana</span>
+                </>
+              )}
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-600/30">
+              <thead className="bg-slate-700/50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">
+                    Departemen
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">
+                    Posisi
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">
+                    Jumlah Rencana
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">
+                    Tanggal Target
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-slate-800/50 divide-y divide-slate-600/30">
+                {planList.map((plan, index) => (
+                  <tr key={index} className="hover:bg-slate-700/30 transition-colors">
+                    <td className="px-4 py-3 text-sm text-white">
+                      {plan.department.replace(/_/g, " ")}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-white">
+                      {plan.position.replace(/_/g, " ")}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-white">
+                      <input
+                        type="number"
+                        min="0"
+                        value={plan.plannedCount}
+                        onChange={(e) => {
+                          const updated = [...planList];
+                          updated[index].plannedCount =
+                            parseInt(e.target.value) || 0;
+                          setPlanList(updated);
+                        }}
+                        className="w-20 px-2 py-1 bg-slate-700/50 border border-slate-600/50 rounded text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-white">
+                      <input
+                        type="date"
+                        value={plan.targetDate}
+                        onChange={(e) => {
+                          const updated = [...planList];
+                          updated[index].targetDate = e.target.value;
+                          setPlanList(updated);
+                        }}
+                        className="px-2 py-1 bg-slate-700/50 border border-slate-600/50 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <button
+                        onClick={() => handleRemovePlan(index)}
+                        className="text-red-400 hover:text-red-300 transition-colors flex items-center space-x-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Hapus</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

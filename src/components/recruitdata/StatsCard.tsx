@@ -42,20 +42,20 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
   if (!stats) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg p-4 shadow-xl">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm border border-slate-600/30 rounded-xl shadow-lg p-4 sm:p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
               {stats.totalForms}
             </p>
-            <p className="text-sm text-gray-300">
-              Total Applications
+            <p className="text-xs sm:text-sm text-gray-300">
+              Total Aplikasi
             </p>
           </div>
-          <div className="p-2 bg-blue-900/30 backdrop-blur-sm rounded border border-blue-400/20">
+          <div className="p-2.5 sm:p-3 bg-blue-900/30 backdrop-blur-sm rounded-lg sm:rounded-xl border border-blue-400/20">
             <svg
-              className="w-6 h-6 text-blue-400"
+              className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -74,23 +74,23 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
       {stats.statusBreakdown.map((stat) => (
         <div
           key={stat.status}
-          className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg p-4 shadow-xl"
+          className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm border border-slate-600/30 rounded-xl shadow-lg p-4 sm:p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
                 {stat.count}
               </p>
-              <p className="text-sm text-gray-300 capitalize">
-                {stat.status.replace("_", " ").toLowerCase()}
+              <p className="text-xs sm:text-sm text-gray-300 capitalize">
+                {stat.status.replace(/_/g, " ").toLowerCase()}
               </p>
             </div>
             <div
-              className={`px-2 py-1 rounded text-xs font-medium backdrop-blur-sm ${getStatusColor(
+              className={`px-2 py-1 rounded-lg text-xs font-medium backdrop-blur-sm ${getStatusColor(
                 stat.status
               )}`}
             >
-              {stat.status}
+              {stat.status.replace(/_/g, " ").substring(0, 3).toUpperCase()}
             </div>
           </div>
         </div>

@@ -262,6 +262,24 @@ export class RecruitmentFormService {
     }, 1); // Don't retry deletes to avoid confusion
   }
 
+  // Bulk delete recruitment forms
+  static async bulkDeleteRecruitmentForms(ids: string[]): Promise<ApiResponse & { deletedCount?: number; requestedCount?: number }> {
+    return this.makeRequest(async () => {
+      const response = await api.post(`/recruitment/bulk-delete`, 
+        { ids },
+        {
+          headers: {
+            ...this.getAuthHeader(),
+            "Content-Type": "application/json",
+          },
+          timeout: 180000, // 3 minutes timeout for bulk operations (deleting files from Cloudinary takes time)
+        }
+      );
+
+      return response.data;
+    }, 1); // Don't retry deletes to avoid confusion
+  }
+
   // Get recruitment statistics
   static async getRecruitmentStats(): Promise<RecruitmentStatsResponse> {
     return this.makeRequest(async () => {

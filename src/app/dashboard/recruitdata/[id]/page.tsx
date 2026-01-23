@@ -213,6 +213,7 @@ function RecruitmentViewPage() {
           recruitmentForm={recruitmentForm}
           onStatusUpdate={handleStatusUpdate}
           router={router}
+          userRole={user?.role}
         />
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -5,6 +5,7 @@ import { withGuard } from "@/components/withGuard";
 import ShareModal from "@/components/home-dashboard/ShareModal";
 import HeroBanner from "@/components/home-dashboard/HeroBanner";
 import QuickActions from "@/components/home-dashboard/QuickAction";
+import FormStatusControl from "@/components/home-dashboard/FormStatusControl";
 
 
 function DashboardPage() {
@@ -20,9 +21,12 @@ function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Hero Banner Section */}
       <HeroBanner user={user} onShareClick={handleShareClick} />
+
+      {/* Form Status Control (HR/ADMIN/MANAGEMENT only) */}
+      <FormStatusControl />
 
       {/* Quick Actions */}
       <QuickActions onShareClick={handleShareClick} />

@@ -5,13 +5,16 @@ interface RecruitmentHeaderProps {
   recruitmentForm: RecruitmentForm;
   onStatusUpdate: (status: RecruitmentStatus) => void;
   router: any;
+  userRole?: string;
 }
 
 export const RecruitmentHeader: React.FC<RecruitmentHeaderProps> = ({
   recruitmentForm,
   onStatusUpdate,
   router,
+  userRole,
 }) => {
+  const isViewOnly = userRole === "VIEWS_ONLY";
   const getStatusColor = (status: RecruitmentStatus) => {
     switch (status) {
       case RecruitmentStatus.PENDING:
@@ -55,12 +58,6 @@ export const RecruitmentHeader: React.FC<RecruitmentHeaderProps> = ({
     });
   };
 
-  // Debug: Log the data to see what we're getting
-  console.log("RecruitmentForm data:", {
-    statusUpdatedBy: recruitmentForm.statusUpdatedBy?.name,
-    statusUpdatedAt: recruitmentForm.statusUpdatedAt,
-    statusUpdatedById: recruitmentForm.statusUpdatedById,
-  });
 
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg shadow-xl p-6 print-header">
@@ -153,23 +150,33 @@ export const RecruitmentHeader: React.FC<RecruitmentHeaderProps> = ({
           >
             {recruitmentForm.status.replace("_", " ")}
           </span>
-          <select
-            value={recruitmentForm.status}
-            onChange={(e) =>
-              onStatusUpdate(e.target.value as RecruitmentStatus)
-            }
-            className="px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm transition-colors"
-          >
-            {Object.values(RecruitmentStatus).map((status) => (
-              <option
-                key={status}
-                value={status}
-                className="bg-gray-800 text-white"
-              >
-                {status.replace("_", " ")}
-              </option>
-            ))}
-          </select>
+          {isViewOnly ? (
+            <span
+              className={`px-3 py-2 rounded-md text-sm font-medium border backdrop-blur-sm ${getStatusColor(
+                recruitmentForm.status
+              )}`}
+            >
+              {recruitmentForm.status.replace("_", " ")}
+            </span>
+          ) : (
+            <select
+              value={recruitmentForm.status}
+              onChange={(e) =>
+                onStatusUpdate(e.target.value as RecruitmentStatus)
+              }
+              className="px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm transition-colors"
+            >
+              {Object.values(RecruitmentStatus).map((status) => (
+                <option
+                  key={status}
+                  value={status}
+                  className="bg-gray-800 text-white"
+                >
+                  {status.replace("_", " ")}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useAuth } from "@/context/useAuth";
 import AuthService from "@/services/auth.service";
 import Swal from "sweetalert2";
 import { withAuthGuard } from "@/components/withGuard";
+import { UserPlus, Eye, EyeOff, AlertCircle, Info, Shield } from "lucide-react";
 
 interface CreateUserFormData {
   name: string;
@@ -20,7 +21,7 @@ interface FormErrors {
   general?: string;
 }
 
- function CreateUser() {
+function CreateUser() {
   const { user } = useAuth();
   const [formData, setFormData] = useState<CreateUserFormData>({
     name: "",
@@ -59,33 +60,33 @@ interface FormErrors {
 
     // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
+      newErrors.name = "Nama wajib diisi";
     } else if (formData.name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters";
+      newErrors.name = "Nama minimal 2 karakter";
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = "Email wajib diisi";
     } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = "Masukkan alamat email yang valid";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Password wajib diisi";
     } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+      newErrors.password = "Password minimal 8 karakter";
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = "Password must contain at least one uppercase letter, one lowercase letter, and one number";
+      newErrors.password = "Password harus mengandung minimal satu huruf besar, satu huruf kecil, dan satu angka";
     }
 
     // Confirm password validation
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
+      newErrors.confirmPassword = "Silakan konfirmasi password Anda";
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = "Password tidak cocok";
     }
 
     setErrors(newErrors);
@@ -114,11 +115,13 @@ interface FormErrors {
 
       // Success notification
       await Swal.fire({
-        title: "Success!",
-        text: `HR user "${userData.name}" has been created successfully`,
+        title: "Berhasil!",
+        text: `Pengguna HR "${userData.name}" berhasil dibuat`,
         icon: "success",
         confirmButtonColor: "#10b981",
-        confirmButtonText: "OK",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
         customClass: {
           popup: "rounded-xl",
         },
@@ -138,10 +141,12 @@ interface FormErrors {
       // Show error notification
       Swal.fire({
         title: "Error",
-        text: error.message || "Failed to create user. Please try again.",
+        text: error.message || "Gagal membuat pengguna. Silakan coba lagi.",
         icon: "error",
         confirmButtonColor: "#dc2626",
-        confirmButtonText: "OK",
+        confirmButtonText: "Baik",
+        background: "#1f2937",
+        color: "#f9fafb",
         customClass: {
           popup: "rounded-xl",
         },
@@ -161,28 +166,16 @@ interface FormErrors {
   // If user is not admin, show access denied
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="max-w-md mx-auto text-center">
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="max-w-md mx-auto text-center p-6 bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-600/30 shadow-xl">
           <div className="mb-6">
-            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
+            <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center border border-red-500/30">
+              <Shield className="w-8 h-8 text-red-400" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
-          <p className="text-gray-600 mb-6">
-            Only administrators can create new users. Please contact your system administrator if you need access.
+          <h2 className="text-2xl font-bold text-white mb-4">Akses Ditolak</h2>
+          <p className="text-gray-300">
+            Hanya administrator yang dapat membuat pengguna baru. Silakan hubungi administrator sistem Anda jika memerlukan akses.
           </p>
         </div>
       </div>
@@ -190,257 +183,240 @@ interface FormErrors {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                />
-              </svg>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900">Create New HR User</h1>
+    <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8">
+      {/* Header */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 sm:p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg sm:rounded-xl">
+            <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
-          <p className="text-gray-600">
-            Create a new HR user account to manage recruitment processes and candidate data.
-          </p>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white flex items-center gap-2">
+            <span className="bg-gradient-to-r from-white via-gray-200 to-gray-300 bg-clip-text text-transparent">
+              Buat Pengguna HR Baru
+            </span>
+          </h1>
         </div>
+        <p className="text-sm sm:text-base text-gray-400">
+          Buat akun pengguna HR baru untuk mengelola proses rekrutmen dan data kandidat.
+        </p>
+      </div>
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* General Error */}
-              {errors.general && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-                  <div className="flex items-center space-x-2">
-                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-red-800 text-sm font-medium">{errors.general}</p>
-                  </div>
+      {/* Form Card */}
+      <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-slate-600/30 overflow-hidden">
+        <div className="p-5 sm:p-6 lg:p-8">
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+            {/* General Error */}
+            {errors.general && (
+              <div className="p-4 bg-red-900/30 border border-red-700/50 rounded-xl backdrop-blur-sm">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                  <p className="text-red-300 text-sm font-medium">{errors.general}</p>
                 </div>
+              </div>
+            )}
+
+            {/* Name Field */}
+            <div>
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-200 mb-2">
+                Nama Lengkap <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 rounded-lg sm:rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 text-white placeholder-gray-400 ${
+                  errors.name
+                    ? "bg-slate-700/50 border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
+                    : "bg-slate-700/50 border-slate-600/50 focus:border-blue-500 focus:ring-blue-500/20"
+                }`}
+                placeholder="Masukkan nama lengkap"
+                disabled={isLoading}
+              />
+              {errors.name && (
+                <p className="mt-2 text-sm text-red-400 flex items-center space-x-1">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.name}</span>
+                </p>
               )}
+            </div>
 
-              {/* Name Field */}
-              <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-200 mb-2">
+                Alamat Email <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 rounded-lg sm:rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 text-white placeholder-gray-400 ${
+                  errors.email
+                    ? "bg-slate-700/50 border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
+                    : "bg-slate-700/50 border-slate-600/50 focus:border-blue-500 focus:ring-blue-500/20"
+                }`}
+                placeholder="Masukkan alamat email"
+                disabled={isLoading}
+              />
+              {errors.email && (
+                <p className="mt-2 text-sm text-red-400 flex items-center space-x-1">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.email}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-200 mb-2">
+                Password <span className="text-red-400">*</span>
+              </label>
+              <div className="relative">
                 <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-4 ${
-                    errors.name
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-                      : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                  className={`w-full px-4 py-3 pr-12 rounded-lg sm:rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 text-white placeholder-gray-400 ${
+                    errors.password
+                      ? "bg-slate-700/50 border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
+                      : "bg-slate-700/50 border-slate-600/50 focus:border-blue-500 focus:ring-blue-500/20"
                   }`}
-                  placeholder="Enter full name"
+                  placeholder="Masukkan password"
                   disabled={isLoading}
                 />
-                {errors.name && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{errors.name}</span>
-                  </p>
-                )}
-              </div>
-
-              {/* Email Field */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-4 ${
-                    errors.email
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-                      : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
-                  }`}
-                  placeholder="Enter email address"
-                  disabled={isLoading}
-                />
-                {errors.email && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{errors.email}</span>
-                  </p>
-                )}
-              </div>
-
-              {/* Password Field */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Password <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-4 ${
-                      errors.password
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-                        : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
-                    }`}
-                    placeholder="Enter password"
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                  >
-                    {showPassword ? (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l-6.415-6.414m4.243 4.242L12 12l4.242 4.242m0 0L21.536 21.536M16.121 14.121l4.243 4.243" />
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{errors.password}</span>
-                  </p>
-                )}
-                <div className="mt-2">
-                  <p className="text-xs text-gray-500">
-                    Password must be at least 8 characters and contain uppercase, lowercase, and numbers.
-                  </p>
-                </div>
-              </div>
-
-              {/* Confirm Password Field */}
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Confirm Password <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-4 ${
-                      errors.confirmPassword
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-                        : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
-                    }`}
-                    placeholder="Confirm password"
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                  >
-                    {showConfirmPassword ? (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l-6.415-6.414m4.243 4.242L12 12l4.242 4.242m0 0L21.536 21.536M16.121 14.121l4.243 4.243" />
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{errors.confirmPassword}</span>
-                  </p>
-                )}
-              </div>
-
-              {/* Submit Button */}
-              <div className="pt-4">
                 <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full py-4 px-6 rounded-xl font-semibold text-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-100 ${
-                    isLoading
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 active:transform active:scale-[0.98] shadow-lg hover:shadow-xl"
-                  }`}
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 focus:outline-none transition-colors"
+                  tabIndex={-1}
                 >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                      <span>Creating User...</span>
-                    </div>
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
                   ) : (
-                    <div className="flex items-center justify-center space-x-2">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                      </svg>
-                      <span>Create HR User</span>
-                    </div>
+                    <Eye className="w-5 h-5" />
                   )}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+              {errors.password && (
+                <p className="mt-2 text-sm text-red-400 flex items-center space-x-1">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.password}</span>
+                </p>
+              )}
+              <div className="mt-2">
+                <p className="text-xs text-gray-400">
+                  Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, dan angka.
+                </p>
+              </div>
+            </div>
 
-        {/* Info Card */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+            {/* Confirm Password Field */}
             <div>
-              <h3 className="text-sm font-semibold text-blue-900 mb-2">Important Information</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• New HR users will have access to recruitment management features</li>
-                <li>• They can view, create, and manage candidate applications</li>
-                <li>• HR users cannot create other users (admin privilege only)</li>
-                <li>• The new user will receive their login credentials via the provided email</li>
-              </ul>
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-200 mb-2">
+                Konfirmasi Password <span className="text-red-400">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 pr-12 rounded-lg sm:rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 text-white placeholder-gray-400 ${
+                    errors.confirmPassword
+                      ? "bg-slate-700/50 border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
+                      : "bg-slate-700/50 border-slate-600/50 focus:border-blue-500 focus:ring-blue-500/20"
+                  }`}
+                  placeholder="Konfirmasi password"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 focus:outline-none transition-colors"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-2 text-sm text-red-400 flex items-center space-x-1">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.confirmPassword}</span>
+                </p>
+              )}
             </div>
+
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full py-3 sm:py-4 px-6 rounded-lg sm:rounded-xl font-semibold text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+                  isLoading
+                    ? "bg-gray-600 cursor-not-allowed focus:ring-gray-500"
+                    : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 active:transform active:scale-[0.98] shadow-lg hover:shadow-xl focus:ring-blue-500"
+                }`}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Membuat Pengguna...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center space-x-2">
+                    <UserPlus className="w-5 h-5" />
+                    <span>Buat Pengguna HR</span>
+                  </div>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Info Card */}
+      <div className="bg-gradient-to-br from-blue-900/30 via-indigo-900/30 to-purple-900/30 backdrop-blur-sm border border-blue-700/30 rounded-xl sm:rounded-2xl p-5 sm:p-6">
+        <div className="flex items-start space-x-3 sm:space-x-4">
+          <div className="flex-shrink-0 p-2 bg-blue-500/20 rounded-lg border border-blue-400/30">
+            <Info className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm sm:text-base font-semibold text-blue-300 mb-2 sm:mb-3">Informasi Penting</h3>
+            <ul className="text-xs sm:text-sm text-blue-200/90 space-y-1.5 sm:space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-400 mt-0.5">•</span>
+                <span>Pengguna HR baru akan memiliki akses ke fitur manajemen rekrutmen</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-400 mt-0.5">•</span>
+                <span>Mereka dapat melihat, membuat, dan mengelola aplikasi kandidat</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-400 mt-0.5">•</span>
+                <span>Pengguna HR tidak dapat membuat pengguna lain (hanya hak admin)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-400 mt-0.5">•</span>
+                <span>Pengguna baru akan menerima kredensial login melalui email yang diberikan</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
+    </div>
   );
 }
+
 export default withAuthGuard(CreateUser);

@@ -15,7 +15,7 @@ export default function DashboardLayout({
   const { handleLogout } = useLogoutHandler();
 
   useEffect(() => {
-    console.log(user); // Ensure user data is correct
+    // User data is available
   }, [user]);
 
   return (
@@ -33,7 +33,7 @@ export default function DashboardLayout({
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto">
-          <div className="p-4 lg:p-6">
+          <div className="p-4 sm:p-5 lg:p-6 xl:p-8">
             <div className="max-w-7xl mx-auto">{children}</div>
           </div>
         </main>

@@ -5,7 +5,6 @@ import { formatDateID, formatDateMediumID } from "@/utils/formatDate";
 
 interface RecruitmentTableProps {
   recruitmentForms: RecruitmentForm[];
-  loading: boolean;
   onStatusUpdate: (
     id: string,
     newStatus: RecruitmentStatus,
@@ -14,6 +13,10 @@ interface RecruitmentTableProps {
   onMigrate: (candidate: RecruitmentForm) => void;
   onDelete: (id: string, name: string) => void;
   onDeleteMigrated: (form: RecruitmentForm) => void;
+  userRole?: string;
+  selectedIds?: string[];
+  onSelectChange?: (id: string, checked: boolean) => void;
+  onSelectAll?: (checked: boolean) => void;
 }
 
 const getStatusColor = (status: RecruitmentStatus) => {
@@ -43,48 +46,69 @@ const getStatusColor = (status: RecruitmentStatus) => {
 
 export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
   recruitmentForms,
-  loading,
   onStatusUpdate,
   onMigrate,
   onDelete,
   onDeleteMigrated,
+  userRole,
+  selectedIds = [],
+  onSelectChange,
+  onSelectAll,
 }) => {
+  const isViewOnly = userRole === "VIEWS_ONLY";
+  const canSelect = !isViewOnly && onSelectChange && onSelectAll;
+  const allSelected = canSelect && recruitmentForms.length > 0 && recruitmentForms.every(form => selectedIds.includes(form.id));
+  const someSelected = canSelect && recruitmentForms.some(form => selectedIds.includes(form.id));
+
   return (
-    <div className="bg-gray-800 border border-gray-700/30 rounded-lg shadow-xl relative">
+    <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 border border-slate-600/30 rounded-xl sm:rounded-2xl shadow-xl relative">
       {/* Desktop view with sticky columns */}
       <div className="hidden lg:block overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-600/30">
           <thead className="bg-gray-700 sticky top-0 z-10">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-700 z-20 min-w-[200px]">
-                Candidate
+              {canSelect && (
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-700 z-20 min-w-[50px]">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = !!(someSelected && !allSelected);
+                    }}
+                    onChange={(e) => onSelectAll?.(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                </th>
+              )}
+              <th className={`px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider sticky ${canSelect ? 'left-[50px]' : 'left-0'} bg-gray-700 z-20 min-w-[200px] ${canSelect ? 'border-l border-gray-600/30' : ''}`}>
+                Kandidat
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider sticky left-[200px] bg-gray-700 z-20 min-w-[150px] border-l border-gray-600/30">
-                Position
+              <th className={`px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider sticky ${canSelect ? 'left-[250px]' : 'left-[200px]'} bg-gray-700 z-20 min-w-[150px] border-l border-gray-600/30`}>
+                Posisi
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
-                Gender
+                Jenis Kelamin
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
-                Education
+                Pendidikan
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
-                Province
+                Provinsi
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[200px]">
-                Certificates
+                Sertifikat
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[150px]">
                 Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
-                Actions
+                Aksi
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
-                Date Applied
+                Tanggal Diterima
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
-                Updated By
+                Diupdate Oleh
               </th>
                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
                 Pernah di Tambang
@@ -92,16 +116,10 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
             </tr>
           </thead>
           <tbody className="bg-transparent divide-y divide-gray-600/20">
-            {loading ? (
+            {recruitmentForms.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mx-auto"></div>
-                </td>
-              </tr>
-            ) : recruitmentForms.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-400">
-                  No recruitment data found
+                <td colSpan={canSelect ? 12 : 11} className="px-6 py-4 text-center text-gray-400">
+                  Tidak ada data rekrutmen ditemukan
                 </td>
               </tr>
             ) : (
@@ -110,7 +128,17 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                   key={form.id}
                   className="hover:bg-gray-700/20 transition-colors"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap sticky left-0 bg-gray-800 z-10 min-w-[200px]">
+                  {canSelect && (
+                    <td className="px-6 py-4 whitespace-nowrap sticky left-0 bg-gray-800 z-10 min-w-[50px]">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(form.id)}
+                        onChange={(e) => onSelectChange?.(form.id, e.target.checked)}
+                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                      />
+                    </td>
+                  )}
+                  <td className={`px-6 py-4 whitespace-nowrap sticky ${canSelect ? 'left-[50px]' : 'left-0'} bg-gray-800 z-10 min-w-[200px] ${canSelect ? 'border-l border-gray-600/30' : ''}`}>
                     <div>
                       <div className="text-sm font-medium text-white">
                         {form.fullName}
@@ -137,9 +165,9 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white sticky left-[200px] bg-gray-800 z-10 min-w-[150px] border-l border-gray-600/30">
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm text-white sticky ${canSelect ? 'left-[250px]' : 'left-[200px]'} bg-gray-800 z-10 min-w-[150px] border-l border-gray-600/30`}>
                     {form.appliedPosition?.replace(/_/g, " ") ||
-                      "Not specified"}
+                      "Tidak ditentukan"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white min-w-[120px]">
                     {form.gender}
@@ -163,50 +191,59 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                         ))
                       ) : (
                         <span className="text-xs text-gray-400">
-                          No certificates
+                          Tidak ada sertifikat
                         </span>
                       )}
                       {form.certificate && form.certificate.length > 2 && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-600/30 text-gray-200 backdrop-blur-sm border border-gray-400/20">
-                          +{form.certificate.length - 2} more
+                          +{form.certificate.length - 2} lagi
                         </span>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap min-w-[150px]">
-                    <select
-                      value={form.status}
-                      onChange={(e) =>
-                        onStatusUpdate(
-                          form.id,
-                          e.target.value as RecruitmentStatus,
-                          form.fullName
-                        )
-                      }
-                      className={`px-3 py-1 rounded-full text-xs font-medium border-0 focus:ring-2 focus:ring-blue-400 backdrop-blur-sm ${getStatusColor(
-                        form.status
-                      )}`}
-                      style={{ backgroundColor: "transparent" }}
-                    >
-                      {Object.values(RecruitmentStatus).map((status) => (
-                        <option
-                          key={status}
-                          value={status}
-                          className="bg-gray-800 text-white"
-                        >
-                          {status.replace(/_/g, " ")}
-                        </option>
-                      ))}
-                    </select>
+                    {isViewOnly ? (
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium border-0 backdrop-blur-sm inline-block ${getStatusColor(
+                          form.status
+                        )}`}
+                      >
+                        {form.status.replace(/_/g, " ")}
+                      </span>
+                    ) : (
+                      <select
+                        value={form.status}
+                        onChange={(e) =>
+                          onStatusUpdate(
+                            form.id,
+                            e.target.value as RecruitmentStatus,
+                            form.fullName
+                          )
+                        }
+                        className={`px-3 py-1 rounded-full text-xs font-medium border-0 focus:ring-2 focus:ring-blue-400 backdrop-blur-sm ${getStatusColor(
+                          form.status
+                        )}`}
+                        style={{ backgroundColor: "transparent" }}
+                      >
+                        {Object.values(RecruitmentStatus).map((status) => (
+                          <option
+                            key={status}
+                            value={status}
+                            className="bg-gray-800 text-white"
+                          >
+                            {status.replace(/_/g, " ")}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium min-w-[120px]">
                     <div className="flex items-center space-x-2">
-                      {/* View Details */}
+                      {/* View Details - Same Tab */}
                       <Link
                         href={`/dashboard/recruitdata/${form.id}`}
                         className="text-blue-400 hover:text-blue-300 transition-colors"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        title="Lihat Detail"
                       >
                         <svg
                           className="w-4 h-4"
@@ -229,13 +266,37 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                         </svg>
                       </Link>
 
-                      {/* Migrate to Employee - only show if HIRED status and not already migrated */}
-                      {form.status === RecruitmentStatus.HIRED &&
+                      {/* View Details - New Tab */}
+                      <Link
+                        href={`/dashboard/recruitdata/${form.id}`}
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Buka di Tab Baru"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
+                        </svg>
+                      </Link>
+
+                      {/* Migrate to Employee - only show if HIRED status and not already migrated, and not VIEWS_ONLY */}
+                      {!isViewOnly &&
+                        form.status === RecruitmentStatus.HIRED &&
                         !form.hiredEmployee && (
                           <button
                             onClick={() => onMigrate(form)}
                             className="text-green-400 hover:text-green-300 transition-colors"
-                            title="Migrate to Employee"
+                            title="Migrasikan ke Karyawan"
                           >
                             <svg
                               className="w-4 h-4"
@@ -253,47 +314,51 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                           </button>
                         )}
 
-                      {/* Delete - different behavior for migrated vs non-migrated */}
-                      {form.hiredEmployee ? (
-                        <button
-                          onClick={() => onDeleteMigrated(form)}
-                          className="text-orange-400 hover:text-orange-300 transition-colors"
-                          title="Delete recruitment form (employee record will remain)"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0016.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => onDelete(form.id, form.fullName)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
-                          title="Delete recruitment form"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0016.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
+                      {/* Delete - hide for VIEWS_ONLY */}
+                      {!isViewOnly && (
+                        <>
+                          {form.hiredEmployee ? (
+                            <button
+                              onClick={() => onDeleteMigrated(form)}
+                              className="text-orange-400 hover:text-orange-300 transition-colors"
+                              title="Hapus form rekrutmen (catatan karyawan akan tetap utuh)"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0016.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => onDelete(form.id, form.fullName)}
+                              className="text-red-400 hover:text-red-300 transition-colors"
+                              title="Hapus form rekrutmen"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0016.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>
@@ -318,43 +383,50 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
         <table className="min-w-full divide-y divide-gray-600/30">
           <thead className="bg-gray-700/30 backdrop-blur-sm">
             <tr>
+              {canSelect && (
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[50px]">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = !!(someSelected && !allSelected);
+                    }}
+                    onChange={(e) => onSelectAll?.(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                </th>
+              )}
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[160px]">
-                Candidate
+                Kandidat
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
-                Position
+                Posisi
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[100px]">
-                Education
+                Pendidikan
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[100px]">
-                Province
+                Provinsi
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[160px]">
-                Certificates
+                Sertifikat
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[120px]">
                 Status
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[100px]">
-                Actions
+                Aksi
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[100px]">
-                Applied At
+                Tanggal Diterima
               </th>
             </tr>
           </thead>
           <tbody className="bg-transparent divide-y divide-gray-600/20">
-            {loading ? (
+            {recruitmentForms.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-4 text-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mx-auto"></div>
-                </td>
-              </tr>
-            ) : recruitmentForms.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-4 text-center text-gray-400">
-                  No recruitment data found
+                <td colSpan={canSelect ? 12 : 11} className="px-4 py-4 text-center text-gray-400">
+                  Tidak ada data rekrutmen ditemukan
                 </td>
               </tr>
             ) : (
@@ -363,6 +435,16 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                   key={form.id}
                   className="hover:bg-gray-700/20 backdrop-blur-sm transition-colors"
                 >
+                  {canSelect && (
+                    <td className="px-4 py-4 whitespace-nowrap min-w-[50px]">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(form.id)}
+                        onChange={(e) => onSelectChange?.(form.id, e.target.checked)}
+                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                      />
+                    </td>
+                  )}
                   <td className="px-4 py-4 whitespace-nowrap min-w-[160px]">
                     <div>
                       <div className="text-sm font-medium text-white">
@@ -392,7 +474,7 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-white min-w-[120px]">
                     {form.appliedPosition?.replace(/_/g, " ") ||
-                      "Not specified"}
+                      "Tidak ditentukan"}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-white min-w-[100px]">
                     {form.education}
@@ -413,48 +495,59 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                         ))
                       ) : (
                         <span className="text-xs text-gray-400">
-                          No certificates
+                          Tidak ada sertifikat
                         </span>
                       )}
                       {form.certificate && form.certificate.length > 2 && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-600/30 text-gray-200 backdrop-blur-sm border border-gray-400/20">
-                          +{form.certificate.length - 2} more
+                          +{form.certificate.length - 2} lagi
                         </span>
                       )}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap min-w-[120px]">
-                    <select
-                      value={form.status}
-                      onChange={(e) =>
-                        onStatusUpdate(
-                          form.id,
-                          e.target.value as RecruitmentStatus,
-                          form.fullName
-                        )
-                      }
-                      className={`px-3 py-1 rounded-full text-xs font-medium border-0 focus:ring-2 focus:ring-blue-400 backdrop-blur-sm ${getStatusColor(
-                        form.status
-                      )}`}
-                      style={{ backgroundColor: "transparent" }}
-                    >
-                      {Object.values(RecruitmentStatus).map((status) => (
-                        <option
-                          key={status}
-                          value={status}
-                          className="bg-gray-800 text-white"
-                        >
-                          {status.replace(/_/g, " ")}
-                        </option>
-                      ))}
-                    </select>
+                    {isViewOnly ? (
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium border-0 backdrop-blur-sm inline-block ${getStatusColor(
+                          form.status
+                        )}`}
+                      >
+                        {form.status.replace(/_/g, " ")}
+                      </span>
+                    ) : (
+                      <select
+                        value={form.status}
+                        onChange={(e) =>
+                          onStatusUpdate(
+                            form.id,
+                            e.target.value as RecruitmentStatus,
+                            form.fullName
+                          )
+                        }
+                        className={`px-3 py-1 rounded-full text-xs font-medium border-0 focus:ring-2 focus:ring-blue-400 backdrop-blur-sm ${getStatusColor(
+                          form.status
+                        )}`}
+                        style={{ backgroundColor: "transparent" }}
+                      >
+                        {Object.values(RecruitmentStatus).map((status) => (
+                          <option
+                            key={status}
+                            value={status}
+                            className="bg-gray-800 text-white"
+                          >
+                            {status.replace(/_/g, " ")}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium min-w-[100px]">
                     <div className="flex items-center space-x-2">
-                      {/* View Details */}
+                      {/* View Details - Same Tab */}
                       <Link
                         href={`/dashboard/recruitdata/${form.id}`}
                         className="text-blue-400 hover:text-blue-300 transition-colors"
+                        title="Lihat Detail"
                       >
                         <svg
                           className="w-4 h-4"
@@ -477,13 +570,37 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                         </svg>
                       </Link>
 
-                      {/* Migrate to Employee - only show if HIRED status and not already migrated */}
-                      {form.status === RecruitmentStatus.HIRED &&
+                      {/* View Details - New Tab */}
+                      <Link
+                        href={`/dashboard/recruitdata/${form.id}`}
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Buka di Tab Baru"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
+                        </svg>
+                      </Link>
+
+                      {/* Migrate to Employee - only show if HIRED status and not already migrated, and not VIEWS_ONLY */}
+                      {!isViewOnly &&
+                        form.status === RecruitmentStatus.HIRED &&
                         !form.hiredEmployee && (
                           <button
                             onClick={() => onMigrate(form)}
                             className="text-green-400 hover:text-green-300 transition-colors"
-                            title="Migrate to Employee"
+                            title="Migrasikan ke Karyawan"
                           >
                             <svg
                               className="w-4 h-4"
@@ -501,47 +618,51 @@ export const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
                           </button>
                         )}
 
-                      {/* Delete - different behavior for migrated vs non-migrated */}
-                      {form.hiredEmployee ? (
-                        <button
-                          onClick={() => onDeleteMigrated(form)}
-                          className="text-orange-400 hover:text-orange-300 transition-colors"
-                          title="Delete recruitment form (employee record will remain)"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => onDelete(form.id, form.fullName)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
-                          title="Delete recruitment form"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
+                      {/* Delete - hide for VIEWS_ONLY */}
+                      {!isViewOnly && (
+                        <>
+                          {form.hiredEmployee ? (
+                            <button
+                              onClick={() => onDeleteMigrated(form)}
+                              className="text-orange-400 hover:text-orange-300 transition-colors"
+                              title="Hapus form rekrutmen (catatan karyawan akan tetap utuh)"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => onDelete(form.id, form.fullName)}
+                              className="text-red-400 hover:text-red-300 transition-colors"
+                              title="Hapus form rekrutmen"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>

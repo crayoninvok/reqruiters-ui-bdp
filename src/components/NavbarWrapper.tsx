@@ -16,7 +16,6 @@ export default function NavbarWrapper({
     "/dashboard",
     "/dashboard/profile",
     "/dashboard/recruitdata",
-    "/dashboard/inputformdata",
     "/dashboard/profile",
     "/recruitment-form"
   ];

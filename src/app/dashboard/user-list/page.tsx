@@ -61,7 +61,7 @@ interface FormErrors {
       console.error("Error fetching HR users:", error);
       Swal.fire({
         title: "Error",
-        text: error.message || "Failed to fetch users",
+        text: error.message || "Gagal memuat pengguna",
         icon: "error",
         confirmButtonColor: "#dc2626",
         customClass: { popup: "rounded-xl" },
@@ -128,25 +128,25 @@ interface FormErrors {
 
     // Name validation
     if (!editFormData.name.trim()) {
-      newErrors.name = "Name is required";
+      newErrors.name = "Nama wajib diisi";
     } else if (editFormData.name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters";
+      newErrors.name = "Nama minimal 2 karakter";
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!editFormData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = "Email wajib diisi";
     } else if (!emailRegex.test(editFormData.email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = "Masukkan alamat email yang valid";
     }
 
     // Password validation (only if provided)
     if (editFormData.password && editFormData.password.length > 0) {
       if (editFormData.password.length < 8) {
-        newErrors.password = "Password must be at least 8 characters";
+        newErrors.password = "Password minimal 8 karakter";
       } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(editFormData.password)) {
-        newErrors.password = "Password must contain at least one uppercase letter, one lowercase letter, and one number";
+        newErrors.password = "Password harus mengandung minimal satu huruf besar, satu huruf kecil, dan satu angka";
       }
     }
 
@@ -181,11 +181,11 @@ interface FormErrors {
 
       // Success notification
       await Swal.fire({
-        title: "Success!",
-        text: `User "${updateData.name}" has been updated successfully`,
+        title: "Berhasil!",
+        text: `Pengguna "${updateData.name}" berhasil diperbarui`,
         icon: "success",
         confirmButtonColor: "#10b981",
-        confirmButtonText: "OK",
+        confirmButtonText: "Baik",
         customClass: { popup: "rounded-xl" },
       });
 
@@ -198,10 +198,10 @@ interface FormErrors {
       
       Swal.fire({
         title: "Error",
-        text: error.message || "Failed to update user. Please try again.",
+        text: error.message || "Gagal memperbarui pengguna. Silakan coba lagi.",
         icon: "error",
         confirmButtonColor: "#dc2626",
-        confirmButtonText: "OK",
+        confirmButtonText: "Baik",
         customClass: { popup: "rounded-xl" },
       });
 
@@ -218,28 +218,28 @@ interface FormErrors {
   // Handle delete user
   const handleDeleteUser = async (hrUser: HRUser) => {
     const result = await Swal.fire({
-      title: "Are you sure?",
+      title: "Apakah Anda yakin?",
       html: `
         <div class="text-left">
-          <p class="mb-2">You are about to delete:</p>
+          <p class="mb-2">Anda akan menghapus:</p>
           <div class="bg-gray-100 p-3 rounded-lg">
-            <p><strong>Name:</strong> ${hrUser.name}</p>
+            <p><strong>Nama:</strong> ${hrUser.name}</p>
             <p><strong>Email:</strong> ${hrUser.email}</p>
             <p><strong>Role:</strong> ${hrUser.role}</p>
             ${hrUser._count.recruitersCreated > 0 ? 
-              `<p class="text-red-600 mt-2"><strong>⚠️ Warning:</strong> This user has created ${hrUser._count.recruitersCreated} recruiter record(s)</p>` 
+              `<p class="text-red-600 mt-2"><strong>⚠️ Peringatan:</strong> Pengguna ini telah membuat ${hrUser._count.recruitersCreated} catatan perekrut</p>` 
               : ''
             }
           </div>
-          <p class="mt-3 text-red-600 font-medium">This action cannot be undone!</p>
+          <p class="mt-3 text-red-600 font-medium">Tindakan ini tidak dapat dibatalkan!</p>
         </div>
       `,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#dc2626",
       cancelButtonColor: "#6b7280",
-      confirmButtonText: "Yes, delete user",
-      cancelButtonText: "Cancel",
+      confirmButtonText: "Ya, hapus pengguna",
+      cancelButtonText: "Batal",
       reverseButtons: true,
       customClass: { popup: "rounded-xl" },
     });
@@ -248,8 +248,8 @@ interface FormErrors {
       try {
         // Show loading
         Swal.fire({
-          title: "Deleting user...",
-          text: "Please wait while we delete the user",
+          title: "Menghapus pengguna...",
+          text: "Harap tunggu sementara kami menghapus pengguna",
           icon: "info",
           allowOutsideClick: false,
           allowEscapeKey: false,
@@ -261,11 +261,11 @@ interface FormErrors {
 
         // Success notification
         await Swal.fire({
-          title: "Deleted!",
-          text: `User "${hrUser.name}" has been deleted successfully`,
+          title: "Terhapus!",
+          text: `Pengguna "${hrUser.name}" berhasil dihapus`,
           icon: "success",
           confirmButtonColor: "#10b981",
-          confirmButtonText: "OK",
+          confirmButtonText: "Baik",
           customClass: { popup: "rounded-xl" },
         });
 
@@ -276,11 +276,11 @@ interface FormErrors {
         console.error("Delete user error:", error);
         
         Swal.fire({
-          title: "Delete Failed",
-          text: error.message || "Failed to delete user. Please try again.",
+          title: "Gagal Menghapus",
+          text: error.message || "Gagal menghapus pengguna. Silakan coba lagi.",
           icon: "error",
           confirmButtonColor: "#dc2626",
-          confirmButtonText: "OK",
+          confirmButtonText: "Baik",
           customClass: { popup: "rounded-xl" },
         });
       }
@@ -290,25 +290,25 @@ interface FormErrors {
   // Handle role change
   const handleRoleChange = async (hrUser: HRUser, newRole: string) => {
     const result = await Swal.fire({
-      title: "Change User Role",
+      title: "Ubah Role Pengguna",
       html: `
         <div class="text-left">
-          <p class="mb-2">Change role for:</p>
+          <p class="mb-2">Ubah role untuk:</p>
           <div class="bg-gray-100 p-3 rounded-lg mb-3">
-            <p><strong>Name:</strong> ${hrUser.name}</p>
+            <p><strong>Nama:</strong> ${hrUser.name}</p>
             <p><strong>Email:</strong> ${hrUser.email}</p>
-            <p><strong>Current Role:</strong> ${hrUser.role}</p>
-            <p><strong>New Role:</strong> <span class="text-blue-600 font-semibold">${newRole}</span></p>
+            <p><strong>Role Saat Ini:</strong> ${hrUser.role}</p>
+            <p><strong>Role Baru:</strong> <span class="text-blue-600 font-semibold">${newRole}</span></p>
           </div>
-          <p class="text-sm text-gray-600">This will change the user's access permissions.</p>
+          <p class="text-sm text-gray-600">Ini akan mengubah izin akses pengguna.</p>
         </div>
       `,
       icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#3b82f6",
       cancelButtonColor: "#6b7280",
-      confirmButtonText: `Yes, change to ${newRole}`,
-      cancelButtonText: "Cancel",
+      confirmButtonText: `Ya, ubah ke ${newRole}`,
+      cancelButtonText: "Batal",
       reverseButtons: true,
       customClass: { popup: "rounded-xl" },
     });
@@ -317,8 +317,8 @@ interface FormErrors {
       try {
         // Show loading
         Swal.fire({
-          title: "Updating role...",
-          text: "Please wait while we update the user role",
+          title: "Memperbarui role...",
+          text: "Harap tunggu sementara kami memperbarui role pengguna",
           icon: "info",
           allowOutsideClick: false,
           allowEscapeKey: false,
@@ -330,11 +330,11 @@ interface FormErrors {
 
         // Success notification
         await Swal.fire({
-          title: "Role Updated!",
-          text: `${hrUser.name}'s role has been changed to ${newRole}`,
+          title: "Role Diperbarui!",
+          text: `Role ${hrUser.name} telah diubah menjadi ${newRole}`,
           icon: "success",
           confirmButtonColor: "#10b981",
-          confirmButtonText: "OK",
+          confirmButtonText: "Baik",
           customClass: { popup: "rounded-xl" },
         });
 
@@ -345,11 +345,11 @@ interface FormErrors {
         console.error("Role change error:", error);
         
         Swal.fire({
-          title: "Role Change Failed",
-          text: error.message || "Failed to change user role. Please try again.",
+          title: "Gagal Mengubah Role",
+          text: error.message || "Gagal mengubah role pengguna. Silakan coba lagi.",
           icon: "error",
           confirmButtonColor: "#dc2626",
-          confirmButtonText: "OK",
+          confirmButtonText: "Baik",
           customClass: { popup: "rounded-xl" },
         });
       }
@@ -368,9 +368,9 @@ interface FormErrors {
               </svg>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Akses Ditolak</h2>
           <p className="text-gray-600 mb-6">
-            Only administrators can view and manage users. Please contact your system administrator if you need access.
+            Hanya administrator yang dapat melihat dan mengelola pengguna. Silakan hubungi administrator sistem Anda jika memerlukan akses.
           </p>
         </div>
       </div>
@@ -389,12 +389,12 @@ interface FormErrors {
               </svg>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">HR Users Management</h1>
-              <p className="text-gray-600">Manage HR users and their permissions</p>
+              <h1 className="text-3xl font-bold text-white">Manajemen Pengguna HR</h1>
+              <p className="text-gray-300">Kelola pengguna HR dan izin mereka</p>
             </div>
           </div>
-          <div className="text-sm text-gray-500">
-            Total Users: <span className="font-semibold text-gray-900">{hrUsers.length}</span>
+          <div className="text-sm text-gray-300">
+            Total Pengguna: <span className="font-semibold text-white">{hrUsers.length}</span>
           </div>
         </div>
       </div>
@@ -406,7 +406,7 @@ interface FormErrors {
             <svg className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            <p className="text-gray-600">Loading users...</p>
+            <p className="text-gray-300">Memuat pengguna...</p>
           </div>
         </div>
       ) : hrUsers.length === 0 ? (
@@ -417,8 +417,8 @@ interface FormErrors {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
             </svg>
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No HR Users Found</h3>
-          <p className="text-gray-600 mb-6">There are no HR users in the system yet.</p>
+          <h3 className="text-xl font-semibold text-white mb-2">Tidak Ada Pengguna HR Ditemukan</h3>
+          <p className="text-gray-300 mb-6">Belum ada pengguna HR dalam sistem.</p>
         </div>
       ) : (
         // Users Table
@@ -427,11 +427,11 @@ interface FormErrors {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Pengguna</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Recruiters Created</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Perekrut Dibuat</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dibuat</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -457,8 +457,8 @@ interface FormErrors {
                           </span>
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{hrUser.name}</p>
-                          <p className="text-sm text-gray-500">{hrUser.email}</p>
+                          <p className="font-semibold text-white">{hrUser.name}</p>
+                          <p className="text-sm text-gray-300">{hrUser.email}</p>
                         </div>
                       </div>
                     </td>
@@ -468,12 +468,12 @@ interface FormErrors {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-900 font-medium">
+                      <span className="text-sm text-white font-medium">
                         {hrUser._count.recruitersCreated}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-300">
                         {new Date(hrUser.createdAt).toLocaleDateString()}
                       </span>
                     </td>
@@ -495,7 +495,7 @@ interface FormErrors {
                         <button
                           onClick={() => openEditModal(hrUser)}
                           className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit user"
+                          title="Edit pengguna"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -506,7 +506,7 @@ interface FormErrors {
                         <button
                           onClick={() => handleDeleteUser(hrUser)}
                           className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete user"
+                          title="Hapus pengguna"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
@@ -529,7 +529,7 @@ interface FormErrors {
             <div className="p-6">
               {/* Modal Header */}
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Edit User</h2>
+                <h2 className="text-xl font-bold text-white">Edit Pengguna</h2>
                 <button
                   onClick={closeEditModal}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -552,7 +552,7 @@ interface FormErrors {
                 {/* Name Field */}
                 <div>
                   <label htmlFor="edit-name" className="block text-sm font-semibold text-gray-700 mb-1">
-                    Full Name <span className="text-red-500">*</span>
+                    Nama Lengkap <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -565,7 +565,7 @@ interface FormErrors {
                         ? "border-red-300 focus:border-red-500 focus:ring-red-100"
                         : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
                     }`}
-                    placeholder="Enter full name"
+                    placeholder="Masukkan nama lengkap"
                     disabled={isEditLoading}
                   />
                   {editErrors.name && (
@@ -576,7 +576,7 @@ interface FormErrors {
                 {/* Email Field */}
                 <div>
                   <label htmlFor="edit-email" className="block text-sm font-semibold text-gray-700 mb-1">
-                    Email Address <span className="text-red-500">*</span>
+                    Alamat Email <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -589,7 +589,7 @@ interface FormErrors {
                         ? "border-red-300 focus:border-red-500 focus:ring-red-100"
                         : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
                     }`}
-                    placeholder="Enter email address"
+                    placeholder="Masukkan alamat email"
                     disabled={isEditLoading}
                   />
                   {editErrors.email && (
@@ -600,7 +600,7 @@ interface FormErrors {
                 {/* Avatar URL Field */}
                 <div>
                   <label htmlFor="edit-avatarUrl" className="block text-sm font-semibold text-gray-700 mb-1">
-                    Avatar URL <span className="text-gray-400">(Optional)</span>
+                    URL Avatar <span className="text-gray-400">(Opsional)</span>
                   </label>
                   <input
                     type="url"
@@ -617,7 +617,7 @@ interface FormErrors {
                 {/* Password Field */}
                 <div>
                   <label htmlFor="edit-password" className="block text-sm font-semibold text-gray-700 mb-1">
-                    New Password <span className="text-gray-400">(Leave blank to keep current)</span>
+                    Password Baru <span className="text-gray-400">(Kosongkan untuk tetap menggunakan yang sekarang)</span>
                   </label>
                   <div className="relative">
                     <input
@@ -631,7 +631,7 @@ interface FormErrors {
                           ? "border-red-300 focus:border-red-500 focus:ring-red-100"
                           : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
                       }`}
-                      placeholder="Enter new password (optional)"
+                      placeholder="Masukkan password baru (opsional)"
                       disabled={isEditLoading}
                     />
                     <button
@@ -656,7 +656,7 @@ interface FormErrors {
                   )}
                   {editFormData.password && (
                     <p className="mt-1 text-xs text-gray-500">
-                      Password must be at least 8 characters with uppercase, lowercase, and numbers.
+                      Password minimal 8 karakter dengan huruf besar, huruf kecil, dan angka.
                     </p>
                   )}
                 </div>
@@ -669,7 +669,7 @@ interface FormErrors {
                     disabled={isEditLoading}
                     className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors disabled:opacity-50"
                   >
-                    Cancel
+                    Batal
                   </button>
                   <button
                     type="submit"
@@ -685,10 +685,10 @@ interface FormErrors {
                         <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                        <span>Updating...</span>
+                        <span>Memperbarui...</span>
                       </div>
                     ) : (
-                      "Update User"
+                      "Perbarui Pengguna"
                     )}
                   </button>
                 </div>

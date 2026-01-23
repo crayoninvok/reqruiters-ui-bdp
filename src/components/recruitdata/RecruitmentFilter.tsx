@@ -24,30 +24,30 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
   onFilterChange,
 }) => {
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-lg shadow-xl p-4">
+    <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm border border-slate-600/30 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6">
       {/* Date Range Filter */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 pb-4 border-b border-gray-600/30">
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
-            Start Date
+            Tanggal Mulai
           </label>
           <input
             type="date"
             value={filters.startDate}
             onChange={(e) => onFilterChange("startDate", e.target.value)}
-            className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm placeholder-gray-400"
+            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/30 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm placeholder-gray-400 text-sm"
           />
         </div>
 
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
-            End Date
+            Tanggal Akhir
           </label>
           <input
             type="date"
             value={filters.endDate}
             onChange={(e) => onFilterChange("endDate", e.target.value)}
-            className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm placeholder-gray-400"
+            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/30 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm placeholder-gray-400 text-sm"
           />
         </div>
 
@@ -72,13 +72,13 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-            Clear Dates
+            Hapus Tanggal
           </button>
         </div>
 
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
-            Gender
+            Jenis Kelamin
           </label>
           <select
             value={filters.gender || ""}
@@ -86,7 +86,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
             className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm"
           >
             <option value="" className="bg-gray-800 text-white">
-              All Genders
+              Semua Jenis Kelamin
             </option>
             {Object.values(Gender)
               .sort((a, b) =>
@@ -109,20 +109,20 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
-            Search
+            Pencarian
           </label>
           <input
             type="text"
-            placeholder="Search name, phone..."
+            placeholder="Cari nama, telepon..."
             value={filters.search}
             onChange={(e) => onFilterChange("search", e.target.value)}
-            className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm placeholder-gray-400"
+            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/30 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm placeholder-gray-400 text-sm"
           />
         </div>
 
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
-            Position
+            Posisi
           </label>
           <select
             value={filters.appliedPosition}
@@ -130,7 +130,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
             className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm"
           >
             <option value="" className="bg-gray-800 text-white">
-              All Positions
+              Semua Posisi
             </option>
             {Object.values(Position)
               .sort((a, b) =>
@@ -150,7 +150,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
 
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
-            Education
+            Pendidikan
           </label>
           <select
             value={filters.education}
@@ -158,7 +158,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
             className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm"
           >
             <option value="" className="bg-gray-800 text-white">
-              All Education
+              Semua Pendidikan
             </option>
             {Object.values(EducationLevel).map((education) => (
               <option
@@ -174,7 +174,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
 
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
-            Province
+            Provinsi
           </label>
           <select
             value={filters.province}
@@ -182,7 +182,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
             className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm"
           >
             <option value="" className="bg-gray-800 text-white">
-              All Provinces
+              Semua Provinsi
             </option>
             {Object.values(Province)
               .sort((a, b) =>
@@ -210,7 +210,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
             className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm"
           >
             <option value="" className="bg-gray-800 text-white">
-              All Status
+              Semua Status
             </option>
             {Object.values(RecruitmentStatus).map((status) => (
               <option
@@ -227,7 +227,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
         {/* FIXED: Mining Experience Filter */}
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
-            Mining Experience
+            Pengalaman Tambang
           </label>
           <select
             value={filters.pernahKerjaDiTambang || ""}
@@ -235,7 +235,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
             className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm"
           >
             <option value="" className="bg-gray-800 text-white">
-              All Experience
+              Semua Pengalaman
             </option>
             {Object.values(PernahTidak).map((experience) => {
               const displayText = experience === "PERNAH" ? "Pernah" : "Tidak Pernah";
@@ -255,7 +255,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
 
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">
-            Items per page
+            Item per halaman
           </label>
           <select
             value={filters.limit}
@@ -263,13 +263,13 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
             className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm"
           >
             <option value={10} className="bg-gray-800 text-white">
-              10 per page
+              10 per halaman
             </option>
             <option value={25} className="bg-gray-800 text-white">
-              25 per page
+              25 per halaman
             </option>
             <option value={50} className="bg-gray-800 text-white">
-              50 per page
+              50 per halaman
             </option>
           </select>
         </div>
@@ -282,7 +282,7 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
             options={Object.values(Certificate)}
             selected={filters.certificate || []}
             onChange={(selected) => onFilterChange("certificate", selected)}
-            placeholder="Select certificates to filter..."
+            placeholder="Pilih sertifikat untuk filter..."
           />
 
           {/* Filter summary - Updated to include mining experience */}
@@ -300,31 +300,31 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
                 filters.endDate) && (
                 <div className="flex flex-wrap gap-2">
                   <span className="font-medium text-gray-300">
-                    Active filters:
+                    Filter aktif:
                   </span>
                   {filters.search && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
-                      Search: {filters.search}
+                      Pencarian: {filters.search}
                     </span>
                   )}
                   {filters.appliedPosition && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
-                      Position: {filters.appliedPosition.replace(/_/g, " ")}
+                      Posisi: {filters.appliedPosition.replace(/_/g, " ")}
                     </span>
                   )}
                   {filters.education && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
-                      Education: {filters.education}
+                      Pendidikan: {filters.education}
                     </span>
                   )}
                   {filters.gender && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
-                      Gender: {filters.gender.replace(/_/g, " ")}
+                      Jenis Kelamin: {filters.gender.replace(/_/g, " ")}
                     </span>
                   )}
                   {filters.province && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
-                      Province: {filters.province.replace(/_/g, " ")}
+                      Provinsi: {filters.province.replace(/_/g, " ")}
                     </span>
                   )}
                   {filters.status && (
@@ -334,17 +334,17 @@ export const RecruitmentFilters: React.FC<RecruitmentFiltersProps> = ({
                   )}
                   {filters.pernahKerjaDiTambang && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
-                      Mining: {String(filters.pernahKerjaDiTambang) === "PERNAH" ? "Has experience" : "No experience"}
+                      Tambang: {String(filters.pernahKerjaDiTambang) === "PERNAH" ? "Pernah" : "Tidak pernah"}
                     </span>
                   )}
                   {filters.certificate && filters.certificate.length > 0 && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
-                      Certificates: {filters.certificate.length} selected
+                      Sertifikat: {filters.certificate.length} dipilih
                     </span>
                   )}
                   {(filters.startDate || filters.endDate) && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-600/50 text-gray-200 text-xs rounded backdrop-blur-sm border border-gray-500/30">
-                      Date range active
+                      Rentang tanggal aktif
                     </span>
                   )}
                   <button

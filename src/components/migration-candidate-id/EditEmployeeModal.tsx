@@ -151,8 +151,6 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
         })
       );
       
-      console.log('Employee update audit:', auditEntry);
-      
       onSuccess(response.employee);
       onClose();
     } catch (error: any) {

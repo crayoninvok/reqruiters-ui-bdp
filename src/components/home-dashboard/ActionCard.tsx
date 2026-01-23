@@ -1,10 +1,10 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 interface ActionCardProps {
   title: string;
-  titleColor?: string;
   description: string;
   icon: React.ReactNode;
   gradientColors: string;
@@ -16,7 +16,6 @@ interface ActionCardProps {
 
 const ActionCard: React.FC<ActionCardProps> = ({
   title,
-  titleColor,
   description,
   icon,
   gradientColors,
@@ -27,93 +26,61 @@ const ActionCard: React.FC<ActionCardProps> = ({
 }) => {
   const CardContent = () => (
     <div
-      className={`relative overflow-hidden rounded-2xl p-6 shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl h-64 flex flex-col justify-between ${gradientColors} border border-white/10`}
+      className={`group relative overflow-hidden rounded-xl sm:rounded-2xl p-5 sm:p-6 shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl min-h-[200px] sm:min-h-[240px] flex flex-col justify-between ${gradientColors} border border-white/10 backdrop-blur-sm`}
     >
-      {/* Enhanced Decorative Elements */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8"></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/3 rounded-full translate-y-8 -translate-x-8"></div>
+      {/* Decorative Elements */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-12 translate-x-12 blur-2xl"></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/3 rounded-full translate-y-12 -translate-x-12 blur-xl"></div>
 
-      {/* Subtle grid pattern overlay */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
-            backgroundSize: "20px 20px",
-          }}
-        ></div>
-      </div>
-
-      {/* Enhanced Glare Effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+      {/* Glare Effect on Hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
       {/* Card Content */}
       <div className="relative z-10 flex flex-col h-full">
-        <div className="flex items-center mb-4">
-          {/* Enhanced icon container */}
-          <div className="p-3 bg-white/15 rounded-xl backdrop-blur-sm border border-white/20 shadow-lg">
+        {/* Header with Icon and Status */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="p-2.5 sm:p-3 bg-white/15 rounded-lg sm:rounded-xl backdrop-blur-sm border border-white/20 shadow-md">
             {icon}
           </div>
-          <div className="ml-auto">
-            <span
-              className={`inline-block w-3 h-3 ${statusColor} rounded-full animate-pulse shadow-sm`}
-            ></span>
-          </div>
+          <span
+            className={`inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 ${statusColor} rounded-full animate-pulse shadow-sm`}
+          ></span>
         </div>
 
-        <div className="flex-grow">
-          {/* Enhanced title with better contrast */}
-          <h3
-            className={`text-xl font-bold mb-3 ${
-              titleColor || "text-gray-100"
-            } drop-shadow-sm`}
-          >
+        {/* Title and Description */}
+        <div className="flex-grow mb-4">
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 drop-shadow-sm">
             {title}
           </h3>
-          {/* Enhanced description with better readability */}
-          <p className="text-sm leading-relaxed text-gray-200 opacity-90 drop-shadow-sm">
+          <p className="text-xs sm:text-sm leading-relaxed text-white/90 drop-shadow-sm line-clamp-3">
             {description}
           </p>
         </div>
 
-        {/* Enhanced action footer */}
-        <div className="flex items-center justify-between text-gray-100 group-hover:translate-x-2 transition-transform duration-300 mt-4 pt-4 border-t border-white/10">
-          <span className="font-medium text-sm tracking-wide">
+        {/* Action Footer */}
+        <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-white/10 group-hover:border-white/20 transition-colors">
+          <span className="font-semibold text-xs sm:text-sm text-white tracking-wide">
             {actionText}
           </span>
-          <div className="flex items-center space-x-1">
-            <svg
-              className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M13 7l5 5m0 0l-5 5m5-5H6"
-              />
-            </svg>
-          </div>
+          <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:translate-x-1 transition-transform duration-300" />
         </div>
       </div>
 
-      {/* Subtle bottom glow */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      {/* Bottom accent on hover */}
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
     </div>
   );
 
   if (href) {
     return (
-      <Link href={href} className="group block">
+      <Link href={href} className="block">
         <CardContent />
       </Link>
     );
   }
 
   return (
-    <div onClick={onClick} className="group block cursor-pointer">
+    <div onClick={onClick} className="block cursor-pointer">
       <CardContent />
     </div>
   );

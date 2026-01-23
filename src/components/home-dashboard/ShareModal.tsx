@@ -71,7 +71,6 @@ const ShareModal: React.FC<ShareModalProps> = ({
         return;
       } catch (err) {
         // Fall back to platform-specific sharing if native share fails
-        console.log("Native share failed, falling back to platform sharing");
       }
     }
 
@@ -116,7 +115,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
           const instagramUrl = `instagram://share?text=${encodeURIComponent(
             `🚀 Join our team! ${shareUrl}`
           )}`;
-          const fallbackMessage = `QR code and link copied! You can now paste it in Instagram.\n\nLink: ${shareUrl}\nQR Code: Download from the app`;
+          const fallbackMessage = `Kode QR dan tautan disalin! Anda sekarang dapat menempelkannya di Instagram.\n\nTautan: ${shareUrl}\nKode QR: Unduh dari aplikasi`;
 
           // Try to open Instagram app, fallback to copy
           try {
@@ -130,10 +129,10 @@ const ShareModal: React.FC<ShareModalProps> = ({
             alert(fallbackMessage);
           }
         } else {
-          copyToClipboard();
-          alert(
-            `QR code image and link copied! \n\nYou can now:\n1. Save the QR code image from /qrcode.jpg\n2. Post it on Instagram\n3. Add the link ${shareUrl} to your bio or story`
-          );
+            copyToClipboard();
+            alert(
+              `Gambar kode QR dan tautan disalin! \n\nAnda sekarang dapat:\n1. Simpan gambar kode QR dari /qrcode.jpg\n2. Posting di Instagram\n3. Tambahkan tautan ${shareUrl} ke bio atau story Anda`
+            );
         }
         break;
 
@@ -250,7 +249,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
             .catch(() => {
               copyToClipboard();
               alert(
-                "Link copied! You can now paste it in your Instagram bio or story."
+                "Tautan disalin! Anda sekarang dapat menempelkannya di bio atau story Instagram Anda."
               );
             });
         } else {
@@ -292,10 +291,10 @@ const ShareModal: React.FC<ShareModalProps> = ({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
-                Share Recruitment Form
+                Bagikan Form Rekrutmen
               </h3>
               <p className="text-sm text-gray-500">
-                Share this opportunity with others
+                Bagikan kesempatan ini dengan orang lain
               </p>
             </div>
           </div>
@@ -311,7 +310,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
         <div className="p-6">
           {/* URL Display */}
           <div className="bg-gray-50 rounded-lg p-3 mb-6">
-            <p className="text-sm text-gray-600 mb-2">Recruitment Form URL:</p>
+            <p className="text-sm text-gray-600 mb-2">URL Form Rekrutmen:</p>
             <p className="text-sm font-mono text-gray-800 break-all">
               {shareUrl}
             </p>
@@ -325,7 +324,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
             >
               <div className="flex items-center space-x-3">
                 <QrCode className="w-5 h-5 text-gray-600" />
-                <span className="font-medium text-gray-700">QR Code</span>
+                <span className="font-medium text-gray-700">Kode QR</span>
               </div>
               <svg
                 className={`w-5 h-5 text-gray-500 transform transition-transform ${
@@ -360,14 +359,14 @@ const ShareModal: React.FC<ShareModalProps> = ({
                       className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
                     >
                       <Download className="w-4 h-4" />
-                      <span>Download</span>
+                      <span>Unduh</span>
                     </button>
                     <button
                       onClick={() => shareQRCode("copy")}
                       className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
                     >
                       <Share2 className="w-4 h-4" />
-                      <span>Share QR</span>
+                      <span>Bagikan QR</span>
                     </button>
                   </div>
                 </div>
@@ -378,7 +377,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
           {/* Share Options */}
           <div>
             <p className="text-sm font-medium text-gray-700 mb-4">
-              Share link via:
+              Bagikan tautan melalui:
             </p>
             <div className="grid grid-cols-2 gap-3">
               {shareOptions.map((option) => (
@@ -388,7 +387,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
                   className={`flex items-center space-x-3 p-4 rounded-xl text-white transition-all duration-200 transform hover:scale-105 ${option.color}`}
                 >
                   <option.icon className="w-5 h-5" />
-                  <span className="font-medium">{option.name}</span>
+                  <span className="font-medium">{option.name === "Copy Link" ? "Salin Tautan" : option.name}</span>
                 </button>
               ))}
             </div>
@@ -396,28 +395,23 @@ const ShareModal: React.FC<ShareModalProps> = ({
             {/* Additional sharing tips */}
             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <h4 className="text-sm font-medium text-blue-900 mb-2">
-                📱 Pro Tips:
+                📱 Tips Profesional:
               </h4>
               <ul className="text-xs text-blue-800 space-y-1">
                 <li>
-                  • <strong>LinkedIn:</strong> Opens with pre-written
-                  professional post
+                  • <strong>LinkedIn:</strong> Membuka dengan posting profesional yang sudah ditulis
                 </li>
                 <li>
-                  • <strong>WhatsApp:</strong> Perfect for direct candidate
-                  outreach
+                  • <strong>WhatsApp:</strong> Sempurna untuk pendekatan langsung ke kandidat
                 </li>
                 <li>
-                  • <strong>QR Code:</strong> Great for print materials and
-                  mobile scanning
+                  • <strong>Kode QR:</strong> Bagus untuk materi cetak dan pemindaian mobile
                 </li>
                 <li>
-                  • <strong>Instagram:</strong> Copy link for bio or story
-                  sharing
+                  • <strong>Instagram:</strong> Salin tautan untuk berbagi di bio atau story
                 </li>
                 <li>
-                  • <strong>QR Sharing:</strong> Share QR code image with link
-                  info across platforms
+                  • <strong>Berbagi QR:</strong> Bagikan gambar kode QR dengan info tautan di berbagai platform
                 </li>
               </ul>
             </div>
@@ -429,7 +423,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
               <div className="flex items-center space-x-2">
                 <Check className="w-5 h-5 text-green-600" />
                 <span className="text-green-800 font-medium">
-                  Content copied to clipboard!
+                  Konten disalin ke clipboard!
                 </span>
               </div>
             </div>
@@ -439,8 +433,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
         {/* Footer */}
         <div className="px-6 py-4 bg-gray-50 rounded-b-2xl">
           <p className="text-xs text-gray-500 text-center">
-            Share this link or QR code to help candidates easily access the
-            recruitment form
+            Bagikan tautan atau kode QR ini untuk membantu kandidat dengan mudah mengakses form rekrutmen
           </p>
         </div>
       </div>

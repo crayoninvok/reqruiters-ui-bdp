@@ -25,4 +25,32 @@ api.interceptors.request.use(
   }
 );
 
+// Add a response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Log error for debugging
+    if (error.response) {
+      console.error("API Error:", {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        message: error.response.data?.message || error.message,
+      });
+    } else if (error.request) {
+      console.error("Network Error:", {
+        message: "No response received from server",
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+      });
+    } else {
+      console.error("Request Error:", error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

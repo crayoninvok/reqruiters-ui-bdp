@@ -134,11 +134,18 @@ function FormManagementPage() {
       setLoading(true);
       const response = await FormSettingsService.getFormSettings();
       setFormSettings(response.formSettings);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching form settings:", error);
+      const errorMessage = error?.response?.data?.message || 
+                          error?.message || 
+                          "Gagal memuat pengaturan form";
+      const statusCode = error?.response?.status;
+      
       Swal.fire({
         title: "Kesalahan",
-        text: "Gagal memuat pengaturan form",
+        html: statusCode === 404 
+          ? `<p>Endpoint tidak ditemukan (404)</p><p class="text-sm text-gray-400 mt-2">Pastikan API server berjalan dan endpoint /api/form-settings tersedia</p>`
+          : `<p>${errorMessage}</p>${statusCode ? `<p class="text-sm text-gray-400 mt-2">Status: ${statusCode}</p>` : ''}`,
         icon: "error",
         confirmButtonColor: "#dc2626",
         background: "#1f2937",

@@ -42,10 +42,29 @@ export interface ToggleFormStatusData {
 }
 
 export class FormSettingsService {
+  // Helper to get the correct endpoint
+  private static getEndpoint(path: string): string {
+    const baseURL = api.defaults.baseURL || "";
+    // Normalize path to start with /
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    
+    // If baseURL already ends with /api, don't add it again
+    if (baseURL.endsWith("/api") || baseURL.endsWith("/api/")) {
+      return normalizedPath;
+    }
+    
+    // Otherwise, add /api prefix if path doesn't already have it
+    if (normalizedPath.startsWith("/api/")) {
+      return normalizedPath;
+    }
+    
+    return `/api${normalizedPath}`;
+  }
+
   // Get form settings (public endpoint)
   static async getFormSettings(): Promise<FormSettingsResponse> {
     const response = await api.get<FormSettingsResponse>(
-      "/form-settings"
+      this.getEndpoint("/form-settings")
     );
     return response.data;
   }
@@ -55,7 +74,7 @@ export class FormSettingsService {
     data: ToggleFormStatusData
   ): Promise<FormSettingsResponse> {
     const response = await api.patch<FormSettingsResponse>(
-      "/form-settings/toggle",
+      this.getEndpoint("/form-settings/toggle"),
       data
     );
     return response.data;

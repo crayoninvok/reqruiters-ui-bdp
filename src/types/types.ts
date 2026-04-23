@@ -296,6 +296,7 @@ export enum Position {
   OPERATOR_GARBAGE_CAR = "OPERATOR_GARBAGE_CAR", //add in 10/09/2025
   SAFETY_PATROL = "SAFETY_PATROL", //add in 10/09/2025
   MANAGER_PROCUREMENT = "MANAGER_PROCUREMENT", //add in 20/10/2025
+  MECHANIC_FRESH_BMC = "MECHANIC_FRESH_BMC", // added on 2026-04-23
 }
 
 // NEW: Department enum (was missing entirely)

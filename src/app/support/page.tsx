@@ -1,5 +1,4 @@
 // app/support/page.tsx
-import Footer from "@/components/Footer";
 import Link from "next/link";
 
 interface SupportCardProps {
@@ -167,8 +166,6 @@ export default function Support() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

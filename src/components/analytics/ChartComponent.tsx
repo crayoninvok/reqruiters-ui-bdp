@@ -118,7 +118,7 @@ export const StatusChart: React.FC<StatusChartProps> = ({
                   value={position}
                   className="bg-gray-700 text-gray-200"
                 >
-                  {position.replace(/_/g, " ")}
+                  {String(position || "").replace(/_/g, " ")}
                 </option>
               ))}
             </select>
@@ -164,7 +164,7 @@ export const StatusChart: React.FC<StatusChartProps> = ({
             <span className="text-blue-300 font-medium">Filter aktif:</span>
             {selectedPosition !== "all" && (
               <span className="px-2 py-1 bg-blue-800/50 text-blue-200 rounded text-xs border border-blue-600/30">
-                Posisi: {selectedPosition.replace(/_/g, " ")}
+                Posisi: {String(selectedPosition || "").replace(/_/g, " ")}
               </span>
             )}
             {dateRange.start && (
@@ -230,7 +230,7 @@ export const StatusChart: React.FC<StatusChartProps> = ({
                   const percent =
                     total > 0 ? ((value / total) * 100).toFixed(1) : "0";
                   const statusLabel =
-                    props.payload?.status?.replace(/_/g, " ") || name;
+                    String(props.payload?.status || name || "").replace(/_/g, " ");
                   return [`${value} aplikasi (${percent}%)`, "Total"];
                 }}
                 labelFormatter={(label) => ""}
@@ -270,7 +270,7 @@ export const StatusChart: React.FC<StatusChartProps> = ({
                       Status Terbanyak
                     </div>
                     <div className="text-lg font-bold text-white truncate">
-                      {maxStatus.status?.replace(/_/g, " ") || "N/A"}
+                      {String(maxStatus.status || "N/A").replace(/_/g, " ")}
                     </div>
                     <div className="text-xs text-green-200 mt-1">
                       {maxStatus.count} aplikasi
@@ -307,7 +307,7 @@ export const StatusChart: React.FC<StatusChartProps> = ({
                       />
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-medium text-white truncate">
-                          {item.status.replace(/_/g, " ")}
+                          {String(item.status || "").replace(/_/g, " ")}
                         </div>
                         <div className="text-xs text-gray-400 mt-0.5">
                           {percent}% dari total
@@ -334,111 +334,149 @@ interface PositionChartProps {
   data: Array<{ position: string; count: number }>;
 }
 
-export const PositionChart: React.FC<PositionChartProps> = ({ data }) => (
-  <div id="position-chart">
-    <h3 className="text-xl font-semibold text-white mb-2">
-      Posisi Paling Banyak Dilamar
-    </h3>
-    <p className="text-gray-300 mb-6">
-      Posisi pekerjaan teratas berdasarkan volume aplikasi
-    </p>
+export const PositionChart: React.FC<PositionChartProps> = ({ data }) => {
+  // Sort positions descending by count
+  const sortedData = useMemo(() => {
+    return [...(data || [])].sort((a, b) => b.count - a.count);
+  }, [data]);
 
-    <div className="mb-6 bg-gray-700/30 backdrop-blur-sm rounded-lg border border-gray-600/30 p-4">
-      <h4 className="font-medium text-white mb-3">Data Saat Ini:</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        {data.map((item, index) => (
-          <div
-            key={index}
-            className="flex justify-between items-center p-3 bg-gray-600/30 backdrop-blur-sm rounded-lg border border-gray-500/20"
-          >
-            <span className="text-sm text-gray-200 font-medium">
-              {item.position?.replace(/_/g, " ") || "Unknown"}
-            </span>
-            <span className="font-semibold text-blue-400 px-2 py-1 bg-blue-900/40 border border-blue-600/30 rounded">
-              {item.count}
-            </span>
+  const totalApplications = useMemo(() => {
+    return sortedData.reduce((sum, item) => sum + item.count, 0);
+  }, [sortedData]);
+
+  if (!data || data.length === 0) {
+    return (
+      <div id="position-chart" className="text-center py-16 bg-slate-800/40 rounded-xl border border-slate-700/50">
+        <p className="text-slate-400 text-sm">Belum ada data posisi pekerjaan yang tersedia.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div id="position-chart" className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h3 className="text-xl font-semibold text-white mb-1">
+            Peringkat Posisi Pekerjaan
+          </h3>
+          <p className="text-slate-400 text-sm">
+            Distribusi volume pelamar terurut dari posisi paling banyak diminati
+          </p>
+        </div>
+        <div className="text-xs px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-lg self-start sm:self-auto font-medium">
+          Total: {totalApplications} Pelamar di {sortedData.length} Posisi
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Horizontal Bar Chart */}
+        <div className="lg:col-span-2 bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+          <ResponsiveContainer width="100%" height={Math.max(380, sortedData.length * 36)}>
+            <BarChart
+              data={sortedData}
+              layout="vertical"
+              margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+            >
+              <defs>
+                <linearGradient id="positionBarGradient" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#3B82F6" />
+                  <stop offset="100%" stopColor="#8B5CF6" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
+              <XAxis
+                type="number"
+                tick={{ fill: "#94A3B8", fontSize: 11 }}
+                axisLine={{ stroke: "#475569" }}
+                tickLine={false}
+              />
+              <YAxis
+                type="category"
+                dataKey="position"
+                tick={{ fill: "#E2E8F0", fontSize: 12, fontWeight: 500 }}
+                axisLine={{ stroke: "#475569" }}
+                tickLine={false}
+                width={160}
+                tickFormatter={(val) => {
+                  const str = String(val ?? "");
+                  const cleaned = str.replace(/_/g, " ");
+                  return cleaned.length > 20 ? cleaned.slice(0, 18) + "..." : cleaned;
+                }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#1E293B",
+                  border: "1px solid #334155",
+                  borderRadius: "12px",
+                  color: "#F8FAFC",
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+                  padding: "10px 14px",
+                }}
+                formatter={(value: number) => {
+                  const percent = totalApplications > 0 ? ((value / totalApplications) * 100).toFixed(1) : "0";
+                  return [`${value} aplikasi (${percent}%)`, "Jumlah Pelamar"];
+                }}
+                labelFormatter={(label) => String(label ?? "").replace(/_/g, " ")}
+              />
+              <Bar
+                dataKey="count"
+                fill="url(#positionBarGradient)"
+                radius={[0, 6, 6, 0]}
+                barSize={20}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Top Positions Leaderboard Ranking Card */}
+        <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+          <div>
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+              Top Paling Diminati
+            </h4>
+            <div className="space-y-2.5">
+              {sortedData.slice(0, 7).map((item, idx) => {
+                const percent = totalApplications > 0 ? Math.round((item.count / totalApplications) * 100) : 0;
+                return (
+                  <div
+                    key={item.position}
+                    className="p-2.5 bg-slate-800/80 rounded-lg border border-slate-700/60 flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] flex-shrink-0 ${
+                        idx === 0 ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" :
+                        idx === 1 ? "bg-slate-400/20 text-slate-200 border border-slate-400/30" :
+                        idx === 2 ? "bg-amber-700/20 text-amber-400 border border-amber-700/30" :
+                        "bg-slate-700 text-slate-400"
+                      }`}>
+                        {idx + 1}
+                      </span>
+                      <span className="text-slate-200 font-medium truncate" title={String(item.position || "").replace(/_/g, " ")}>
+                        {String(item.position || "Tidak Diketahui").replace(/_/g, " ")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-slate-400 font-mono">{percent}%</span>
+                      <span className="px-2 py-0.5 rounded bg-blue-500/15 text-blue-300 font-semibold font-mono border border-blue-500/20">
+                        {item.count}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        ))}
+          {sortedData.length > 7 && (
+            <p className="text-[11px] text-slate-500 text-center mt-3">
+              +{sortedData.length - 7} posisi lainnya ditampilkan pada grafik
+            </p>
+          )}
+        </div>
       </div>
     </div>
-
-    <ResponsiveContainer width="100%" height={400}>
-      <LineChart
-        data={data}
-        margin={{ left: 20, right: 20, top: 20, bottom: 80 }}
-      >
-        <defs>
-          <linearGradient id="positionGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" opacity={0.5} />
-        <XAxis
-          dataKey="position"
-          axisLine={{ stroke: "#6B7280" }}
-          tickLine={false}
-          tick={{ fontSize: 11, fill: "#D1D5DB" }}
-          angle={-45}
-          textAnchor="end"
-          height={80}
-          tickFormatter={(value) =>
-            value?.replace(/_/g, " ")?.substring(0, 15) +
-            (value?.length > 15 ? "..." : "")
-          }
-        />
-        <YAxis
-          axisLine={{ stroke: "#6B7280" }}
-          tickLine={false}
-          tick={{ fontSize: 12, fill: "#D1D5DB" }}
-          domain={[0, "dataMax + 1"]}
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1f2937",
-            border: "1px solid #374151",
-            borderRadius: "8px",
-            color: "#f9fafb",
-            fontSize: "12px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          }}
-          itemStyle={{
-            color: "#f9fafb",
-          }}
-          labelStyle={{
-            color: "#f9fafb",
-            fontWeight: "600",
-          }}
-          formatter={(value, name) => [value + " aplikasi", "Total"]}
-          labelFormatter={(label) =>
-            typeof label === "string" ? label.replace(/_/g, " ") : String(label)
-          }
-        />
-        <Area
-          type="monotone"
-          dataKey="count"
-          stroke="#3B82F6"
-          fillOpacity={1}
-          fill="url(#positionGradient)"
-          hide={true}
-        />
-        <Line
-          type="monotone"
-          dataKey="count"
-          stroke="#3B82F6"
-          strokeWidth={3}
-          dot={{ fill: "#3B82F6", strokeWidth: 2, r: 6 }}
-          activeDot={{
-            r: 8,
-            fill: "#3B82F6",
-            stroke: "#ffffff",
-            strokeWidth: 2,
-          }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  </div>
-);
+  );
+};
 
 interface ProvinceChartProps {
   data: Array<{ province: string; count: number }>;
@@ -465,7 +503,7 @@ export const ProvinceChart: React.FC<ProvinceChartProps> = ({ data }) => (
           fontSize={11}
           tick={{ fill: "#D1D5DB" }}
           axisLine={{ stroke: "#6B7280" }}
-          tickFormatter={(value) => value?.replace(/_/g, " ")}
+          tickFormatter={(value) => String(value ?? "").replace(/_/g, " ")}
         />
         <YAxis
           tick={{ fill: "#D1D5DB", fontSize: 12 }}
@@ -487,9 +525,7 @@ export const ProvinceChart: React.FC<ProvinceChartProps> = ({ data }) => (
             fontWeight: "600",
           }}
           formatter={(value) => [value + " aplikasi", "Total"]}
-          labelFormatter={(label) =>
-            typeof label === "string" ? label.replace(/_/g, " ") : String(label)
-          }
+          labelFormatter={(label) => String(label ?? "").replace(/_/g, " ")}
         />
         <Bar dataKey="count" radius={[4, 4, 0, 0]}>
           {data.map((entry, index) => (

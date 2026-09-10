@@ -1,5 +1,4 @@
 // app/privacy/page.tsx
-import Footer from "@/components/Footer";
 
 export default function Privacy() {
   return (
@@ -120,8 +119,6 @@ export default function Privacy() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

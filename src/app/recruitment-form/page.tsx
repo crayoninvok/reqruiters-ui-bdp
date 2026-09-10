@@ -23,7 +23,9 @@ import {
   Link,
   Users, // Add this
   Lock, // Add this for form closed message
+  Search,
 } from "lucide-react";
+import NextLink from "next/link";
 import Swal from "sweetalert2";
 import SubmittedApp from "@/components/SubmittedApp";
 
@@ -919,17 +921,20 @@ const PublicRecruitmentPage: React.FC = () => {
   // Show loading while checking form status
   if (checkingFormStatus) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6 p-8 bg-gradient-to-br from-slate-800/90 to-gray-800/90 rounded-2xl border border-slate-600/30 shadow-2xl">
+      <div className="min-h-screen bg-slate-50 relative overflow-hidden flex items-center justify-center p-4">
+        {/* Ambient subtle glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-teal-500/5 rounded-full blur-3xl"></div>
+        </div>
+        <div className="flex flex-col items-center gap-5 p-8 sm:p-10 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-xl max-w-sm w-full text-center relative z-10">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500/30 border-t-blue-500"></div>
-            <div className="absolute inset-0 animate-ping rounded-full border-4 border-blue-500/20"></div>
+            <div className="animate-spin rounded-full h-14 w-14 border-4 border-teal-100 border-t-teal-600"></div>
           </div>
-          <div className="text-center">
-            <p className="text-white text-lg sm:text-xl font-semibold mb-2">
+          <div className="space-y-1">
+            <p className="text-slate-900 text-lg font-bold">
               Memuat Formulir Lamaran...
             </p>
-            <p className="text-gray-400 text-sm">
+            <p className="text-slate-500 text-sm">
               Mohon tunggu sebentar
             </p>
           </div>
@@ -941,61 +946,96 @@ const PublicRecruitmentPage: React.FC = () => {
   // Show message if form is closed
   if (isFormOpen === false) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 flex items-center justify-center py-8 px-4">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="bg-gradient-to-br from-slate-800/90 via-gray-800/90 to-slate-800/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600/30 p-8 sm:p-12">
-            {/* Icon */}
-            <div className="mb-6">
-              <div className="mx-auto w-24 h-24 sm:w-28 sm:h-28 bg-red-500/20 rounded-full flex items-center justify-center border border-red-500/30 mb-6">
-                <Lock className="h-12 w-12 sm:h-14 sm:w-14 text-red-400" />
-              </div>
+      <div className="min-h-screen bg-slate-50 relative overflow-hidden flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        {/* Subtle Ambient Background Gradients */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-teal-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-[300px] h-[300px] bg-blue-500/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="max-w-2xl w-full mx-auto text-center relative z-10">
+          {/* Main Elevated White Card */}
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-xl border border-slate-200/90 p-8 sm:p-12 transition-all">
+            {/* Status Pill Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 shadow-xs mb-6">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
+                Pendaftaran Sedang Ditutup
+              </span>
+            </div>
+
+            {/* Lock Icon Container */}
+            <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-amber-50 rounded-2xl flex items-center justify-center border-2 border-amber-200/90 mb-6 shadow-sm">
+              <Lock className="h-10 w-10 sm:h-12 sm:w-12 text-amber-600" />
             </div>
 
             {/* Title */}
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight mb-2.5">
               Tidak Ada Lowongan Kerja Tersedia
             </h1>
 
+            {/* Company Tagline */}
+            <div className="text-teal-700 font-extrabold text-xs sm:text-sm uppercase tracking-wider mb-5">
+              PT Batara Dharma Persada
+            </div>
+
             {/* Description */}
-            <div className="space-y-3 mb-8">
-              <p className="text-base sm:text-lg text-gray-300 leading-relaxed">
-                Maaf, saat ini tidak ada lowongan kerja yang tersedia.
+            <div className="space-y-2 mb-8 max-w-lg mx-auto">
+              <p className="text-base sm:text-lg text-slate-700 font-medium leading-relaxed">
+                Maaf, saat ini belum ada formasi lowongan kerja aktif yang dibuka untuk umum.
               </p>
-              <p className="text-sm sm:text-base text-gray-400">
-                Formulir recruitment sedang ditutup. Silakan coba lagi nanti atau hubungi tim HR untuk informasi lebih lanjut.
+              <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                Formulir rekrutmen sedang dinonaktifkan sementara. Silakan pantau ketersediaan posisi atau periksa progres lamaran Anda melalui menu pelacakan.
               </p>
             </div>
 
-            {/* Decorative Elements */}
+            {/* Decorative Warm Dots */}
             <div className="flex justify-center gap-2 mb-8">
-              <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
-              <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
             </div>
 
-            {/* Action Button */}
-            <button
-              onClick={() => window.location.href = "/"}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg sm:rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 mx-auto"
-            >
-              <Home className="w-5 h-5" />
-              <span>Kembali ke Beranda</span>
-            </button>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <NextLink
+                href="/"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md shadow-teal-600/20 transition-all cursor-pointer"
+              >
+                <Home className="w-4 h-4" />
+                <span>Kembali ke Beranda</span>
+              </NextLink>
+
+              <NextLink
+                href="/informasi-posisi"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm border border-slate-300 shadow-xs transition-all cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-teal-600" />
+                <span>Cek Informasi Posisi</span>
+              </NextLink>
+
+              <NextLink
+                href="/tracking"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm border border-slate-200/80 transition-all cursor-pointer"
+              >
+                <Search className="w-4 h-4 text-slate-600" />
+                <span>Lacak Status Lamaran</span>
+              </NextLink>
+            </div>
           </div>
 
           {/* Additional Info Card */}
-          <div className="mt-6 bg-gradient-to-br from-slate-800/50 via-gray-800/50 to-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-600/30 p-4 sm:p-6">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 p-2 bg-blue-500/20 rounded-lg border border-blue-400/30">
-                <Info className="w-5 h-5 text-blue-400" />
+          <div className="mt-6 bg-white/95 backdrop-blur-sm rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-sm text-left">
+            <div className="flex items-start gap-3.5">
+              <div className="flex-shrink-0 p-2.5 bg-teal-50 rounded-xl border border-teal-200 text-teal-700">
+                <Info className="w-5 h-5" />
               </div>
-              <div className="text-left">
-                <h3 className="text-sm font-semibold text-white mb-2">
-                  Informasi
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-slate-900">
+                  Informasi Pembukaan Formasi
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
-                  Kami akan membuka kembali formulir recruitment ketika ada lowongan kerja yang tersedia. 
-                  Terima kasih atas minat Anda untuk bergabung dengan kami.
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Kami akan membuka kembali formulir rekrutmen ketika ada formasi lowongan kerja baru di operasional tambang batubara &amp; hauling. Terima kasih atas minat Anda untuk berkarir bersama <strong className="text-slate-800 font-semibold">PT Batara Dharma Persada</strong>.
                 </p>
               </div>
             </div>

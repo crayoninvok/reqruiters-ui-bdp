@@ -1,9 +1,31 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { useAuth } from "@/context/useAuth";
 import AuthService from "@/services/auth.service";
 import Swal from "sweetalert2";
 import { withAuthGuard } from "@/components/withGuard";
+import {
+  Users,
+  UserPlus,
+  Shield,
+  Search,
+  RefreshCw,
+  Edit2,
+  Trash2,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Calendar,
+  Mail,
+  CheckCircle,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  UserCheck,
+  UserX,
+  Filter,
+} from "lucide-react";
 
 interface HRUser {
   id: string;
@@ -13,8 +35,9 @@ interface HRUser {
   role: string;
   createdAt: string;
   updatedAt: string;
-  _count: {
-    recruitersCreated: number;
+  _count?: {
+    hiredEmployeesProcessed?: number;
+    recruitersCreated?: number;
   };
 }
 
@@ -32,10 +55,32 @@ interface FormErrors {
   general?: string;
 }
 
- function UserList() {
+// Reusable SweetAlert dark configuration
+const swalDarkConfig = {
+  background: "#1e293b",
+  color: "#f8fafc",
+  customClass: {
+    popup: "rounded-2xl border border-slate-700 shadow-2xl",
+    confirmButton: "px-5 py-2.5 rounded-xl font-medium",
+    cancelButton: "px-5 py-2.5 rounded-xl font-medium",
+  },
+};
+
+function UserList() {
   const { user } = useAuth();
   const [hrUsers, setHrUsers] = useState<HRUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Search & Filter State
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("ALL");
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
+
+  // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<HRUser | null>(null);
   const [editFormData, setEditFormData] = useState<EditUserFormData>({
@@ -48,26 +93,31 @@ interface FormErrors {
   const [isEditLoading, setIsEditLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Check if user is admin
+  // Check if current user is admin
   const isAdmin = user?.role?.toLowerCase() === "admin";
 
   // Fetch HR users
-  const fetchHRUsers = async () => {
+  const fetchHRUsers = async (isManualRefresh = false) => {
     try {
-      setIsLoading(true);
+      if (isManualRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
       const response = await AuthService.getHRUsers();
       setHrUsers(response.users || []);
     } catch (error: any) {
       console.error("Error fetching HR users:", error);
       Swal.fire({
-        title: "Error",
-        text: error.message || "Gagal memuat pengguna",
+        ...swalDarkConfig,
+        title: "Gagal Memuat Data",
+        text: error.message || "Gagal memuat daftar pengguna",
         icon: "error",
-        confirmButtonColor: "#dc2626",
-        customClass: { popup: "rounded-xl" },
+        confirmButtonColor: "#ef4444",
       });
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -77,6 +127,45 @@ interface FormErrors {
       fetchHRUsers();
     }
   }, [isAdmin]);
+
+  // Filtered and searched users
+  const filteredUsers = useMemo(() => {
+    return hrUsers.filter((u) => {
+      const matchQuery =
+        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchRole =
+        roleFilter === "ALL" ? true : u.role.toUpperCase() === roleFilter;
+
+      return matchQuery && matchRole;
+    });
+  }, [hrUsers, searchTerm, roleFilter]);
+
+  // Paginated users
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredUsers.slice(startIndex, startIndex + pageSize);
+  }, [filteredUsers, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredUsers.length / pageSize) || 1;
+
+  // Summary Metrics
+  const metrics = useMemo(() => {
+    const totalUsers = hrUsers.length;
+    const totalHR = hrUsers.filter((u) => u.role.toUpperCase() === "HR").length;
+    const totalAdmin = hrUsers.filter((u) => u.role.toUpperCase() === "ADMIN").length;
+    const totalCandidatesProcessed = hrUsers.reduce((sum, u) => {
+      return (
+        sum +
+        (u._count?.hiredEmployeesProcessed ??
+          u._count?.recruitersCreated ??
+          0)
+      );
+    }, 0);
+
+    return { totalUsers, totalHR, totalAdmin, totalCandidatesProcessed };
+  }, [hrUsers]);
 
   // Open edit modal
   const openEditModal = (hrUser: HRUser) => {
@@ -108,16 +197,16 @@ interface FormErrors {
   // Handle edit form input changes
   const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setEditFormData(prev => ({
+    setEditFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     // Clear error when user starts typing
     if (editErrors[name as keyof FormErrors]) {
-      setEditErrors(prev => ({
+      setEditErrors((prev) => ({
         ...prev,
-        [name]: undefined
+        [name]: undefined,
       }));
     }
   };
@@ -141,12 +230,13 @@ interface FormErrors {
       newErrors.email = "Masukkan alamat email yang valid";
     }
 
-    // Password validation (only if provided)
+    // Password validation (optional on edit)
     if (editFormData.password && editFormData.password.length > 0) {
       if (editFormData.password.length < 8) {
         newErrors.password = "Password minimal 8 karakter";
       } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(editFormData.password)) {
-        newErrors.password = "Password harus mengandung minimal satu huruf besar, satu huruf kecil, dan satu angka";
+        newErrors.password =
+          "Password harus mengandung minimal satu huruf besar, satu huruf kecil, dan satu angka";
       }
     }
 
@@ -157,7 +247,7 @@ interface FormErrors {
   // Handle edit form submission
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateEditForm() || !selectedUser) {
       return;
     }
@@ -172,40 +262,35 @@ interface FormErrors {
         avatarUrl: editFormData.avatarUrl.trim(),
       };
 
-      // Only include password if it's provided
       if (editFormData.password) {
         updateData.password = editFormData.password;
       }
 
       await AuthService.updateHRUser(selectedUser.id, updateData);
 
-      // Success notification
       await Swal.fire({
-        title: "Berhasil!",
-        text: `Pengguna "${updateData.name}" berhasil diperbarui`,
+        ...swalDarkConfig,
+        title: "Berhasil Diperbarui!",
+        text: `Data pengguna "${updateData.name}" berhasil diperbarui`,
         icon: "success",
         confirmButtonColor: "#10b981",
-        confirmButtonText: "Baik",
-        customClass: { popup: "rounded-xl" },
+        confirmButtonText: "Selesai",
       });
 
-      // Refresh the user list
       await fetchHRUsers();
       closeEditModal();
-
     } catch (error: any) {
       console.error("Update user error:", error);
-      
+
       Swal.fire({
-        title: "Error",
-        text: error.message || "Gagal memperbarui pengguna. Silakan coba lagi.",
+        ...swalDarkConfig,
+        title: "Gagal Memperbarui",
+        text: error.message || "Gagal memperbarui data pengguna.",
         icon: "error",
-        confirmButtonColor: "#dc2626",
-        confirmButtonText: "Baik",
-        customClass: { popup: "rounded-xl" },
+        confirmButtonColor: "#ef4444",
       });
 
-      if (error.message.toLowerCase().includes("email")) {
+      if (error.message?.toLowerCase().includes("email")) {
         setEditErrors({ email: error.message });
       } else {
         setEditErrors({ general: error.message });
@@ -217,71 +302,72 @@ interface FormErrors {
 
   // Handle delete user
   const handleDeleteUser = async (hrUser: HRUser) => {
+    const candidatesProcessed =
+      hrUser._count?.hiredEmployeesProcessed ??
+      hrUser._count?.recruitersCreated ??
+      0;
+
     const result = await Swal.fire({
-      title: "Apakah Anda yakin?",
+      ...swalDarkConfig,
+      title: "Hapus Pengguna?",
       html: `
-        <div class="text-left">
-          <p class="mb-2">Anda akan menghapus:</p>
-          <div class="bg-gray-100 p-3 rounded-lg">
-            <p><strong>Nama:</strong> ${hrUser.name}</p>
-            <p><strong>Email:</strong> ${hrUser.email}</p>
-            <p><strong>Role:</strong> ${hrUser.role}</p>
-            ${hrUser._count.recruitersCreated > 0 ? 
-              `<p class="text-red-600 mt-2"><strong>⚠️ Peringatan:</strong> Pengguna ini telah membuat ${hrUser._count.recruitersCreated} catatan perekrut</p>` 
-              : ''
+        <div class="text-left text-sm space-y-3">
+          <p class="text-slate-300">Anda akan menghapus akun berikut secara permanen:</p>
+          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/80 space-y-1.5">
+            <p><strong class="text-slate-400">Nama:</strong> <span class="text-white font-medium">${hrUser.name}</span></p>
+            <p><strong class="text-slate-400">Email:</strong> <span class="text-slate-300">${hrUser.email}</span></p>
+            <p><strong class="text-slate-400">Role:</strong> <span class="text-blue-400 font-semibold">${hrUser.role}</span></p>
+            ${
+              candidatesProcessed > 0
+                ? `<p class="text-amber-400 mt-2 font-medium">⚠️ Perhatian: Pengguna ini telah memproses ${candidatesProcessed} data kandidat.</p>`
+                : ""
             }
           </div>
-          <p class="mt-3 text-red-600 font-medium">Tindakan ini tidak dapat dibatalkan!</p>
+          <p class="text-red-400 font-semibold text-xs">Tindakan ini tidak dapat dibatalkan!</p>
         </div>
       `,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: "Ya, hapus pengguna",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#475569",
+      confirmButtonText: "Ya, Hapus Pengguna",
       cancelButtonText: "Batal",
       reverseButtons: true,
-      customClass: { popup: "rounded-xl" },
     });
 
     if (result.isConfirmed) {
       try {
-        // Show loading
         Swal.fire({
-          title: "Menghapus pengguna...",
-          text: "Harap tunggu sementara kami menghapus pengguna",
-          icon: "info",
+          ...swalDarkConfig,
+          title: "Menghapus Pengguna...",
+          text: "Harap tunggu sementara sistem menghapus data",
           allowOutsideClick: false,
-          allowEscapeKey: false,
           showConfirmButton: false,
           didOpen: () => Swal.showLoading(),
         });
 
         await AuthService.deleteHRUser(hrUser.id);
 
-        // Success notification
         await Swal.fire({
-          title: "Terhapus!",
-          text: `Pengguna "${hrUser.name}" berhasil dihapus`,
+          ...swalDarkConfig,
+          title: "Berhasil Dihapus!",
+          text: `Pengguna "${hrUser.name}" telah dihapus`,
           icon: "success",
           confirmButtonColor: "#10b981",
-          confirmButtonText: "Baik",
-          customClass: { popup: "rounded-xl" },
+          timer: 2000,
+          showConfirmButton: false,
         });
 
-        // Refresh the user list
         await fetchHRUsers();
-
       } catch (error: any) {
         console.error("Delete user error:", error);
-        
+
         Swal.fire({
+          ...swalDarkConfig,
           title: "Gagal Menghapus",
           text: error.message || "Gagal menghapus pengguna. Silakan coba lagi.",
           icon: "error",
-          confirmButtonColor: "#dc2626",
-          confirmButtonText: "Baik",
-          customClass: { popup: "rounded-xl" },
+          confirmButtonColor: "#ef4444",
         });
       }
     }
@@ -289,270 +375,578 @@ interface FormErrors {
 
   // Handle role change
   const handleRoleChange = async (hrUser: HRUser, newRole: string) => {
+    if (hrUser.role === newRole) return;
+
     const result = await Swal.fire({
-      title: "Ubah Role Pengguna",
+      ...swalDarkConfig,
+      title: "Ubah Hak Akses Role?",
       html: `
-        <div class="text-left">
-          <p class="mb-2">Ubah role untuk:</p>
-          <div class="bg-gray-100 p-3 rounded-lg mb-3">
-            <p><strong>Nama:</strong> ${hrUser.name}</p>
-            <p><strong>Email:</strong> ${hrUser.email}</p>
-            <p><strong>Role Saat Ini:</strong> ${hrUser.role}</p>
-            <p><strong>Role Baru:</strong> <span class="text-blue-600 font-semibold">${newRole}</span></p>
+        <div class="text-left text-sm space-y-3">
+          <p class="text-slate-300">Ubah peran untuk akun:</p>
+          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/80 space-y-1.5">
+            <p><strong class="text-slate-400">Pengguna:</strong> <span class="text-white font-medium">${hrUser.name}</span></p>
+            <p><strong class="text-slate-400">Role Saat Ini:</strong> <span class="text-slate-300">${hrUser.role}</span></p>
+            <p><strong class="text-slate-400">Role Baru:</strong> <span class="text-blue-400 font-bold">${newRole}</span></p>
           </div>
-          <p class="text-sm text-gray-600">Ini akan mengubah izin akses pengguna.</p>
+          <p class="text-slate-400 text-xs">Perubahan ini akan langsung memengaruhi izin akses pengguna pada sistem.</p>
         </div>
       `,
       icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#3b82f6",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: `Ya, ubah ke ${newRole}`,
+      cancelButtonColor: "#475569",
+      confirmButtonText: `Ya, Jadikan ${newRole}`,
       cancelButtonText: "Batal",
       reverseButtons: true,
-      customClass: { popup: "rounded-xl" },
     });
 
     if (result.isConfirmed) {
       try {
-        // Show loading
         Swal.fire({
-          title: "Memperbarui role...",
-          text: "Harap tunggu sementara kami memperbarui role pengguna",
-          icon: "info",
+          ...swalDarkConfig,
+          title: "Memperbarui Role...",
           allowOutsideClick: false,
-          allowEscapeKey: false,
           showConfirmButton: false,
           didOpen: () => Swal.showLoading(),
         });
 
         await AuthService.changeUserRole(hrUser.id, newRole);
 
-        // Success notification
         await Swal.fire({
+          ...swalDarkConfig,
           title: "Role Diperbarui!",
-          text: `Role ${hrUser.name} telah diubah menjadi ${newRole}`,
+          text: `Role "${hrUser.name}" kini telah diubah menjadi ${newRole}`,
           icon: "success",
           confirmButtonColor: "#10b981",
-          confirmButtonText: "Baik",
-          customClass: { popup: "rounded-xl" },
+          timer: 2000,
+          showConfirmButton: false,
         });
 
-        // Refresh the user list
         await fetchHRUsers();
-
       } catch (error: any) {
         console.error("Role change error:", error);
-        
+
         Swal.fire({
+          ...swalDarkConfig,
           title: "Gagal Mengubah Role",
-          text: error.message || "Gagal mengubah role pengguna. Silakan coba lagi.",
+          text: error.message || "Gagal mengubah role pengguna.",
           icon: "error",
-          confirmButtonColor: "#dc2626",
-          confirmButtonText: "Baik",
-          customClass: { popup: "rounded-xl" },
+          confirmButtonColor: "#ef4444",
         });
       }
     }
   };
 
-  // If user is not admin, show access denied
+  // If user is not admin, show polished Access Denied
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="max-w-md mx-auto text-center">
-          <div className="mb-6">
-            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
+      <div className="flex items-center justify-center py-20">
+        <div className="max-w-md w-full mx-auto text-center p-8 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-2xl border border-red-500/30 backdrop-blur-md shadow-2xl">
+          <div className="w-16 h-16 bg-red-500/15 border border-red-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Akses Ditolak</h2>
-          <p className="text-gray-600 mb-6">
-            Hanya administrator yang dapat melihat dan mengelola pengguna. Silakan hubungi administrator sistem Anda jika memerlukan akses.
+          <h2 className="text-2xl font-bold text-white mb-2">Akses Ditolak</h2>
+          <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+            Hanya administrator sistem yang memiliki hak akses untuk melihat dan
+            mengelola akun pengguna.
           </p>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg transition-all"
+          >
+            Kembali ke Dashboard
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-              </svg>
-            </div>
+    <div className="space-y-6 sm:space-y-8 min-h-[500px]">
+      {/* Top Header & Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg shadow-blue-500/20 ring-1 ring-white/20">
+            <Users className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-2">
+              <span>Manajemen Pengguna</span>
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-medium">
+                Admin Panel
+              </span>
+            </h1>
+            <p className="text-slate-400 text-sm mt-0.5">
+              Kelola akun pengguna HR, hak akses, dan pantau aktivitas sistem
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => fetchHRUsers(true)}
+            disabled={isLoading || isRefreshing}
+            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-slate-600 text-slate-200 rounded-xl flex items-center gap-2 transition-all shadow-md text-sm font-medium disabled:opacity-50"
+            title="Segarkan data pengguna"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${
+                isRefreshing ? "animate-spin text-blue-400" : "text-slate-400"
+              }`}
+            />
+            <span className="hidden sm:inline">Segarkan</span>
+          </button>
+
+          <Link
+            href="/dashboard/create-user"
+            className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 text-white rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-600/25 text-sm font-semibold hover:shadow-blue-600/40 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Tambah Pengguna</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* KPI / Summary Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Total Users */}
+        <div className="bg-gradient-to-br from-slate-800/90 via-slate-800/70 to-slate-900/90 backdrop-blur-sm p-5 rounded-2xl border border-slate-700/60 shadow-lg hover:border-slate-600 transition-all">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white">Manajemen Pengguna HR</h1>
-              <p className="text-gray-300">Kelola pengguna HR dan izin mereka</p>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                Total Pengguna
+              </p>
+              <div className="text-3xl font-bold text-white tracking-tight">
+                {metrics.totalUsers}
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Terdaftar dalam sistem
+              </p>
+            </div>
+            <div className="p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+              <Users className="w-6 h-6 text-blue-400" />
             </div>
           </div>
-          <div className="text-sm text-gray-300">
-            Total Pengguna: <span className="font-semibold text-white">{hrUsers.length}</span>
+        </div>
+
+        {/* HR Users */}
+        <div className="bg-gradient-to-br from-slate-800/90 via-slate-800/70 to-slate-900/90 backdrop-blur-sm p-5 rounded-2xl border border-slate-700/60 shadow-lg hover:border-slate-600 transition-all">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                Pengguna HR
+              </p>
+              <div className="text-3xl font-bold text-emerald-400 tracking-tight">
+                {metrics.totalHR}
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Tim pengelola rekrutmen
+              </p>
+            </div>
+            <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+              <UserCheck className="w-6 h-6 text-emerald-400" />
+            </div>
+          </div>
+        </div>
+
+        {/* Total Candidates Processed */}
+        <div className="bg-gradient-to-br from-slate-800/90 via-slate-800/70 to-slate-900/90 backdrop-blur-sm p-5 rounded-2xl border border-slate-700/60 shadow-lg hover:border-slate-600 transition-all sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                Kandidat Diproses
+              </p>
+              <div className="text-3xl font-bold text-amber-400 tracking-tight">
+                {metrics.totalCandidatesProcessed}
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Diproses menjadi karyawan
+              </p>
+            </div>
+            <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+              <CheckCircle className="w-6 h-6 text-amber-400" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Loading State */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="text-center">
-            <svg className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <p className="text-gray-300">Memuat pengguna...</p>
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-800/60 backdrop-blur-sm p-3 rounded-2xl border border-slate-700/60 shadow-sm">
+        {/* Search Input */}
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Cari pengguna berdasarkan nama atau email..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-10 pr-10 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setCurrentPage(1);
+              }}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white p-1"
+              title="Hapus pencarian"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Role Filter */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-auto">
+            <select
+              value={roleFilter}
+              onChange={(e) => {
+                setRoleFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full sm:w-auto px-4 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all cursor-pointer font-medium"
+            >
+              <option value="ALL">Semua Role</option>
+              <option value="HR">Role: HR</option>
+              <option value="ADMIN">Role: ADMIN</option>
+            </select>
           </div>
         </div>
-      ) : hrUsers.length === 0 ? (
-        // Empty State
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-            </svg>
+      </div>
+
+      {/* Main Table Section */}
+      {isLoading ? (
+        <div className="bg-slate-800/80 rounded-2xl border border-slate-700/60 p-16 flex flex-col items-center justify-center gap-4 text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500/20 border-t-blue-500"></div>
           </div>
-          <h3 className="text-xl font-semibold text-white mb-2">Tidak Ada Pengguna HR Ditemukan</h3>
-          <p className="text-gray-300 mb-6">Belum ada pengguna HR dalam sistem.</p>
+          <div>
+            <p className="text-white font-semibold text-base">
+              Memuat Data Pengguna...
+            </p>
+            <p className="text-slate-400 text-xs mt-1">
+              Harap tunggu, sedang mengambil daftar pengguna dari server
+            </p>
+          </div>
+        </div>
+      ) : filteredUsers.length === 0 ? (
+        /* Empty State */
+        <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-2xl border border-slate-700/60 p-12 text-center backdrop-blur-sm shadow-xl">
+          <div className="w-16 h-16 bg-slate-700/40 border border-slate-600/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <UserX className="w-8 h-8 text-slate-400" />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-1.5">
+            {searchTerm || roleFilter !== "ALL"
+              ? "Tidak Ada Pengguna yang Cocok"
+              : "Belum Ada Pengguna HR"}
+          </h3>
+          <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
+            {searchTerm || roleFilter !== "ALL"
+              ? "Tidak ditemukan pengguna yang sesuai dengan kriteria filter atau pencarian Anda. Coba atur ulang kata kunci."
+              : "Belum ada akun pengguna HR terdaftar dalam sistem saat ini. Klik tombol di bawah untuk membuat pengguna baru."}
+          </p>
+          {searchTerm || roleFilter !== "ALL" ? (
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setRoleFilter("ALL");
+                setCurrentPage(1);
+              }}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-sm font-medium transition-all"
+            >
+              Reset Filter & Pencarian
+            </button>
+          ) : (
+            <Link
+              href="/dashboard/create-user"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Buat Pengguna Pertama</span>
+            </Link>
+          )}
         </div>
       ) : (
-        // Users Table
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        /* Users Table Card */
+        <div className="bg-gradient-to-br from-slate-800/90 via-slate-800/80 to-slate-900/90 backdrop-blur-sm rounded-2xl border border-slate-700/60 shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Pengguna</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Perekrut Dibuat</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dibuat</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-900/80 border-b border-slate-700/70 text-slate-400 uppercase text-xs tracking-wider">
+                  <th className="py-4 px-6 font-semibold">Pengguna</th>
+                  <th className="py-4 px-6 font-semibold">Role</th>
+                  <th className="py-4 px-6 font-semibold">Kandidat Diproses</th>
+                  <th className="py-4 px-6 font-semibold">Terdaftar</th>
+                  <th className="py-4 px-6 font-semibold text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {hrUsers.map((hrUser) => (
-                  <tr key={hrUser.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
-                          {hrUser.avatarUrl ? (
-                            <img
-                              src={hrUser.avatarUrl}
-                              alt={`${hrUser.name}'s avatar`}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.nextElementSibling!.classList.remove('hidden');
-                              }}
-                            />
-                          ) : null}
-                          <span className="text-white text-sm font-semibold">
-                            {hrUser.name.charAt(0).toUpperCase()}
+              <tbody className="divide-y divide-slate-700/40 text-sm">
+                {paginatedUsers.map((hrUser) => {
+                  const candidateCount =
+                    hrUser._count?.hiredEmployeesProcessed ??
+                    hrUser._count?.recruitersCreated ??
+                    0;
+
+                  return (
+                    <tr
+                      key={hrUser.id}
+                      className="hover:bg-slate-700/30 transition-colors group"
+                    >
+                      {/* Name & Avatar */}
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3.5">
+                          <div className="relative w-10 h-10 rounded-full flex-shrink-0 overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md ring-2 ring-slate-700/80">
+                            {hrUser.avatarUrl ? (
+                              <img
+                                src={hrUser.avatarUrl}
+                                alt={hrUser.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display =
+                                    "none";
+                                }}
+                              />
+                            ) : null}
+                            <span className="text-sm">
+                              {hrUser.name?.charAt(0)?.toUpperCase() || "U"}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-white group-hover:text-blue-400 transition-colors">
+                              {hrUser.name}
+                            </p>
+                            <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                              <Mail className="w-3 h-3 text-slate-500" />
+                              {hrUser.email}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Role Badge */}
+                      <td className="py-4 px-6">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                            hrUser.role.toUpperCase() === "ADMIN"
+                              ? "bg-purple-500/15 text-purple-300 border border-purple-500/30"
+                              : "bg-blue-500/15 text-blue-300 border border-blue-500/30"
+                          }`}
+                        >
+                          <Shield className="w-3 h-3" />
+                          {hrUser.role}
+                        </span>
+                      </td>
+
+                      {/* Candidates Processed */}
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-200">
+                            {candidateCount}
+                          </span>
+                          <span className="text-xs text-slate-400">
+                            kandidat
                           </span>
                         </div>
-                        <div>
-                          <p className="font-semibold text-white">{hrUser.name}</p>
-                          <p className="text-sm text-gray-300">{hrUser.email}</p>
+                      </td>
+
+                      {/* Registered Date */}
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-1.5 text-slate-300 text-xs">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          <span>
+                            {new Date(hrUser.createdAt).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )}
+                          </span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {hrUser.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-white font-medium">
-                        {hrUser._count.recruitersCreated}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-300">
-                        {new Date(hrUser.createdAt).toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        {/* Role Change Dropdown */}
-                        <select
-                          value={hrUser.role}
-                          onChange={(e) => handleRoleChange(hrUser, e.target.value)}
-                          className="text-xs px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="HR">HR</option>
-                          <option value="ADMIN">ADMIN</option>
-                          <option value="MANAGEMENT">MANAGEMENT</option>
-                          <option value="VIEWS_ONLY">VIEWS_ONLY</option>
-                        </select>
+                      </td>
 
-                        {/* Edit Button */}
-                        <button
-                          onClick={() => openEditModal(hrUser)}
-                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit pengguna"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
+                      {/* Actions */}
+                      <td className="py-4 px-6 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Role Quick Selector */}
+                          <select
+                            value={hrUser.role}
+                            onChange={(e) =>
+                              handleRoleChange(hrUser, e.target.value)
+                            }
+                            className="text-xs px-2.5 py-1.5 bg-slate-900/90 text-slate-200 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 hover:border-slate-600 transition-all cursor-pointer font-medium"
+                            title="Ubah Role"
+                          >
+                            <option value="HR">HR</option>
+                            <option value="ADMIN">ADMIN</option>
+                          </select>
 
-                        {/* Delete Button */}
-                        <button
-                          onClick={() => handleDeleteUser(hrUser)}
-                          className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Hapus pengguna"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {/* Edit Button */}
+                          <button
+                            onClick={() => openEditModal(hrUser)}
+                            className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/15 rounded-lg border border-transparent hover:border-blue-500/30 transition-all"
+                            title="Edit Pengguna"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDeleteUser(hrUser)}
+                            className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/15 rounded-lg border border-transparent hover:border-red-500/30 transition-all"
+                            title="Hapus Pengguna"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
+          </div>
+
+          {/* Table Footer with Pagination */}
+          <div className="px-6 py-4 bg-slate-900/70 border-t border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+            <div>
+              Menampilkan{" "}
+              <span className="font-semibold text-white">
+                {Math.min((currentPage - 1) * pageSize + 1, filteredUsers.length)}
+              </span>{" "}
+              hingga{" "}
+              <span className="font-semibold text-white">
+                {Math.min(currentPage * pageSize, filteredUsers.length)}
+              </span>{" "}
+              dari{" "}
+              <span className="font-semibold text-white">
+                {filteredUsers.length}
+              </span>{" "}
+              pengguna
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 text-white transition-all border border-slate-700"
+                  title="Halaman Sebelumnya"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-center gap-1 px-2">
+                  {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
+                    (pageNum) => (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all ${
+                          currentPage === pageNum
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                            : "text-slate-400 hover:text-white hover:bg-slate-800"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 text-white transition-all border border-slate-700"
+                  title="Halaman Berikutnya"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* Edit User Modal */}
       {isEditModalOpen && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Edit Pengguna</h2>
-                <button
-                  onClick={closeEditModal}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-700/70">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500/15 border border-blue-500/30 rounded-xl">
+                  <Edit2 className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">
+                    Edit Pengguna
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Perbarui informasi akun pengguna HR
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={closeEditModal}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              {/* Edit Form */}
+            {/* Modal Body */}
+            <div className="p-6">
               <form onSubmit={handleEditSubmit} className="space-y-4">
                 {/* General Error */}
                 {editErrors.general && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-800 text-sm">{editErrors.general}</p>
+                  <div className="p-3.5 bg-red-500/15 border border-red-500/30 rounded-xl flex items-center gap-2 text-red-300 text-sm">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{editErrors.general}</span>
                   </div>
                 )}
 
+                {/* Avatar Preview */}
+                <div className="flex items-center gap-4 p-3 bg-slate-900/60 border border-slate-700/60 rounded-xl">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg ring-2 ring-slate-700 flex-shrink-0">
+                    {editFormData.avatarUrl ? (
+                      <img
+                        src={editFormData.avatarUrl}
+                        alt="Avatar Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = "none";
+                        }}
+                      />
+                    ) : null}
+                    <span>
+                      {editFormData.name?.charAt(0)?.toUpperCase() || "U"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-300">
+                      Preview Profil
+                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {editFormData.name || "Nama Pengguna"}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Name Field */}
                 <div>
-                  <label htmlFor="edit-name" className="block text-sm font-semibold text-gray-700 mb-1">
-                    Nama Lengkap <span className="text-red-500">*</span>
+                  <label
+                    htmlFor="edit-name"
+                    className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5"
+                  >
+                    Nama Lengkap <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
@@ -560,23 +954,28 @@ interface FormErrors {
                     name="name"
                     value={editFormData.name}
                     onChange={handleEditInputChange}
-                    className={`w-full px-3 py-2 rounded-lg border-2 transition-all focus:outline-none focus:ring-2 ${
+                    className={`w-full px-3.5 py-2.5 bg-slate-900/80 border rounded-xl text-white placeholder-slate-500 text-sm transition-all focus:outline-none focus:ring-2 ${
                       editErrors.name
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-                        : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                        ? "border-red-500/50 focus:ring-red-500/20"
+                        : "border-slate-700 focus:border-blue-500 focus:ring-blue-500/20"
                     }`}
                     placeholder="Masukkan nama lengkap"
                     disabled={isEditLoading}
                   />
                   {editErrors.name && (
-                    <p className="mt-1 text-sm text-red-600">{editErrors.name}</p>
+                    <p className="mt-1 text-xs text-red-400">
+                      {editErrors.name}
+                    </p>
                   )}
                 </div>
 
                 {/* Email Field */}
                 <div>
-                  <label htmlFor="edit-email" className="block text-sm font-semibold text-gray-700 mb-1">
-                    Alamat Email <span className="text-red-500">*</span>
+                  <label
+                    htmlFor="edit-email"
+                    className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5"
+                  >
+                    Alamat Email <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="email"
@@ -584,23 +983,31 @@ interface FormErrors {
                     name="email"
                     value={editFormData.email}
                     onChange={handleEditInputChange}
-                    className={`w-full px-3 py-2 rounded-lg border-2 transition-all focus:outline-none focus:ring-2 ${
+                    className={`w-full px-3.5 py-2.5 bg-slate-900/80 border rounded-xl text-white placeholder-slate-500 text-sm transition-all focus:outline-none focus:ring-2 ${
                       editErrors.email
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-                        : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                        ? "border-red-500/50 focus:ring-red-500/20"
+                        : "border-slate-700 focus:border-blue-500 focus:ring-blue-500/20"
                     }`}
-                    placeholder="Masukkan alamat email"
+                    placeholder="Masukkan email resmi"
                     disabled={isEditLoading}
                   />
                   {editErrors.email && (
-                    <p className="mt-1 text-sm text-red-600">{editErrors.email}</p>
+                    <p className="mt-1 text-xs text-red-400">
+                      {editErrors.email}
+                    </p>
                   )}
                 </div>
 
                 {/* Avatar URL Field */}
                 <div>
-                  <label htmlFor="edit-avatarUrl" className="block text-sm font-semibold text-gray-700 mb-1">
-                    URL Avatar <span className="text-gray-400">(Opsional)</span>
+                  <label
+                    htmlFor="edit-avatarUrl"
+                    className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5"
+                  >
+                    URL Avatar{" "}
+                    <span className="text-slate-500 font-normal">
+                      (Opsional)
+                    </span>
                   </label>
                   <input
                     type="url"
@@ -608,7 +1015,7 @@ interface FormErrors {
                     name="avatarUrl"
                     value={editFormData.avatarUrl}
                     onChange={handleEditInputChange}
-                    className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 transition-all focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100"
+                    className="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm transition-all focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-500/20"
                     placeholder="https://example.com/avatar.jpg"
                     disabled={isEditLoading}
                   />
@@ -616,8 +1023,14 @@ interface FormErrors {
 
                 {/* Password Field */}
                 <div>
-                  <label htmlFor="edit-password" className="block text-sm font-semibold text-gray-700 mb-1">
-                    Password Baru <span className="text-gray-400">(Kosongkan untuk tetap menggunakan yang sekarang)</span>
+                  <label
+                    htmlFor="edit-password"
+                    className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5"
+                  >
+                    Password Baru{" "}
+                    <span className="text-slate-500 font-normal">
+                      (Kosongkan jika tidak diubah)
+                    </span>
                   </label>
                   <div className="relative">
                     <input
@@ -626,69 +1039,60 @@ interface FormErrors {
                       name="password"
                       value={editFormData.password}
                       onChange={handleEditInputChange}
-                      className={`w-full px-3 py-2 pr-10 rounded-lg border-2 transition-all focus:outline-none focus:ring-2 ${
+                      className={`w-full px-3.5 py-2.5 pr-10 bg-slate-900/80 border rounded-xl text-white placeholder-slate-500 text-sm transition-all focus:outline-none focus:ring-2 ${
                         editErrors.password
-                          ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-                          : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                          ? "border-red-500/50 focus:ring-red-500/20"
+                          : "border-slate-700 focus:border-blue-500 focus:ring-blue-500/20"
                       }`}
-                      placeholder="Masukkan password baru (opsional)"
+                      placeholder="Masukkan password baru"
                       disabled={isEditLoading}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-200 focus:outline-none"
                     >
                       {showPassword ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l-6.415-6.414m4.243 4.242L12 12l4.242 4.242m0 0L21.536 21.536M16.121 14.121l4.243 4.243" />
-                        </svg>
+                        <EyeOff className="w-4 h-4" />
                       ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
+                        <Eye className="w-4 h-4" />
                       )}
                     </button>
                   </div>
-                  {editErrors.password && (
-                    <p className="mt-1 text-sm text-red-600">{editErrors.password}</p>
-                  )}
-                  {editFormData.password && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Password minimal 8 karakter dengan huruf besar, huruf kecil, dan angka.
+                  {editErrors.password ? (
+                    <p className="mt-1 text-xs text-red-400">
+                      {editErrors.password}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Minimal 8 karakter mengandung huruf besar, huruf kecil,
+                      dan angka.
                     </p>
                   )}
                 </div>
 
-                {/* Form Actions */}
-                <div className="flex space-x-3 pt-4">
+                {/* Modal Actions */}
+                <div className="flex items-center gap-3 pt-4 border-t border-slate-700/60 mt-6">
                   <button
                     type="button"
                     onClick={closeEditModal}
                     disabled={isEditLoading}
-                    className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors disabled:opacity-50"
+                    className="flex-1 py-2.5 px-4 border border-slate-700 hover:bg-slate-700/50 text-slate-300 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={isEditLoading}
-                    className={`flex-1 py-2 px-4 rounded-lg font-semibold text-white transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 ${
-                      isEditLoading
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                    }`}
+                    className="flex-1 py-2.5 px-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {isEditLoading ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>Memperbarui...</span>
-                      </div>
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Menyimpan...</span>
+                      </>
                     ) : (
-                      "Perbarui Pengguna"
+                      "Simpan Perubahan"
                     )}
                   </button>
                 </div>

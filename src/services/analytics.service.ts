@@ -11,6 +11,7 @@ export interface DashboardStats {
   medicalfollowupApplications: number;
   completedApplications: number;
   hiredApplications: number;
+  rejectedApplications?: number;
   totalRecruiters: number;
   recentApplications: number;
 }

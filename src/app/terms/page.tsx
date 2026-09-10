@@ -1,5 +1,4 @@
 // app/terms/page.tsx
-import Footer from "@/components/Footer";
 
 export default function Terms() {
   return (
@@ -140,8 +139,6 @@ export default function Terms() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

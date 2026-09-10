@@ -7,12 +7,23 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/useAuth";
 import { LoginCredentials } from "@/types/types";
 import Swal from "sweetalert2";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Home,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState<LoginCredentials>({
     email: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { login } = useAuth();
@@ -37,17 +48,17 @@ export default function LoginPage() {
       // After login, store the token in localStorage
       const token = localStorage.getItem("token");
       if (token) {
-        // Success alert
+        // Success alert (Clean Light Corporate Theme)
         await Swal.fire({
-          title: "Login Successful!",
-          text: "Welcome back to your HR management platform",
+          title: "Login Berhasil!",
+          text: "Selamat datang kembali di platform HR PT Batara Dharma Persada",
           icon: "success",
           timer: 1500,
           showConfirmButton: false,
-          background: "#1e293b",
-          color: "#ffffff",
+          background: "#ffffff",
+          color: "#0f172a",
           customClass: {
-            popup: "rounded-xl border border-slate-700",
+            popup: "rounded-2xl border border-slate-200 shadow-2xl",
           },
         });
 
@@ -56,31 +67,33 @@ export default function LoginPage() {
       } else {
         // Authentication failed alert
         Swal.fire({
-          title: "Authentication Failed",
-          text: "Please try again.",
+          title: "Otentikasi Gagal",
+          text: "Email atau kata sandi tidak sesuai. Silakan coba kembali.",
           icon: "error",
-          confirmButtonText: "Try Again",
-          background: "#1e293b",
-          color: "#ffffff",
-          confirmButtonColor: "#dc2626",
+          confirmButtonText: "Coba Lagi",
+          background: "#ffffff",
+          color: "#0f172a",
+          confirmButtonColor: "#0d9488",
           customClass: {
-            popup: "rounded-xl border border-slate-700",
+            popup: "rounded-2xl border border-slate-200 shadow-2xl",
+            confirmButton: "rounded-xl font-bold px-6 py-2.5",
           },
         });
       }
     } catch (err: any) {
       // Error alert
       Swal.fire({
-        title: "Login Failed",
+        title: "Login Gagal",
         text:
-          err.message || "An error occurred during login. Please try again.",
+          err.message || "Terjadi kesalahan saat memproses login. Silakan periksa koneksi Anda dan coba lagi.",
         icon: "error",
-        confirmButtonText: "Try Again",
-        background: "#1e293b",
-        color: "#ffffff",
-        confirmButtonColor: "#dc2626",
+        confirmButtonText: "Coba Lagi",
+        background: "#ffffff",
+        color: "#0f172a",
+        confirmButtonColor: "#0d9488",
         customClass: {
-          popup: "rounded-xl border border-slate-700",
+          popup: "rounded-2xl border border-slate-200 shadow-2xl",
+          confirmButton: "rounded-xl font-bold px-6 py-2.5",
         },
       });
     } finally {
@@ -89,301 +102,213 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
-          {/* Photo Card Section */}
-          <div className="hidden lg:block">
-            <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-2xl">
-              <div className="relative overflow-hidden rounded-xl mb-6 group">
-                <Image
-                  src="/hr.avif"
-                  alt="HR Management Team"
-                  width={600}
-                  height={400}
-                  className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <h2 className="text-2xl font-bold text-white mb-2">
-                    Human Resources Excellence
-                  </h2>
-                  <p className="text-slate-200 text-sm">
-                    Empowering teams, streamlining processes, driving success
-                  </p>
-                </div>
-              </div>
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white selection:bg-teal-500 selection:text-white">
+      {/* Sisi Kiri: Visual & Branding (Split Screen) */}
+      <div className="relative hidden lg:flex lg:w-1/2 xl:w-7/12 flex-col justify-between p-12 xl:p-16 overflow-hidden min-h-screen bg-slate-900">
+        {/* Background Image of HR Collaboration Team */}
+        <img
+          src="/hr.avif"
+          alt="Human Resources Management PT Batara Dharma Persada"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
 
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4 text-blue-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium">
-                      Employee Management
-                    </h3>
-                    <p className="text-slate-400 text-sm">
-                      Comprehensive staff oversight
-                    </p>
-                  </div>
-                </div>
+        {/* Gradient Overlays for High Legibility & Elegance */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/65 to-slate-900/40"></div>
+        <div className="absolute inset-0 bg-teal-950/20 mix-blend-multiply"></div>
 
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4 text-green-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium">
-                      Analytics & Reports
-                    </h3>
-                    <p className="text-slate-400 text-sm">
-                      Data-driven insights
-                    </p>
-                  </div>
-                </div>
+        {/* Top Header Badge */}
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-sm">
+            <Sparkles className="w-4 h-4 text-teal-300" />
+            <span className="text-xs font-bold uppercase tracking-wider text-teal-200">
+              PT Batara Dharma Persada
+            </span>
+          </div>
+        </div>
 
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4 text-purple-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium">
-                      Automated Workflows
-                    </h3>
-                    <p className="text-slate-400 text-sm">
-                      Streamlined operations
-                    </p>
-                  </div>
-                </div>
-              </div>
+        {/* Center / Editorial Hero Content */}
+        <div className="relative z-10 space-y-6 max-w-xl my-auto py-12">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-300 text-xs font-extrabold uppercase tracking-wider">
+              Human Resources &amp; Talent Center
             </div>
+            <h1 className="text-3xl xl:text-4xl 2xl:text-5xl font-black text-white tracking-tight leading-tight">
+              Membangun Keunggulan Operasional Bersama Insan Terbaik
+            </h1>
+            <p className="text-slate-200 text-sm xl:text-base leading-relaxed font-normal">
+              Sistem terintegrasi rekrutmen, penempatan karyawan, dan tata kelola sumber daya manusia untuk mendukung seluruh lini operasi pertambangan dan hauling PT Batara Dharma Persada.
+            </p>
           </div>
 
-          {/* Login Form Section */}
-          <div className="w-full max-w-md mx-auto lg:mx-0">
-            <div className="bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-8">
-              {/* Logo */}
-              <div className="text-center mb-8">
-                <div className="mb-6">
-                  <Image
-                    src="/logohrlogin.png"
-                    alt="HR Management Logo"
-                    width={120}
-                    height={120}
-                    className="mx-auto drop-shadow-lg"
-                  />
-                </div>
-                <h1 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Welcome Back
-                </h1>
-                <p className="text-slate-400 text-sm">
-                  Sign in to access your HR management platform
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-slate-300"
-                  >
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-white/5 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 backdrop-blur-sm"
-                      placeholder="employee@bataramining.com"
-                      required
-                      disabled={isSubmitting}
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <svg
-                        className="w-5 h-5 text-slate-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-slate-300"
-                  >
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      id="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-white/5 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 backdrop-blur-sm"
-                      placeholder="Enter your password"
-                      required
-                      disabled={isSubmitting}
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <svg
-                        className="w-5 h-5 text-slate-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="rounded border-slate-600 bg-white/5 text-blue-500 focus:ring-blue-500 focus:ring-2"
-                    />
-                    <span className="ml-2 text-slate-400">Remember me</span>
-                  </label>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <svg
-                        className="animate-spin w-5 h-5 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      <span>Signing In...</span>
-                    </div>
-                  ) : (
-                    "Sign In"
-                  )}
-                </button>
-              </form>
-
-              <div className="mt-8 pt-6 border-t border-slate-700">
-                <div className="text-center">
-                  <span className="text-sm text-slate-400">
-                    Need to go back?{" "}
-                    <Link
-                      href="/"
-                      className="text-blue-400 hover:text-blue-300 font-medium transition-colors hover:underline"
-                    >
-                      Return to Homepage
-                    </Link>
-                  </span>
-                </div>
-              </div>
+          {/* 3 Core Value Pillars */}
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/15">
+            <div className="space-y-1">
+              <div className="text-teal-300 font-extrabold text-base sm:text-lg">Terpadu</div>
+              <div className="text-slate-300 text-xs leading-snug">Seleksi &amp; Evaluasi Formasi</div>
             </div>
-
-            {/* Mobile Photo Card */}
-            <div className="lg:hidden mt-8">
-              <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
-                <div className="relative overflow-hidden rounded-xl">
-                  <Image
-                    src="/hr.avif"
-                    alt="HR Management Team"
-                    width={400}
-                    height={200}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="text-lg font-semibold text-white">
-                      Professional HR Solutions
-                    </h3>
-                    <p className="text-slate-200 text-xs">
-                      Your trusted partner in human resources
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div className="space-y-1">
+              <div className="text-teal-300 font-extrabold text-base sm:text-lg">Real-Time</div>
+              <div className="text-slate-300 text-xs leading-snug">Pelacakan Pipeline Pelamar</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-teal-300 font-extrabold text-base sm:text-lg">Terpercaya</div>
+              <div className="text-slate-300 text-xs leading-snug">Akses Berbasis Peran (RBAC)</div>
             </div>
           </div>
         </div>
+
+        {/* Bottom Left Footer */}
+        <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 pt-6 border-t border-white/10 font-medium">
+          <span>© {new Date().getFullYear()} PT Batara Dharma Persada</span>
+          <span>Human Capital Management</span>
+        </div>
       </div>
 
-      {/* Background Decoration */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -right-32 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-400/5 rounded-full blur-3xl"></div>
+      {/* Sisi Kanan: Form Login (Split Screen) */}
+      <div className="w-full lg:w-1/2 xl:w-5/12 min-h-screen flex flex-col justify-between bg-white px-6 sm:px-12 xl:px-16 py-8 sm:py-12 relative">
+        {/* Top Bar Navigation */}
+        <div className="flex items-center justify-between w-full max-w-md mx-auto">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-teal-700 transition-colors group"
+          >
+            <Home className="w-4 h-4 text-slate-400 group-hover:text-teal-600 transition-colors" />
+            <span>Kembali ke Beranda</span>
+          </Link>
+
+          <span className="text-[11px] font-bold text-teal-700 uppercase tracking-wider bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+            Portal Masuk
+          </span>
+        </div>
+
+        {/* Center: Form Area */}
+        <div className="w-full max-w-md mx-auto my-auto py-8 space-y-7">
+          {/* Header & Logo */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3.5">
+              <Image
+                src="/logohrlogin.png"
+                alt="Logo HR Portal"
+                width={60}
+                height={60}
+                className="w-14 h-14 object-contain flex-shrink-0"
+                priority
+              />
+              <div>
+                <div className="text-teal-700 font-extrabold text-xs uppercase tracking-wider">
+                  PT Batara Dharma Persada
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  Selamat Datang
+                </h2>
+              </div>
+            </div>
+            <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
+              Silakan masukkan alamat email dan kata sandi Anda untuk mengakses dashboard manajemen HR.
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <label
+                htmlFor="email"
+                className="block text-xs font-bold text-slate-700 uppercase tracking-wider"
+              >
+                Alamat Email Resmi
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3.5 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 shadow-xs transition-all"
+                  placeholder="nama@bataramining.com"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="password"
+                  className="block text-xs font-bold text-slate-700 uppercase tracking-wider"
+                >
+                  Kata Sandi
+                </label>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-11 py-3.5 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 shadow-xs transition-all"
+                  placeholder="Masukkan kata sandi akun Anda"
+                  required
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-sm pt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
+                />
+                <span className="text-xs text-slate-600 font-medium">Ingat Saya</span>
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold py-3.5 px-6 rounded-xl shadow-md shadow-teal-600/20 hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Memproses Masuk...</span>
+                </>
+              ) : (
+                <>
+                  <span>Masuk ke Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Bottom Note */}
+        <div className="w-full max-w-md mx-auto pt-6 border-t border-slate-100 text-center text-xs text-slate-400 font-medium">
+          Butuh bantuan akses akun? Hubungi Tim HRGA &amp; IT PT Batara Dharma Persada.
+        </div>
       </div>
     </div>
   );
